@@ -1,0 +1,4 @@
+charset.extension,UTF-8
+dic, aya_shiori3.dic
+dic, test.dic
+log, test.log
