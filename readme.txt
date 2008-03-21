@@ -19,7 +19,7 @@
 
 ■配布条件等
 
-licence.txtを見てください。
+license.txtを見てください。
 
 ■更新履歴
 
