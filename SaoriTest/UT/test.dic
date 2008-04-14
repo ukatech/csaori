@@ -1,4 +1,3 @@
 test{
-	_result=FUNCTIONEX("SaoriTest.dll","‚Ö‚à","‚à‚°");
-	_result
+_result=FUNCTIONEX("SaoriTest.dll","‚Ö‚à","‚à‚°");
 }
