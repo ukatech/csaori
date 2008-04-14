@@ -220,14 +220,15 @@ bool CSAORIInput::parseString(const string_t src)
 			if (k.size() > catag && _memicmp(pk, atag, catag) == 0) {
 				int ord = _wtoi(pk + catag);
 				if (ord > 0 || (ord == 0 && k[catag] == L'0')) {
-					if (argc < ord) {
+					if (argc <= ord) {
 						// _argument[n] ‚ª‡”Ô‚É“ü‚Á‚Ä‚È‚¢ê‡‚Í 
 						// Œ„ŠÔ‚ðæ‚É–„‚ß‚Ä‚¨‚­ 
-						for(int i=(int)(_arg.size()); i<ord; i++) {
+						for(int i=(int)(_arg.size()); i<=ord; i++) {
 							_arg.push_back(L"");
 						}
 					}
-					_arg.push_back(v);
+					//_arg.push_back(v);
+					_arg[ord]=v;
 					argc = (int)(_arg.size());
 				}
 			}

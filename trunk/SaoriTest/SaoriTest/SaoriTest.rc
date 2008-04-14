@@ -53,8 +53,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 1,0,0,0
+ FILEVERSION 1,0,1,0
+ PRODUCTVERSION 1,0,1,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -70,12 +70,12 @@ BEGIN
         BLOCK "041104b0"
         BEGIN
             VALUE "FileDescription", "SaoriTest"
-            VALUE "FileVersion", "1, 0, 0, 0"
-            VALUE "InternalName", "SaoriTes"
+            VALUE "FileVersion", "1, 0, 1, 0"
+            VALUE "InternalName", "SaoriTest"
             VALUE "LegalCopyright", " (C) Ukiya"
             VALUE "OriginalFilename", "SaoriTest.dll"
             VALUE "ProductName", "SaoriTest"
-            VALUE "ProductVersion", "1, 0, 0, 0"
+            VALUE "ProductVersion", "1, 0, 1, 0"
         END
     END
     BLOCK "VarFileInfo"
