@@ -9,11 +9,7 @@ based by ‚¦‚Ñ‚³‚í—l "gethwnd.dll"
 
 #pragma once
 
-#ifdef SAORI_EXPORTS
 #define SAORIAPI extern "C" __declspec(dllexport)
-#else
-#define SAORIAPI extern "C" __declspec(dllimport) 
-#endif
 
 #define SAORICDECL __cdecl
 
@@ -48,15 +44,15 @@ typedef enum {SAORIRESULT_OK=200,SAORIRESULT_NO_CONTENT=204,SAORIRESULT_BAD_REQU
 
 //global functions
 namespace SAORI_FUNC{
-	static string_t numToString(unsigned num, unsigned base=10, char_t sign=L'\0');
-	static string_t intToString(int num, unsigned base=10);
-	static string_t::size_type  getLine(string_t &, const string_t &, string_t::size_type);
-	static string_t getResultString(int);
+	string_t numToString(unsigned num, unsigned int base=10, char_t sign=L'\0');
+	string_t intToString(int num, unsigned int base=10);
+	string_t::size_type  getLine(string_t &, const string_t &, string_t::size_type);
+	string_t getResultString(int);
 
-	static std::string UnicodeToMultiByte(const std::wstring& Source, UINT CodePage=CP_ACP, DWORD Flags=0);
-	static std::wstring MultiByteToUnicode(const std::string& Source, UINT CodePage=CP_ACP, DWORD Flags=0);
-	static UINT CHARSETtoCodePage(CHARSET cset);
-	static wstring CHARSETtoString(CHARSET cset);
+	std::string UnicodeToMultiByte(const std::wstring& Source, UINT CodePage=CP_OEMCP, DWORD Flags=0);
+	std::wstring MultiByteToUnicode(const std::string& Source, UINT CodePage=CP_OEMCP, DWORD Flags=0);
+	UINT CHARSETtoCodePage(CHARSET cset);
+	wstring CHARSETtoString(CHARSET cset);
 }
 
 //Classes

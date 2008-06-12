@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "csaori.h"
 
 using namespace std;
@@ -154,7 +153,7 @@ namespace SAORI_FUNC{
 	// ”’l¨•¶š—ñ 
 	// numToString ‚Æ‚¾‚¢‚½‚¢“¯‚¶B•‰”‚Ì‚Æ‚«‚Í - ‚ğæ“ª‚É‚Â‚¯‚é 
 	//
-	static string_t numToString(unsigned num, unsigned base, char_t sign)
+	string_t numToString(unsigned num, unsigned int base, char_t sign)
 	{
 		if (num == 0) return L"0";
 		
@@ -176,7 +175,7 @@ namespace SAORI_FUNC{
 		return string_t(s + pos);
 	}
 
-	static string_t intToString(int num, unsigned base)
+	string_t intToString(int num, unsigned int base)
 	{
 		char_t c = L'\0';
 		if (num < 0) { num = -num; c = '-'; }
@@ -389,7 +388,7 @@ request(HGLOBAL h, long *len)
 	*len = (long)(re.size());
 	h = GlobalAlloc(GMEM_FIXED, *len);
 	if (h) {
-		re._Copy_s((char *)h, *len,*len,0);
+		re.assign((char *)h, *len);
 	}
 	
 	return h;
