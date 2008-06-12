@@ -1,11 +1,9 @@
 /*
-saorimnp.h
-
-2008/03/18 version 1.0 新規作成
-
-written by Ukiya http://ukiya.sakura.ne.jp/
-based by えびさわ様 "gethwnd.dll"
-*/
+ * csaori.h
+ * 
+ * written by Ukiya http://ukiya.sakura.ne.jp/
+ * based by えびさわ様 "gethwnd.dll"
+ */
 
 #pragma once
 
@@ -13,16 +11,12 @@ based by えびさわ様 "gethwnd.dll"
 
 #define SAORICDECL __cdecl
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+
 #include <string>
 #include <vector>
 #include <map>
-#include <cstring>
-#include <cstdlib>
-#include <algorithm>
-#include <locale>
-
-using namespace std;
 
 //SAORI INTERFACES
 SAORIAPI BOOL SAORICDECL load(HGLOBAL h,long len);
@@ -37,7 +31,7 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 #define SAORI_SIZEOFVERSIONSTRING	(sizeof(SAORI_VERSIONSTRING) - 1)
 
 typedef wchar_t char_t;
-typedef basic_string<char_t> string_t;
+typedef std::basic_string<char_t> string_t;
 
 typedef enum {CHARSET_Shift_JIS,CHARSET_ISO_2022_JP,CHARSET_EUC_JP,CHARSET_UTF_8} CHARSET;
 typedef enum {SAORIRESULT_OK=200,SAORIRESULT_NO_CONTENT=204,SAORIRESULT_BAD_REQUEST=400,SAORIRESULT_INTERNAL_SERVER_ERROR=500} SAORIRESULT;
@@ -52,7 +46,7 @@ namespace SAORI_FUNC{
 	std::string UnicodeToMultiByte(const std::wstring& Source, UINT CodePage=CP_OEMCP, DWORD Flags=0);
 	std::wstring MultiByteToUnicode(const std::string& Source, UINT CodePage=CP_OEMCP, DWORD Flags=0);
 	UINT CHARSETtoCodePage(CHARSET cset);
-	wstring CHARSETtoString(CHARSET cset);
+	std::wstring CHARSETtoString(CHARSET cset);
 }
 
 //Classes
@@ -60,8 +54,8 @@ class CSAORIInput{
 public:
 	CHARSET charset;
 	string_t cmd;
-	vector<string_t> args;
-	map<string_t,string_t> opts;
+	std::vector<string_t> args;
+	std::map<string_t,string_t> opts;
 
 	bool parseString(const string_t src);
 };
@@ -71,8 +65,8 @@ public:
 	CHARSET charset;
 	SAORIRESULT result_code;
 	string_t result;
-	vector<string_t> values;
-	map<string_t,string_t> opts;
+	std::vector<string_t> values;
+	std::map<string_t,string_t> opts;
 
 	string_t toString();
 };
@@ -87,8 +81,8 @@ private:
 	string_t module_path;
 
 public:
-	void setModulePath(string str);
-	string request(string req);
+	void setModulePath(std::string str);
+	std::string request(std::string req);
 
 	//以下が実装すべき関数
 	void exec(const CSAORIInput& in,CSAORIOutput& out);

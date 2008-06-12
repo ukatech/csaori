@@ -1,5 +1,18 @@
+/*
+ * csaori.cpp
+ * 
+ * written by Ukiya http://ukiya.sakura.ne.jp/
+ * based by ‚¦‚Ñ‚³‚í—l "gethwnd.dll"
+ */
 
+#ifdef _MSC_VER
 #pragma warning( disable : 4786 )
+#endif
+
+#include <cstring>
+#include <cstdlib>
+#include <algorithm>
+#include <locale>
 
 #include "csaori.h"
 
@@ -202,8 +215,8 @@ bool CSAORIInput::parseString(const string_t src)
 	const string_t::size_type catag = 8;//"Argument"‚Ì’·‚³
 	string_t::size_type pos = 0, nextpos;
 	string_t::size_type ts;
-	vector<string_t> _arg;
-	map<string_t, string_t> _opt;
+	std::vector<string_t> _arg;
+	std::map<string_t, string_t> _opt;
 	string_t _cmd;
 	
 	string_t sl;
@@ -243,10 +256,10 @@ bool CSAORIInput::parseString(const string_t src)
 			}
 			else {
 				if (ts > 0) {
-					map<string_t,string_t>::iterator i;
+					std::map<string_t,string_t>::iterator i;
 					i = _opt.find(k);
 					if (i == _opt.end()) {
-						_opt.insert(pair<string_t,string_t>(k, v));
+						_opt.insert(std::pair<string_t,string_t>(k, v));
 					}
 					else _opt[k] = v;
 				}
@@ -288,7 +301,7 @@ string_t CSAORIOutput::toString()
 		}
 	}
 	if (!opts.empty()) {
-		map<string_t,string_t>::iterator i;
+		std::map<string_t,string_t>::iterator i;
 		for(i=opts.begin(); i != opts.end(); i++) {
 			dest += (i->first + L": " + i->second + L"\r\n");
 		}
@@ -301,24 +314,25 @@ string_t CSAORIOutput::toString()
 //------------------------------------------------------------------------------
 //CSAORI
 //------------------------------------------------------------------------------
-string CSAORI::request(string rq_tmp){
-	string cmd;
+std::string CSAORI::request(std::string rq_tmp)
+{
+	std::string cmd;
 	CSAORIInput* pIn;
 	CSAORIOutput* pOut;
 
 	//–¢‰ÁHRequest‚ð¬•¶Žš‚É•ÏŠ·
-	string tmp=rq_tmp;
+	std::string tmp=rq_tmp;
 	std::transform(tmp.begin(), tmp.end(), tmp.begin(), tolower);
 
 	//Charset”»•Ê
 	CHARSET cset=CHARSET_Shift_JIS;
-	if(tmp.find("\ncharset: shift_jis")!=string::npos){
+	if(tmp.find("\ncharset: shift_jis")!=std::string::npos){
 		cset=CHARSET_Shift_JIS;
-	}else if(tmp.find("\ncharset: iso-2022-jp")!=string::npos){
+	}else if(tmp.find("\ncharset: iso-2022-jp")!=std::string::npos){
 		cset=CHARSET_ISO_2022_JP;
-	}else if(tmp.find("\ncharset: euc-jp")!=string::npos){
+	}else if(tmp.find("\ncharset: euc-jp")!=std::string::npos){
 		cset=CHARSET_EUC_JP;
-	}else if(tmp.find("\ncharset: utf-8")!=string::npos){
+	}else if(tmp.find("\ncharset: utf-8")!=std::string::npos){
 		cset=CHARSET_UTF_8;
 	}
 
@@ -351,13 +365,13 @@ string CSAORI::request(string rq_tmp){
 		}
 	}
 	string_t res_wstr=pOut->toString();
-	string res_str=SAORI_FUNC::UnicodeToMultiByte(res_wstr,SAORI_FUNC::CHARSETtoCodePage(pOut->charset));
+	std::string res_str=SAORI_FUNC::UnicodeToMultiByte(res_wstr,SAORI_FUNC::CHARSETtoCodePage(pOut->charset));
 	delete pIn;
 	delete pOut;
 	return res_str;
 }
 
-void CSAORI::setModulePath(string str){
+void CSAORI::setModulePath(std::string str){
 	module_path=SAORI_FUNC::MultiByteToUnicode(str);
 }
 
@@ -390,10 +404,10 @@ HGLOBAL
 SAORICDECL 
 request(HGLOBAL h, long *len)
 {
-	string rq((char *)h, *len);
+	std::string rq((char *)h, *len);
 	GlobalFree(h);
 	
-	string re=pSaori->request(rq);
+	std::string re=pSaori->request(rq);
 
 	*len = (long)(re.size());
 	h = GlobalAlloc(GMEM_FIXED, *len+1);
@@ -414,7 +428,7 @@ load(HGLOBAL h, long len)
 	}
 	pSaori=new CSAORI();
 	if (h) {
-		string mpath;
+		std::string mpath;
 		mpath.assign((char*)h,len);
 		GlobalFree(h);
 		pSaori->setModulePath(mpath);
@@ -433,5 +447,8 @@ unload()
 	BOOL re=pSaori->unload();
 	delete pSaori;
 	pSaori=NULL;
+#ifdef _DEBUG
+	_CrtDumpMemoryLeaks();
+#endif
 	return re;
 }
