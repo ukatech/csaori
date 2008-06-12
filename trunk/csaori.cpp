@@ -1,6 +1,16 @@
+
+#pragma warning( disable : 4786 )
+
 #include "csaori.h"
 
-using namespace std;
+//////////DEBUG/////////////////////////
+#ifdef _WINDOWS
+#ifdef _DEBUG
+#include <crtdbg.h>
+#define new new( _NORMAL_BLOCK, __FILE__, __LINE__)
+#endif
+#endif
+////////////////////////////////////////
 
 //global CSAORI object
 CSAORI* pSaori;
@@ -386,9 +396,9 @@ request(HGLOBAL h, long *len)
 	string re=pSaori->request(rq);
 
 	*len = (long)(re.size());
-	h = GlobalAlloc(GMEM_FIXED, *len);
+	h = GlobalAlloc(GMEM_FIXED, *len+1);
 	if (h) {
-		re.assign((char *)h, *len);
+		memcpy(h,re.c_str(),*len+1);
 	}
 	
 	return h;
