@@ -23,7 +23,7 @@ license.txtを見てください。
 
 ■更新履歴
 
-2008/03/21	ver1.0.0.0	新規作成
+http://code.google.com/p/csaori/wiki/ChangeLog
 
 ■thanks to
 
