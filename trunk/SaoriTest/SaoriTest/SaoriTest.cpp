@@ -1,18 +1,29 @@
-// SaoriTest.cpp : DLL アプリケーションのエントリ ポイントを定義します。
-//
+#ifdef _MSC_VER
+#pragma warning( disable : 4786 )
+#endif
 
 #include "stdafx.h"
 #include "csaori.h"
 
+/*---------------------------------------------------------
+	初期化
+---------------------------------------------------------*/
+bool CSAORI::load(){
+	return true;
+}
+
+/*---------------------------------------------------------
+	解放
+---------------------------------------------------------*/
+bool CSAORI::unload(){
+	return true;
+}
+
+/*---------------------------------------------------------
+	実行
+---------------------------------------------------------*/
 void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 	out.result_code=SAORIRESULT_OK;
 	out.result=module_path+in.args[0]+in.args[1];
 }
 
-bool CSAORI::unload(){
-	return true;
-}
-
-bool CSAORI::load(){
-	return true;
-}
