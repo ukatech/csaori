@@ -42,6 +42,25 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 	if ( in.args.size() < 1 ) { return; }
 
 	std::string filepath = SAORI_FUNC::UnicodeToMultiByte(in.args[0]);
+
+	std::string::size_type len = filepath.size() < MAX_PATH ? MAX_PATH : filepath.size();
+	len *= 2;
+
+	{ //ŠÂ‹«•Ï”“WŠJ
+		void *pBuf = malloc(len+1);
+		std::string::size_type realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(char*)pBuf,len);
+		if ( realLen > len ) {
+			free(pBuf);
+			pBuf = malloc(realLen+1);
+			realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(char*)pBuf,realLen);
+		}
+
+		if ( realLen ) {
+			filepath = (char*)pBuf;
+		}
+		free(pBuf);
+	}
+
 	const char* pFile = filepath.c_str();
 
 	out.result_code = SAORIRESULT_OK;
@@ -62,15 +81,17 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 	}
 
 	//‚±‚ÌŒã‚Ì•¶Žš—ñŽæ“¾‚É”õ‚¦‚ÄŒ¾ŒêŽ¯•ÊŽq‚ÌŽæ“¾
+#include <pshpack1.h>
 	struct LANGANDCODEPAGE {
 	  WORD wLanguage;
 	  WORD wCodePage;
 	} *pTranslate;
+#include <poppack.h>
 
 	UINT size;
 	::VerQueryValue(pBuf, "\\VarFileInfo\\Translation", (void**)&pTranslate, &size);
 
-	char langText[32] = "000004b0";
+	char langText[10] = "000004b0";
 	if ( size ) {
 		sprintf(langText,"%04x%04x",pTranslate->wLanguage,pTranslate->wCodePage);
 	}
@@ -105,6 +126,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 		UINT verInfoLen;
 		char *pText = NULL;
 		::VerQueryValue(pBuf,const_cast<char*>(str_file_info.c_str()),(void**)&pText,&verInfoLen);
+		//DWORD e = ::GetLastError();
 
 		if ( verInfoLen && pText ) {
 			out.values.push_back(SAORI_FUNC::MultiByteToUnicode(pText));
