@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <locale>
+#include <sstream>
 
 #include "csaori.h"
 
@@ -163,47 +164,6 @@ namespace SAORI_FUNC{
 		
 		return ppos;
 	}
-
-
-	//
-	// numToString(num, base, sign)
-	// 符号なし数値→文字列 
-	// num 数値 
-	// base 基数（デフォルト 10） 
-	// sign 結果文字列の先頭につける文字。\0 の場合は何もつけない 
-	//
-	// intToString(num, base)
-	// 数値→文字列 
-	// numToString とだいたい同じ。負数のときは - を先頭につける 
-	//
-	string_t numToString(unsigned num, unsigned int base, char_t sign)
-	{
-		if (num == 0) return L"0";
-		
-		unsigned m;
-		char_t	c, s[96];
-		int		pos = sizeof(s);
-		
-		s[--pos] = '\0';
-		while(pos > 0) {
-			m = num % base;
-			if (m < 10) c = L'0' + m;
-			else c = L'a' - 10 + m;
-			s[--pos] = c;
-			num /= base;
-			if (num == 0) break;
-		}
-		if (sign) s[--pos] = sign;
-		
-		return string_t(s + pos);
-	}
-
-	string_t intToString(int num, unsigned int base)
-	{
-		char_t c = L'\0';
-		if (num < 0) { num = -num; c = '-'; }
-		return SAORI_FUNC::numToString(num, base, c);
-	}
 }
 
 //------------------------------------------------------------------------------
@@ -281,22 +241,20 @@ string_t CSAORIOutput::toString()
 {
 	string_t rcstr = SAORI_FUNC::getResultString(result_code);
 	
-	string_t dest;
-	dest = SAORI_VERSIONSTRING L" ";
-	dest += SAORI_FUNC::numToString(result_code) +L" "+ rcstr + L"\r\n";
+	std::wstringstream dest;
+	dest << SAORI_VERSIONSTRING L" ";
+	dest << result_code << L" " << rcstr << L"\r\n";
 
-	dest +=L"Charset: "+SAORI_FUNC::CHARSETtoString(charset)+L"\r\n";
+	dest << L"Charset: " << SAORI_FUNC::CHARSETtoString(charset) << L"\r\n";
 	
 	if (!result.empty()) {
-		dest += L"Result: ";
-		dest += result;
-		dest += L"\r\n";
+		dest << L"Result: " << result << L"\r\n";
 	}
 	if (!values.empty()) {
 		int i, n = (int)(values.size());
 		string_t tmp;
 		for(i=0; i<n; i++) {
-			dest += ( L"Value" + SAORI_FUNC::numToString(i) + L": " );
+			dest << L"Value" << i << L": ";
 
 			tmp = values[i];
 			std::string::size_type nPos = 0;
@@ -310,19 +268,18 @@ string_t CSAORIOutput::toString()
 				tmp.replace(nPos, 2 , L"\1");
 			}
 
-			dest += values[i];
-			dest += L"\r\n";
+			dest << values[i] << L"\r\n";
 		}
 	}
 	if (!opts.empty()) {
 		std::map<string_t,string_t>::iterator i;
 		for(i=opts.begin(); i != opts.end(); i++) {
-			dest += (i->first + L": " + i->second + L"\r\n");
+			dest << i->first << L": " << i->second << L"\r\n";
 		}
 	}
 	
-	dest += L"\r\n";
-	return dest;
+	dest << L"\r\n";
+	return dest.str();
 }
 
 //------------------------------------------------------------------------------

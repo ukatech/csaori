@@ -114,27 +114,36 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 	out.result = version_str;
 
 	//ï∂éöóÒånèÓïÒ
-	std::string str_file_info_base = std::string("\\StringFileInfo\\") + langText + "\\";
-	
-	const char *pInfoList[] = {"LegalCopyright","FileDescription"};
+	const char *pLangList[] = {langText,"040904e4"};
+	const char *pInfoList[] = {"ProductName","FileDescription","Comments","LegalCopyright","LegalTrademarks"};
 
-	std::string str_file_info;
-	
-	for ( unsigned int i = 0 ; i < sizeof(pInfoList) / sizeof(pInfoList[0]) ; ++i ) {
-		str_file_info = str_file_info_base + pInfoList[i];
+	for ( unsigned int lang = 0 ; lang < sizeof(pLangList) / sizeof(pLangList[0]) ; ++lang ) {
+		std::string str_file_info_base = std::string("\\StringFileInfo\\") + pLangList[lang] + "\\";
+		std::string str_file_info;
 
-		UINT verInfoLen;
-		char *pText = NULL;
-		::VerQueryValue(pBuf,const_cast<char*>(str_file_info.c_str()),(void**)&pText,&verInfoLen);
-		//DWORD e = ::GetLastError();
+		out.values.clear();
 
-		if ( verInfoLen && pText ) {
-			out.values.push_back(SAORI_FUNC::MultiByteToUnicode(pText));
+		size_t count = 0;
+		
+		for ( unsigned int i = 0 ; i < sizeof(pInfoList) / sizeof(pInfoList[0]) ; ++i ) {
+			str_file_info = str_file_info_base + pInfoList[i];
+
+			UINT verInfoLen;
+			char *pText = NULL;
+			::VerQueryValue(pBuf,const_cast<char*>(str_file_info.c_str()),(void**)&pText,&verInfoLen);
+
+			if ( verInfoLen && pText ) {
+				out.values.push_back(SAORI_FUNC::MultiByteToUnicode(pText));
+				++count;
+			}
+			else {
+				out.values.push_back(L"");
+			}
 		}
-		else {
-			out.values.push_back(L"");
+
+		if ( count ) {
+			break;
 		}
 	}
-
 }
 
