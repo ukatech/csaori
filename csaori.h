@@ -57,7 +57,7 @@ public:
 	std::vector<string_t> args;
 	std::map<string_t,string_t> opts;
 
-	bool parseString(const string_t src);
+	bool parseString(const string_t &src);
 };
 
 class CSAORIOutput{
@@ -81,8 +81,8 @@ private:
 	string_t module_path;
 
 public:
-	void setModulePath(std::string str);
-	std::string request(std::string req);
+	void setModulePath(const std::string &str);
+	std::string request(const std::string &req);
 
 	//ˆÈ‰º‚ªÀ‘•‚·‚×‚«ŠÖ”
 	void exec(const CSAORIInput& in,CSAORIOutput& out);
