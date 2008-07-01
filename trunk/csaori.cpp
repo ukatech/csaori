@@ -169,7 +169,7 @@ namespace SAORI_FUNC{
 //------------------------------------------------------------------------------
 //CSAORIInput
 //------------------------------------------------------------------------------
-bool CSAORIInput::parseString(const string_t src)
+bool CSAORIInput::parseString(const string_t &src)
 {
 	const char_t atag[] = L"Argument";
 	const string_t::size_type catag = 8;//"Argument"‚Ì’·‚³
@@ -285,7 +285,7 @@ string_t CSAORIOutput::toString()
 //------------------------------------------------------------------------------
 //CSAORI
 //------------------------------------------------------------------------------
-std::string CSAORI::request(std::string rq_tmp)
+std::string CSAORI::request(const std::string &rq_tmp)
 {
 	std::string cmd;
 	CSAORIInput* pIn;
@@ -342,7 +342,7 @@ std::string CSAORI::request(std::string rq_tmp)
 	return res_str;
 }
 
-void CSAORI::setModulePath(std::string str){
+void CSAORI::setModulePath(const std::string &str){
 	module_path=SAORI_FUNC::MultiByteToUnicode(str);
 }
 
