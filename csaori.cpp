@@ -294,8 +294,22 @@ string_t CSAORIOutput::toString()
 	}
 	if (!values.empty()) {
 		int i, n = (int)(values.size());
+		string_t tmp;
 		for(i=0; i<n; i++) {
 			dest += ( L"Value" + SAORI_FUNC::numToString(i) + L": " );
+
+			tmp = values[i];
+			std::string::size_type nPos = 0;
+			while((nPos = tmp.find(L"\r\n", nPos)) != std::string::npos){
+				tmp.replace(nPos, 2 , L"\1");
+			}
+			while((nPos = tmp.find(L"\r", nPos)) != std::string::npos){
+				tmp.replace(nPos, 2 , L"\1");
+			}
+			while((nPos = tmp.find(L"\n", nPos)) != std::string::npos){
+				tmp.replace(nPos, 2 , L"\1");
+			}
+
 			dest += values[i];
 			dest += L"\r\n";
 		}
