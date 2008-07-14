@@ -96,10 +96,6 @@ SOURCE=..\..\csaori.cpp
 
 SOURCE=.\SaoriTest.cpp
 # End Source File
-# Begin Source File
-
-SOURCE=.\stdafx.cpp
-# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -111,10 +107,6 @@ SOURCE=..\..\csaori.h
 # Begin Source File
 
 SOURCE=.\resource.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\stdafx.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
