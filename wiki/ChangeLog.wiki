@@ -1,10 +1,30 @@
-= Version 1.0.0.0 2008/03/21 =
+
+= CSAORI 本体 =
+
+== Version 1.0.0.0 2008/03/21 ==
  * 新規作成
 
-= Version 1.0.1.0 2008/04/14 =
+== Version 1.0.1.0 2008/04/14 ==
  * Argumentの順序がばらばらでも対応可能なようにしました。
  * (KAWARI-827)
 
-= Version 1.1.0.0 2008/06/13 =
+== Version 1.1.0.0 2008/06/13 ==
  * 実際に使ってみて出てきた色々な問題を修正。(ponapalt)
  * VC++6でコンパイルが通らない問題を修正。(ponapalt)
+
+== Version 1.2.0.0 2008/07/21 ==
+ * CSAORIライブラリ本体を高速化（参照渡しに）(ponapalt)
+ * その他細かい調整 (ponapalt)
+ * intToString系関数復活 (ukiya)
+
+----
+= FileVersion =
+
+== Version 1.0.0.0 2008/07/01 ==
+ * 新規作成 (ponapalt)
+
+----
+= SetCursorPos =
+
+== Version 1.0.0.0 2008/07/21 ==
+ * 新規作成 (ukiya)
