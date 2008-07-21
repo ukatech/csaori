@@ -38,8 +38,7 @@ typedef enum {SAORIRESULT_OK=200,SAORIRESULT_NO_CONTENT=204,SAORIRESULT_BAD_REQU
 
 //global functions
 namespace SAORI_FUNC{
-	string_t numToString(unsigned num, unsigned int base=10, char_t sign=L'\0');
-	string_t intToString(int num, unsigned int base=10);
+	string_t intToString(int num);
 	string_t::size_type  getLine(string_t &, const string_t &, string_t::size_type);
 	string_t getResultString(int);
 
