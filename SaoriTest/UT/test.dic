@@ -1,3 +1,4 @@
 test{
-_result=FUNCTIONEX("../FileVersion/Release/FileVersion.dll","%SystemRoot%\system32\Macromed\Flash\NPSWF32.DLL");
+//_result=FUNCTIONEX("../FileVersion/Release/FileVersion.dll","%SystemRoot%\system32\Macromed\Flash\NPSWF32.DLL");
+_result=FUNCTIONEX("../../SetCursorPos/debug/SetCursorPos.dll",100,100);
 }
