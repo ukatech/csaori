@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="FileVersion" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="enumwindows" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** 編集しないでください **
 
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
-CFG=FileVersion - Win32 Debug
+CFG=enumwindows - Win32 Debug
 !MESSAGE これは有効なﾒｲｸﾌｧｲﾙではありません。 このﾌﾟﾛｼﾞｪｸﾄをﾋﾞﾙﾄﾞするためには NMAKE を使用してください。
 !MESSAGE [ﾒｲｸﾌｧｲﾙのｴｸｽﾎﾟｰﾄ] ｺﾏﾝﾄﾞを使用して実行してください
 !MESSAGE 
-!MESSAGE NMAKE /f "FileVersion.mak".
+!MESSAGE NMAKE /f "enumwindows.mak".
 !MESSAGE 
 !MESSAGE NMAKE の実行時に構成を指定できます
 !MESSAGE ｺﾏﾝﾄﾞ ﾗｲﾝ上でﾏｸﾛの設定を定義します。例:
 !MESSAGE 
-!MESSAGE NMAKE /f "FileVersion.mak" CFG="FileVersion - Win32 Debug"
+!MESSAGE NMAKE /f "enumwindows.mak" CFG="enumwindows - Win32 Debug"
 !MESSAGE 
 !MESSAGE 選択可能なﾋﾞﾙﾄﾞ ﾓｰﾄﾞ:
 !MESSAGE 
-!MESSAGE "FileVersion - Win32 Release" ("Win32 (x86) Dynamic-Link Library" 用)
-!MESSAGE "FileVersion - Win32 Debug" ("Win32 (x86) Dynamic-Link Library" 用)
+!MESSAGE "enumwindows - Win32 Release" ("Win32 (x86) Dynamic-Link Library" 用)
+!MESSAGE "enumwindows - Win32 Debug" ("Win32 (x86) Dynamic-Link Library" 用)
 !MESSAGE 
 
 # Begin Project
@@ -29,7 +29,7 @@ CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "FileVersion - Win32 Release"
+!IF  "$(CFG)" == "enumwindows - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -55,7 +55,7 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib version.lib /nologo /dll /machine:I386
 
-!ELSEIF  "$(CFG)" == "FileVersion - Win32 Debug"
+!ELSEIF  "$(CFG)" == "enumwindows - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -85,8 +85,8 @@ LINK32=link.exe
 
 # Begin Target
 
-# Name "FileVersion - Win32 Release"
-# Name "FileVersion - Win32 Debug"
+# Name "enumwindows - Win32 Release"
+# Name "enumwindows - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -96,7 +96,7 @@ SOURCE=..\csaori.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\FileVersion.cpp
+SOURCE=.\enumwindows.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -116,7 +116,7 @@ SOURCE=.\resource.h
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE=.\FileVersion.rc
+SOURCE=.\enumwindows.rc
 # End Source File
 # End Group
 # End Target
