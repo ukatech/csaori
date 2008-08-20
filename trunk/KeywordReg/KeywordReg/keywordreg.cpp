@@ -44,14 +44,14 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 		}else{
 			result=_getkeyword(in.args[1],in.args[2],keywords,hiragana);
 		}
-		if(!result.empty()){
-			out.result=result;
-			out.result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
-			return;
-		}else{
+		if(result.empty()){
 			out.result=keywords;
 			out.values.push_back(hiragana);
 			out.result_code=SAORIRESULT_OK;
+			return;
+		}else{
+			out.result=result;
+			out.result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
 			return;
 		}
 	}
@@ -64,14 +64,17 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 			return;
 		}
 		string_t result;
+
 		result=_imeconvert(in.args[1],out.result,out.values,true);
-		if(!result.empty()){
-			out.result=L"0";
-			out.values.push_back(result);
-			out.result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
+		//out.valuesは_imeconvertでセットされる
+
+		if(result.empty()){
+			out.result=SAORI_FUNC::intToString((int)out.values.size());
+			out.result_code=SAORIRESULT_OK;
 			return;
 		}else{
-			out.result_code=SAORIRESULT_OK;
+			out.result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
+			out.result=result;
 			return;
 		}
 	}
@@ -84,14 +87,18 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 			return;
 		}
 		string_t result;
+
 		result=_imeconvert(in.args[1],out.result,out.values,false);
-		if(!result.empty()){
-			out.result=L"0";
-			out.values.push_back(result);
-			out.result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
+		//out.valuesは_imeconvertでセットされる
+
+		if(result.empty()){
+			out.result=SAORI_FUNC::intToString((int)out.values.size());
+			out.result_code=SAORIRESULT_OK;
 			return;
 		}else{
-			out.result_code=SAORIRESULT_OK;
+			out.result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
+			out.result=result;
+			return;
 		}
 	}
 
@@ -124,8 +131,7 @@ string_t _getkeyword(string_t text,string_t  opt,string_t& resultout,string_t& h
 	if(isConvert){
 		result=_toHiragana(text,hiragana,all);
 		if(!result.empty()){
-			hiragana=text+L":"+result;
-			//return result;
+			return result;
 		}
 	}else{
 		hiragana=text;
@@ -136,13 +142,13 @@ string_t _getkeyword(string_t text,string_t  opt,string_t& resultout,string_t& h
 		return result;
 	}
 
-	string_t out;
+	string_t out=L"";
 	for(unsigned int i=0;i<kwds.size();i++){
 		if(kwds[i].isHit){
 			out+=kwds[i].resultstr+L"　";
 		}
 	}
-	if(out.length()!=0){
+	if(!out.empty()){
 		out.erase(out.length()-1,1);//終端空白削除
 	}
 
@@ -165,8 +171,8 @@ string_t _imeconvert(string_t in,string_t &res,std::vector<string_t> &val,bool i
 		return result;
 	}
 	char_t buf[128];
-	swprintf_s(buf,sizeof(buf),L"%d",val.size());
-	res.assign(buf);
+	swprintf_s(buf,sizeof(buf)/sizeof(buf[0]),L"%d",val.size());
+	res.assign(buf,wcslen(buf));
 	return L"";
 }
 
@@ -193,7 +199,7 @@ string_t _searchkeyword(string_t text){
 			}
 		}
 	}
-	return NULL;
+	return L"";
 }
 
 
@@ -248,7 +254,7 @@ string_t _toHiragana(string_t input,string_t& out,std::vector<string_t> &all,boo
 	HKL hKL=NULL;
 	DWORD dwSize=0;
 	LPCANDIDATELIST lpCand=NULL;
-	string_t errstr=L"";
+	string_t errstr;
 	char_t ebuf[1024];
 
 	OSVERSIONINFOA os;
@@ -296,19 +302,19 @@ string_t _toHiragana(string_t input,string_t& out,std::vector<string_t> &all,boo
 
 	dwSize = ImmGetConversionListW(hKL, hIMC, (LPCWSTR)tmp_input, NULL, 0,   uFlag1);
 	if(dwSize==0 || dwSize>=0x7FFF8){
-		swprintf_s(ebuf,sizeof(ebuf),L"ImmGetConversionListW1 Failed %p %p %s %d %d",hKL,hIMC,tmp_input,uFlag1,dwSize);
+		swprintf_s(ebuf,sizeof(ebuf)/sizeof(ebuf[0]),L"ImmGetConversionListW1 Failed %p %p %s %d %d",hKL,hIMC,tmp_input,uFlag1,dwSize);
 		errstr.assign(ebuf);
 		goto END;
 	}
 	lpCand = (LPCANDIDATELIST)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY,   dwSize);
 	if(lpCand==NULL){
-		swprintf_s(ebuf,sizeof(ebuf),L"HeapAlloc Failed %p %d %s %d",GetProcessHeap(),dwSize);
+		swprintf_s(ebuf,sizeof(ebuf)/sizeof(ebuf[0]),L"HeapAlloc Failed %p %d %s %d",GetProcessHeap(),dwSize);
 		errstr.assign(ebuf);
 		goto END;
 	}
 	result=ImmGetConversionListW(hKL, hIMC, (LPCWSTR)tmp_input , lpCand, dwSize,   uFlag2);
 	if(result==0){
-		swprintf_s(ebuf,sizeof(ebuf),L"ImmGetConversionListW2 Failed %p %p %s %d %d",hKL,hIMC,(LPCWSTR)tmp_input,dwSize,uFlag2);
+		swprintf_s(ebuf,sizeof(ebuf)/sizeof(ebuf[0]),L"ImmGetConversionListW2 Failed %p %p %s %d %d",hKL,hIMC,(LPCWSTR)tmp_input,dwSize,uFlag2);
 		errstr.assign(ebuf);
 		goto END;
 	}

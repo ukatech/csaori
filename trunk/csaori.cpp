@@ -255,9 +255,9 @@ string_t CSAORIOutput::toString()
 
 	dest << L"Charset: " << SAORI_FUNC::CHARSETtoString(charset) << L"\r\n";
 	
-	if (!result.empty()) {
+//	if (!result.empty()) { //‹ó•¶Žš—ñ‚Å‚àŒ‹‰Ê‚Í•Ô‚·‚×‚«
 		dest << L"Result: " << result << L"\r\n";
-	}
+//	}
 	if (!values.empty()) {
 		int i, n = (int)(values.size());
 		string_t tmp;
@@ -323,9 +323,13 @@ std::string CSAORI::request(const std::string &rq_tmp)
 	pIn->charset=cset;
 	pIn->opts[L"SecurityLevel"] = L"Local";
 	bool result=pIn->parseString(rq);
-
+	
+	//pOut‰Šú‰»
 	pOut=new CSAORIOutput();
 	pOut->charset=pIn->charset;
+	pOut->result=L"";
+	pOut->result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
+
 	if(result==false){
 		pOut->result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
 	}else{
