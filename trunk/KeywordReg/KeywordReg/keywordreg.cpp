@@ -2,9 +2,6 @@
 
 #define BUFLEN 1024*4
 
-extern string_t module_path;
-
-
 class Keyword{
 public:
 	string_t resultstr;

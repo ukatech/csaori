@@ -1,0 +1,4 @@
+test{
+	_result=FUNCTIONEX("AqTalkSaori.dll","PLAYSYNC",_argv[0],100);
+	_result
+}
