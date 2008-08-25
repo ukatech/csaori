@@ -1,0 +1,19 @@
+test{
+	do("これわ、おんないち、の'こえです","f1.dll","f1.wav");
+	do("これわ、おんなに、の'こえです","f2.dll","f2.wav");
+	do("これわ、おとこいち、の'こえです","m1.dll","m1.wav");
+	do("これわ、おとこに、の'こえです","m2.dll","m2.wav");
+	do("これわ、ちゅうせい、の'こえです","imd1.dll","imd1.wav");
+	do("これわ、じぇいじいあある、の'こえです","jgr.dll","jgr.wav");
+	do("これわ、ろぼっと、の'こえです","r1.dll","r1.wav");
+	do("これわ、でいぶいでい、の'こえです","dvd.dll","dvd.wav");
+}
+
+do{
+	_koe=_argv[0]
+	_dll=_argv[1]
+	_wav=_argv[2]
+	_result=FUNCTIONEX("AqTalkSaori.dll","CHANGEVOICE",_dll);
+	_result=FUNCTIONEX("AqTalkSaori.dll","PLAYSYNC",_koe,100);
+	_result=FUNCTIONEX("AqTalkSaori.dll","CREATEWAV",_koe,100,_wav);
+}
