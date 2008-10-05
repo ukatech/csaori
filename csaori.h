@@ -18,6 +18,11 @@
 #include <vector>
 #include <map>
 
+//charset hack
+#ifdef CP_UTF8
+#undef CP_UTF8
+#endif
+
 //SAORI INTERFACES
 SAORIAPI BOOL SAORICDECL load(HGLOBAL h,long len);
 SAORIAPI BOOL SAORICDECL unload();
@@ -33,7 +38,7 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 typedef wchar_t char_t;
 typedef std::basic_string<char_t> string_t;
 
-typedef enum {CHARSET_Shift_JIS,CHARSET_ISO_2022_JP,CHARSET_EUC_JP,CHARSET_UTF_8} CHARSET;
+typedef enum {CP_SJIS=932,CP_EUCJP=20932,CP_ISO2022JP=50220,CP_UTF8=65001} CODEPAGE;
 typedef enum {SAORIRESULT_OK=200,SAORIRESULT_NO_CONTENT=204,SAORIRESULT_BAD_REQUEST=400,SAORIRESULT_INTERNAL_SERVER_ERROR=500} SAORIRESULT;
 
 //global functions
@@ -42,16 +47,24 @@ namespace SAORI_FUNC{
 	string_t::size_type  getLine(string_t &, const string_t &, string_t::size_type);
 	string_t getResultString(int);
 
-	std::string UnicodeToMultiByte(const std::wstring& Source, UINT CodePage=CP_OEMCP, DWORD Flags=0);
-	std::wstring MultiByteToUnicode(const std::string& Source, UINT CodePage=CP_OEMCP, DWORD Flags=0);
-	UINT CHARSETtoCodePage(CHARSET cset);
-	std::wstring CHARSETtoString(CHARSET cset);
+	std::string UnicodeToMultiByte(const wchar_t *Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0);
+	inline std::string UnicodeToMultiByte(const std::wstring& Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0) {
+		return UnicodeToMultiByte(Source.c_str(),CodePage,Flags);
+	}
+
+	std::wstring MultiByteToUnicode(const char *Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0);
+	inline std::wstring MultiByteToUnicode(const std::string& Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0) {
+		return MultiByteToUnicode(Source.c_str(),CodePage,Flags);
+	}
+
+	std::wstring CodePagetoString(unsigned int cp);
+	unsigned int StringtoCodePage(const char *str);
 }
 
 //Classes
 class CSAORIInput{
 public:
-	CHARSET charset;
+	unsigned int codepage;
 	string_t cmd;
 	std::vector<string_t> args;
 	std::map<string_t,string_t> opts;
@@ -61,7 +74,7 @@ public:
 
 class CSAORIOutput{
 public:
-	CHARSET charset;
+	unsigned int codepage;
 	SAORIRESULT result_code;
 	string_t result;
 	std::vector<string_t> values;
