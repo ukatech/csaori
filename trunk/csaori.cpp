@@ -17,14 +17,15 @@
 
 #include "csaori.h"
 
-//////////DEBUG/////////////////////////
+//////////WINDOWS DEFINE///////////////////////////
+//includeÇÃÇ†Ç∆Ç…Ç®Ç¢ÇƒÇÀÅI
 #ifdef _WINDOWS
 #ifdef _DEBUG
 #include <crtdbg.h>
 #define new new( _NORMAL_BLOCK, __FILE__, __LINE__)
 #endif
 #endif
-////////////////////////////////////////
+///////////////////////////////////////////////////
 
 //global CSAORI object
 CSAORI* pSaori;
@@ -33,11 +34,11 @@ CSAORI* pSaori;
 //ì‡ïîä÷êî
 //------------------------------------------------------------------------------
 namespace SAORI_FUNC{
-	std::string UnicodeToMultiByte(const std::wstring& Source, UINT CodePage, DWORD Flags)
+	std::string UnicodeToMultiByte(const wchar_t *Source, unsigned int CodePage, DWORD Flags)
 	{
-	  if (int Len = ::WideCharToMultiByte(CodePage, Flags, Source.c_str(), static_cast<int>(Source.size()), NULL, 0, NULL, NULL)) {
+	  if (int Len = ::WideCharToMultiByte(CodePage, Flags, Source, wcslen(Source), NULL, 0, NULL, NULL)) {
 		std::vector<char> Dest(Len);
-		if (Len = ::WideCharToMultiByte(CodePage, Flags, Source.c_str(), static_cast<int>(Source.size()), &Dest[0], static_cast<int>(Dest.size()), NULL, NULL)) {
+		if (Len = ::WideCharToMultiByte(CodePage, Flags, Source, wcslen(Source), &Dest[0], static_cast<int>(Dest.size()), NULL, NULL)) {
 		  return std::string(Dest.begin(), Dest.begin() + Len);
 		}
 	  }
@@ -45,43 +46,54 @@ namespace SAORI_FUNC{
 	}
 
 
-	std::wstring MultiByteToUnicode(const std::string& Source, UINT CodePage, DWORD Flags)
+	std::wstring MultiByteToUnicode(const char* Source, unsigned int CodePage, DWORD Flags)
 	{
-	  if (int Len = ::MultiByteToWideChar(CodePage, Flags, Source.c_str(), static_cast<int>(Source.size()), NULL, 0)) {
+	  if (int Len = ::MultiByteToWideChar(CodePage, Flags, Source, strlen(Source), NULL, 0)) {
 		std::vector<wchar_t> Dest(Len);
-		if (Len = ::MultiByteToWideChar(CodePage, 0, Source.c_str(), static_cast<int>(Source.size()), &Dest[0], static_cast<int>(Dest.size()))) {
+		if (Len = ::MultiByteToWideChar(CodePage, 0, Source, strlen(Source), &Dest[0], static_cast<int>(Dest.size()))) {
 		  return std::wstring(Dest.begin(), Dest.begin() + Len);
 		}
 	  }
 	  return L"";
 	}
 
-	UINT CHARSETtoCodePage(CHARSET cset){
+	std::wstring CodePagetoString(unsigned int cset){
 		switch(cset){
-			case CHARSET_Shift_JIS:
-				return 932;
-			case CHARSET_ISO_2022_JP:
-				return 50220;
-			case CHARSET_EUC_JP:
-				return 20932;
-			case CHARSET_UTF_8:
-				return CP_UTF8;
-		}
-		return CP_ACP;
-	}
-
-	std::wstring CHARSETtoString(CHARSET cset){
-		switch(cset){
-			case CHARSET_Shift_JIS:
+			case CP_SJIS:
 				return L"Shift_JIS";
-			case CHARSET_ISO_2022_JP:
+			case CP_ISO2022JP:
 				return L"ISO-2022-JP";
-			case CHARSET_EUC_JP:
+			case CP_EUCJP:
 				return L"EUC-JP";
-			case CHARSET_UTF_8:
+			case CP_UTF8:
 				return L"UTF-8";
 		}
 		return L"unknown charset";
+	}
+
+	UINT StringtoCodePage(const char *str)
+	{
+		if ( str && *str ) {
+			if ( stricmp(str,"shift_jis") == 0 ) {
+				return CP_SJIS;
+			}
+			if ( stricmp(str,"x-sjis") == 0 ) {
+				return CP_SJIS;
+			}
+			if ( stricmp(str,"iso-2022-jp") == 0 ) {
+				return CP_ISO2022JP;
+			}
+			if ( stricmp(str,"euc-jp") == 0 ) {
+				return CP_EUCJP;
+			}
+			if ( stricmp(str,"x-euc-jp") == 0 ) {
+				return CP_EUCJP;
+			}
+			if ( stricmp(str,"utf-8") == 0 ) {
+				return CP_UTF8;
+			}
+		}
+		return CP_SJIS;
 	}
 
 	string_t getResultString(int rc)
@@ -253,7 +265,7 @@ string_t CSAORIOutput::toString()
 	dest << SAORI_VERSIONSTRING L" ";
 	dest << result_code << L" " << rcstr << L"\r\n";
 
-	dest << L"Charset: " << SAORI_FUNC::CHARSETtoString(charset) << L"\r\n";
+	dest << L"Charset: " << SAORI_FUNC::CodePagetoString(codepage) << L"\r\n";
 	
 //	if (!result.empty()) { //ãÛï∂éöóÒÇ≈Ç‡åãâ ÇÕï‘Ç∑Ç◊Ç´
 		dest << L"Result: " << result << L"\r\n";
@@ -304,29 +316,24 @@ std::string CSAORI::request(const std::string &rq_tmp)
 	std::transform(tmp.begin(), tmp.end(), tmp.begin(), tolower);
 
 	//Charsetîªï 
-	CHARSET cset=CHARSET_Shift_JIS;
-	if(tmp.find("\ncharset: shift_jis")!=std::string::npos){
-		cset=CHARSET_Shift_JIS;
-	}else if(tmp.find("\ncharset: iso-2022-jp")!=std::string::npos){
-		cset=CHARSET_ISO_2022_JP;
-	}else if(tmp.find("\ncharset: euc-jp")!=std::string::npos){
-		cset=CHARSET_EUC_JP;
-	}else if(tmp.find("\ncharset: utf-8")!=std::string::npos){
-		cset=CHARSET_UTF_8;
+	unsigned int cp = CP_SJIS;
+	std::string::size_type count = tmp.find("\ncharset: ");
+	if ( count != std::string::npos ) {
+		SAORI_FUNC::StringtoCodePage(tmp.c_str() + count + 10);
 	}
 
 	//ïœä∑
-	string_t rq=SAORI_FUNC::MultiByteToUnicode(rq_tmp,SAORI_FUNC::CHARSETtoCodePage(cset));
+	string_t rq=SAORI_FUNC::MultiByteToUnicode(rq_tmp,cp);
 
 	//âêÕèàóùäJén
 	pIn=new CSAORIInput();
-	pIn->charset=cset;
+	pIn->codepage=cp;
 	pIn->opts[L"SecurityLevel"] = L"Local";
 	bool result=pIn->parseString(rq);
 	
 	//pOutèâä˙âª
 	pOut=new CSAORIOutput();
-	pOut->charset=pIn->charset;
+	pOut->codepage=pIn->codepage;
 	pOut->result=L"";
 	pOut->result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
 
@@ -348,7 +355,7 @@ std::string CSAORI::request(const std::string &rq_tmp)
 		}
 	}
 	string_t res_wstr=pOut->toString();
-	std::string res_str=SAORI_FUNC::UnicodeToMultiByte(res_wstr,SAORI_FUNC::CHARSETtoCodePage(pOut->charset));
+	std::string res_str=SAORI_FUNC::UnicodeToMultiByte(res_wstr,pOut->codepage);
 	delete pIn;
 	delete pOut;
 	return res_str;
