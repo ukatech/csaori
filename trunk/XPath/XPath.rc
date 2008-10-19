@@ -70,9 +70,9 @@ BEGIN
     BEGIN
         BLOCK "041104b0"
         BEGIN
-            VALUE "Comments", "XPath SAORI Extension\0"
-            VALUE "CompanyName", " \0"
-            VALUE "FileDescription", "XPath SAORI Extension\0"
+            VALUE "Comments", "XPath SAORI Component ""XAORIC""\0"
+            VALUE "CompanyName", "CSaori Library\0"
+            VALUE "FileDescription", "XPath SAORI Component ""XAORIC""\0"
             VALUE "FileVersion", "1, 0, 0, 0\0"
             VALUE "InternalName", "XPath\0"
             VALUE "LegalCopyright", " \0"

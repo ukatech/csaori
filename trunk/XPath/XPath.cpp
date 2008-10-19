@@ -184,8 +184,64 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		std::string xpath = SAORI_FUNC::UnicodeToMultiByte(in.args[2],(**it).cp);
 		try {
 			TinyXPath::xpath_processor xpath((**it).xml->FirstChild(),xpath.c_str());
-			TiXmlString str = xpath.S_compute_xpath();
-			out.result = SAORI_FUNC::MultiByteToUnicode(str.c_str(),(**it).cp);
+
+			TinyXPath::expression_result r = xpath.er_compute_xpath();
+
+			if ( r.e_type == TinyXPath::e_bool ) {
+				out.result = r.o_get_bool() ? L"1" : L"0";
+			}
+			else if ( r.e_type == TinyXPath::e_string ) {
+				TiXmlString str = r.S_get_string();
+				out.result = SAORI_FUNC::MultiByteToUnicode(str.c_str(),(**it).cp);
+			}
+			else if ( r.e_type == TinyXPath::e_int ) {
+				wchar_t s[32];
+				swprintf(s,L"%d",r.i_get_int());
+				out.result = s;
+			}
+			else if ( r.e_type == TinyXPath::e_double ) {
+				wchar_t s[64];
+				swprintf(s,L"%f",r.d_get_double());
+				out.result = s;
+			}
+			else if ( r.e_type == TinyXPath::e_node_set ) {
+				TinyXPath::node_set *np = r.nsp_get_node_set();
+				if ( np ) {
+					unsigned int n = np->u_get_nb_node_in_set();
+
+					TiXmlString str;
+					string_t wstr;
+
+					for ( unsigned int i = 0 ; i < n ; ++i ) {
+						if ( ! np->o_is_attrib(i) ) {
+							const TiXmlNode *xp = np->XNp_get_node_in_set(i);
+							if ( xp ) {
+								str.clear();
+								const TiXmlText *tp = xp->ToText();
+								if ( tp ) {
+									str = tp->Value();
+								}
+								else {
+									const TiXmlNode *cpl = xp->LastChild();
+									const TiXmlNode *cp = xp->FirstChild();
+									if ( cp && cpl && cp == cpl ) { //子がひとつだけ＋テキストノード
+										tp = cp->ToText();
+										if ( tp ) {
+											str = tp->Value();
+										}
+									}
+								}
+								if ( str.length() ) {
+									wstr = SAORI_FUNC::MultiByteToUnicode(str.c_str(),(**it).cp);
+									out.result += wstr;
+									out.values.push_back(wstr);
+								}
+							}
+						}
+					}
+				}
+			}
+
 		}
 		catch(...) {
 			out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
