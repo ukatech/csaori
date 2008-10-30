@@ -74,22 +74,22 @@ namespace SAORI_FUNC{
 	UINT StringtoCodePage(const char *str)
 	{
 		if ( str && *str ) {
-			if ( stricmp(str,"shift_jis") == 0 ) {
+			if ( strnicmp(str,"shift_jis",9) == 0 ) {
 				return CP_SJIS;
 			}
-			if ( stricmp(str,"x-sjis") == 0 ) {
+			if ( strnicmp(str,"x-sjis",6) == 0 ) {
 				return CP_SJIS;
 			}
-			if ( stricmp(str,"iso-2022-jp") == 0 ) {
+			if ( strnicmp(str,"iso-2022-jp",11) == 0 ) {
 				return CP_ISO2022JP;
 			}
-			if ( stricmp(str,"euc-jp") == 0 ) {
+			if ( strnicmp(str,"euc-jp",6) == 0 ) {
 				return CP_EUCJP;
 			}
-			if ( stricmp(str,"x-euc-jp") == 0 ) {
+			if ( strnicmp(str,"x-euc-jp",8) == 0 ) {
 				return CP_EUCJP;
 			}
-			if ( stricmp(str,"utf-8") == 0 ) {
+			if ( strnicmp(str,"utf-8",5) == 0 ) {
 				return CP_UTF8;
 			}
 		}
@@ -319,7 +319,7 @@ std::string CSAORI::request(const std::string &rq_tmp)
 	unsigned int cp = CP_SJIS;
 	std::string::size_type count = tmp.find("\ncharset: ");
 	if ( count != std::string::npos ) {
-		SAORI_FUNC::StringtoCodePage(tmp.c_str() + count + 10);
+		cp = SAORI_FUNC::StringtoCodePage(tmp.c_str() + count + 10);
 	}
 
 	//•ÏŠ·
