@@ -145,7 +145,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 	//////////////////////////////////////////////////////////////
 	else if ( in.args[0] == L"UpDownSpeed") {
-		UINT nIndex = 0;
+		int nIndex = 0;
 		UINT nFactor = 1;
 
 		if (in.args.size() >= 2) {
@@ -160,25 +160,48 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		else if (20 < nFactor)
 			nFactor = 20;
 
-		if (nIndex >= pTable->dwNumEntries)
+		if (nIndex >= (long)pTable->dwNumEntries)
 			nIndex = pTable->dwNumEntries-1;
 
+		DWORD odwInOctets = 0, odwOutOctets = 0;
+		if (nIndex < 0) {
+			for (UINT i=0;i<pTable->dwNumEntries;i++) {
+				MIB_IFROW &Row=pTable->table[i];
+				odwInOctets += Row.dwInOctets;
+				odwOutOctets += Row.dwOutOctets;
+			}
+		} else {
+			MIB_IFROW &Row=pTable->table[nIndex];
+			odwInOctets = Row.dwInOctets;
+			odwOutOctets = Row.dwOutOctets;
+		}
 
-		MIB_IFROW &Row = pTable->table[nIndex];
-		DWORD odwInOctets = Row.dwInOctets;
-		DWORD odwOutOctets = Row.dwOutOctets;
-		
 		Sleep((1000 / nFactor));
 		pGetIfTable(pTable,&dwSize,TRUE);
+
+		if (nIndex < 0) {
+			DWORD ndwInOctets = 0, ndwOutOctets = 0;
+			for (UINT i=0;i<pTable->dwNumEntries;i++) {
+				MIB_IFROW &Row=pTable->table[i];
+				ndwInOctets += Row.dwInOctets;
+				ndwOutOctets += Row.dwOutOctets;
+			}
+			odwInOctets = (ndwInOctets - odwInOctets) * nFactor;
+			odwOutOctets = (ndwOutOctets - odwOutOctets) * nFactor;
+		} else {
+			MIB_IFROW &Row=pTable->table[nIndex];
+			odwInOctets = (Row.dwInOctets - odwInOctets) * nFactor;
+			odwOutOctets = (Row.dwOutOctets - odwOutOctets) * nFactor;
+		}
 
 		out.result_code=SAORIRESULT_OK;
 
 		if(in.args.size() < 4 || !wcstoul(in.args[3].c_str(),NULL,10) ) {
 			out.result = L"OK";
-			out.values.push_back(SAORI_FUNC::intToString((Row.dwInOctets - odwInOctets) * nFactor) );
-			out.values.push_back(SAORI_FUNC::intToString((Row.dwOutOctets - odwOutOctets) * nFactor) );
+			out.values.push_back(SAORI_FUNC::intToString(odwInOctets) );
+			out.values.push_back(SAORI_FUNC::intToString(odwOutOctets) );
 		} else {
-			out.result = L"Down: " + SAORI_FUNC::intToString((Row.dwInOctets - odwInOctets) * nFactor) + L" Bps, Up: " + SAORI_FUNC::intToString((Row.dwOutOctets - odwOutOctets) * nFactor) + L" Bps";
+			out.result = L"Down: " + SAORI_FUNC::intToString(odwInOctets) + L" Bps, Up: " + SAORI_FUNC::intToString(odwOutOctets) + L" Bps";
 		}
 	}
 	else {

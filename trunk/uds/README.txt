@@ -22,7 +22,7 @@ Usage:
 - Get Up/down speed
 * Input
  * Argument0: UpDownSpeed
- * Argument1: Interface index (start from 0, see "List all network interface")
+ * Argument1: Interface index (start from 0, see "List all network interface". -1 for all interface)
  * Argument2: measurement (1 to 20, bigger number for faster response but less accurate)
  * Argument3: 0 for Shiori that supports Value[n], 1(non-zero) for Shiori that not support Value[n].
 * Output
@@ -40,6 +40,8 @@ Known Issue:
 (currently none)
 
 Version History:
+ 20081121-1416:
+ - Add UpDownSpeed "-1" option for counting all interface (including loopback interface)
  20080531-1359:
  - Resolve "Error loading Iphlpapi.dll" after first call.
  - Resolve failure of loading in yaya shori.
@@ -85,7 +87,7 @@ UDS(UpDownSpeed) 是一個伺か(ukagaka)的 SAORI 插件。
 - 獲得上載/下載速度
 * 輸入
  * Argument0: UpDownSpeed
- * Argument1: 網卡索引鍵 (由 0 開始的索引鍵, 詳見 「列出所有網卡」)
+ * Argument1: 網卡索引鍵 (由 0 開始的索引鍵, 詳見 「列出所有網卡」。 -1 為所有網卡)
  * Argument2: 量度係數。 (1 至 20，係數愈大反應愈快但是愈不準確。)
  * Argument3: 當Shiori支援Value[n]時應為 0 ，否則為非 0。
 * 輸出
@@ -103,6 +105,8 @@ UDS(UpDownSpeed) 是一個伺か(ukagaka)的 SAORI 插件。
 (暫時沒有)
 
 版本紀錄:
+ 20081121-1416:
+ - 加入 UpDownSpeed "-1" 選項計算所有網卡的上下載速度 (包括 loopback 介面)
  20080531-1359:
  - 修正首次呼叫後出現「Error loading Iphlpapi.dll」的問題。
  - 修正 yaya 中無法載入的問題。
