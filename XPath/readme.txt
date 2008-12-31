@@ -51,5 +51,5 @@ license.txtを見てください。
 
 ■更新履歴
 
-・2008/10/17 Initial Release
+・2008/12/30 Initial Release
 
