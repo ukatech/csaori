@@ -53,6 +53,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 		HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE,(in.args[0].size() + 1) * sizeof(WORD));
 		WORD *clData = (WORD*)::GlobalLock(hMem);
 		wcscpy(clData,in.args[0].c_str());
+		::GlobalUnlock(hMem);
 
 		::SetClipboardData(CF_UNICODETEXT,hMem); //hMem‚ÍŠJ•ú‚µ‚È‚­‚Ä‚æ‚¢
 	}
@@ -62,6 +63,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 		HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE,astr.size() + 1);
 		char *clData = (char*)::GlobalLock(hMem);
 		strcpy(clData,astr.c_str());
+		::GlobalUnlock(hMem);
 
 		::SetClipboardData(CF_TEXT,hMem); //hMem‚ÍŠJ•ú‚µ‚È‚­‚Ä‚æ‚¢
 	}
