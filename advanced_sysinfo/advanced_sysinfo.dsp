@@ -92,11 +92,15 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=.\advanced_sysinfo.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\csaori.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\advanced_sysinfo.cpp
+SOURCE=.\SMARTInfo.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -109,6 +113,14 @@ SOURCE=..\csaori.h
 # Begin Source File
 
 SOURCE=.\resource.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\smart_struct.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SMARTInfo.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
