@@ -8,6 +8,8 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include <afxtempl.h>
+
 /////////////////////////////////////////////////////////////////////////////
 // CSaoriTesterDlg ダイアログ
 
@@ -53,13 +55,21 @@ protected:
 	SPM_unload unload;
 	SPM_request request;
 
+	CArray<CString,CString&> m_fileHistory;
+
 	// 生成されたメッセージ マップ関数
 	//{{AFX_MSG(CSaoriTesterDlg)
 	virtual BOOL OnInitDialog();
 	afx_msg void OnDropFiles(HDROP hDropInfo);
 	afx_msg void OnExecute();
+	afx_msg void OnUnload();
+	afx_msg void OnReload();
+	afx_msg void OnDestroy();
+	afx_msg void OnHistory();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+private:
+	bool LoadSAORI(const char *pPath);
 };
 
 //{{AFX_INSERT_LOCATION}}

@@ -41,6 +41,16 @@ CSaoriTesterApp theApp;
 
 BOOL CSaoriTesterApp::InitInstance()
 {
+	free((void*)m_pszProfileName);
+
+	char myPath[MAX_PATH];
+	::GetModuleFileName(NULL,myPath,sizeof(myPath));
+	char *lastPeriod = (char*)_mbsrchr((unsigned char*)myPath,'.');
+	strcpy(lastPeriod,".ini");
+
+	m_pszProfileName = (const char*)malloc(strlen(myPath) + 1);
+	strcpy((char*)m_pszProfileName,myPath);
+
 	m_pMainWnd = new CSaoriTesterDlg;
 
 	return TRUE;

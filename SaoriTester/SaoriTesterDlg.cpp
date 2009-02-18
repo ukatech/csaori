@@ -59,6 +59,10 @@ BEGIN_MESSAGE_MAP(CSaoriTesterDlg, CDialog)
 	//{{AFX_MSG_MAP(CSaoriTesterDlg)
 	ON_WM_DROPFILES()
 	ON_BN_CLICKED(IDC_EXECUTE, OnExecute)
+	ON_BN_CLICKED(IDC_UNLOAD, OnUnload)
+	ON_BN_CLICKED(IDC_RELOAD, OnReload)
+	ON_WM_DESTROY()
+	ON_BN_CLICKED(IDC_HISTORY, OnHistory)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -68,10 +72,34 @@ END_MESSAGE_MAP()
 BOOL CSaoriTesterDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+
+	char entryName[32];
+	CString str;
+
+	for ( int i = 0 ; i < 10 ; ++i ) {
+		sprintf(entryName,"History%d",i);
+		str = AfxGetApp()->GetProfileString("General",entryName);
+		if ( str.GetLength() ) {
+			if ( ::GetFileAttributes(str.GetBuffer(1)) != 0xFFFFFFFFU ) {
+				m_fileHistory.Add(str);
+			}
+		}
+	}
 	
 	return TRUE;  // TRUE を返すとコントロールに設定したフォーカスは失われません。
 }
 
+void CSaoriTesterDlg::OnDestroy() 
+{
+	CDialog::OnDestroy();
+	
+	char entryName[32];
+	int n = m_fileHistory.GetSize();
+	for ( int i = 0 ; i < n ; ++i ) {
+		sprintf(entryName,"History%d",i);
+		AfxGetApp()->WriteProfileString("General",entryName,m_fileHistory[i]);
+	}
+}
 
 void CSaoriTesterDlg::PostNcDestroy() 
 {
@@ -97,57 +125,7 @@ void CSaoriTesterDlg::OnDropFiles(HDROP hDropInfo)
 {
 	char path[MAX_PATH+1];
 	if ( ::DragQueryFile(hDropInfo,0,path,sizeof(path)-1) ) {
-		if ( m_hModule ) {
-			unload();
-			::FreeLibrary(m_hModule);
-		}
-
-		m_hModule = ::LoadLibrary(path);
-		m_path = path;
-		UpdateData(FALSE);
-
-		if ( m_hModule ) {
-			//proc
-			load = (SPM_load)::GetProcAddress(m_hModule,"load");
-			if ( ! load ) {
-				load = (SPM_load)::GetProcAddress(m_hModule,"_load");
-			}
-
-			unload = (SPM_unload)::GetProcAddress(m_hModule,"unload");
-			if ( ! load ) {
-				unload = (SPM_unload)::GetProcAddress(m_hModule,"_unload");
-			}
-
-			request = (SPM_request)::GetProcAddress(m_hModule,"request");
-			if ( ! load ) {
-				request = (SPM_request)::GetProcAddress(m_hModule,"_request");
-			}
-
-			if ( ! load || ! unload || ! request ) {
-				::FreeLibrary(m_hModule);
-				m_hModule = NULL;
-			}
-
-			//load
-			char *pc = (char*)_mbsrchr((unsigned char*)path,'\\');
-			*(pc+1) = 0;
-
-			HGLOBAL h = ::GlobalAlloc(GMEM_FIXED,strlen(path)+1);
-			strcpy((char*)h,path);
-			
-			long len = strlen(path);
-			load(h,len);
-
-			//get version
-			char *c = "GET Version SAORI/1.0\r\nCharset: Shift_JIS\r\nSender: SAORI_TESTER\r\nSecurityLevel: Local\r\n\r\n";
-			h = ::GlobalAlloc(GMEM_FIXED,strlen(c)+1);
-			strcpy((char*)h,c);
-			len = strlen(c);
-			h = request(h,&len);
-			if ( h ) {
-				::GlobalFree(h);
-			}
-		}
+		LoadSAORI(path);
 	}
 	
 	CDialog::OnDropFiles(hDropInfo);
@@ -203,5 +181,138 @@ void CSaoriTesterDlg::OnExecute()
 		}
 
 		UpdateData(FALSE);
+	}
+}
+
+void CSaoriTesterDlg::OnUnload() 
+{
+	if ( m_hModule ) {
+		unload();
+		::FreeLibrary(m_hModule);
+		m_hModule = NULL;
+	}
+
+	m_request = "";
+	m_response = "";
+
+	UpdateData(FALSE);
+}
+
+void CSaoriTesterDlg::OnReload() 
+{
+	if ( m_path.GetLength() ) {
+		LoadSAORI(m_path);
+	}
+}
+
+bool CSaoriTesterDlg::LoadSAORI(const char *pPath)
+{
+	char path[MAX_PATH+1];
+	strcpy(path,pPath);
+
+	if ( m_hModule ) {
+		unload();
+		::FreeLibrary(m_hModule);
+	}
+
+	m_hModule = ::LoadLibrary(path);
+
+	if ( m_hModule ) {
+		m_path = path;
+	
+		bool found = false;
+		int n = m_fileHistory.GetSize();
+		for ( int i = 0 ; i < n ; ++i ) {
+			if ( m_fileHistory[i] == m_path ) {
+				found = true;
+				break;
+			}
+		}
+
+		if ( ! found ) {
+			m_fileHistory.Add(m_path);
+		}
+
+		//proc
+		load = (SPM_load)::GetProcAddress(m_hModule,"load");
+		if ( ! load ) {
+			load = (SPM_load)::GetProcAddress(m_hModule,"_load");
+		}
+
+		unload = (SPM_unload)::GetProcAddress(m_hModule,"unload");
+		if ( ! load ) {
+			unload = (SPM_unload)::GetProcAddress(m_hModule,"_unload");
+		}
+
+		request = (SPM_request)::GetProcAddress(m_hModule,"request");
+		if ( ! load ) {
+			request = (SPM_request)::GetProcAddress(m_hModule,"_request");
+		}
+
+		if ( ! load || ! unload || ! request ) {
+			::FreeLibrary(m_hModule);
+			m_hModule = NULL;
+		}
+
+		//load
+		char *pc = (char*)_mbsrchr((unsigned char*)path,'\\');
+		char cx = *(pc+1);
+		*(pc+1) = 0;
+
+		HGLOBAL h = ::GlobalAlloc(GMEM_FIXED,strlen(path)+1);
+		strcpy((char*)h,path);
+		
+		long l = strlen(path);
+
+		*(pc+1) = cx;
+
+		load(h,l);
+
+		//get version
+		char *c = "GET Version SAORI/1.0\r\nCharset: Shift_JIS\r\nSender: SAORI_TESTER\r\nSecurityLevel: Local\r\n\r\n";
+		
+		m_request = c;
+		
+		h = ::GlobalAlloc(GMEM_FIXED,strlen(c)+1);
+		strcpy((char*)h,c);
+		
+		l = strlen(c);
+		h = request(h,&l);
+		if ( h ) {
+			char *pc = m_response.GetBuffer(l+1);
+			memcpy(pc,h,l);
+			pc[l] = 0;
+			m_response.ReleaseBuffer(l);
+
+			UpdateData(FALSE);
+
+			::GlobalFree(h);
+		}
+
+		return true;
+	}
+	return false;
+}
+
+
+void CSaoriTesterDlg::OnHistory() 
+{
+	CMenu menu;
+	menu.CreatePopupMenu();
+
+	int n = m_fileHistory.GetSize();
+	for ( int i = 0 ; i < n ; ++i ) {
+		menu.AppendMenu(MF_STRING,i+100,m_fileHistory[i]);
+	}
+
+	HWND hw = ::GetDlgItem(m_hWnd,IDC_HISTORY);
+	RECT rect;
+	::GetWindowRect(hw,&rect);
+
+	int id = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD,
+		rect.left,rect.bottom,this,NULL);
+
+	if ( id > 0 ) {
+		LoadSAORI(m_fileHistory[id-100]);
 	}
 }

@@ -72,7 +72,7 @@ static bool GetSpecialFolderPath(const std::wstring &nFolder, std::wstring &path
 		{CSIDL_FAVORITES,L"Favorites"},
 		{CSIDL_HISTORY,L"History"},
 		{CSIDL_INTERNET_CACHE,L"InternetCache"},
-		{CSIDL_PROGRAM_FILES,L"Programs"},
+		{CSIDL_PROGRAMS,L"Programs"},
 		//{,L"MyComputer"},
 		{CSIDL_MYMUSIC,L"MyMusic"},
 		{CSIDL_MYPICTURES,L"MyPictures"},
