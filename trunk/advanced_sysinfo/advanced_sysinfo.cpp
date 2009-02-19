@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <shlobj.h>
 #include "csaori.h"
+#include "SMARTInfo.h"
 
 /*=========================================================
 	SAORI CORE
@@ -14,6 +15,8 @@
 /*---------------------------------------------------------
 	èâä˙âª
 ---------------------------------------------------------*/
+CSMARTInfo *g_pSMARTInfo = NULL;
+
 bool CSAORI::load(){
 	return true;
 }
@@ -22,6 +25,10 @@ bool CSAORI::load(){
 	âï˙
 ---------------------------------------------------------*/
 bool CSAORI::unload(){
+	if ( g_pSMARTInfo ) {
+		delete g_pSMARTInfo;
+		g_pSMARTInfo = NULL;
+	}
 	return true;
 }
 
@@ -29,6 +36,7 @@ bool CSAORI::unload(){
 	é¿çs
 ---------------------------------------------------------*/
 static bool GetSpecialFolderPath(const std::wstring &nFolder, std::wstring &path );
+static bool GetDiskSMARTInfo(int diskID,std::wstring &result,std::vector<std::wstring> &values);
 
 void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 	out.result_code = SAORIRESULT_BAD_REQUEST;
@@ -40,6 +48,17 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 
 		if ( GetSpecialFolderPath(in.args[1],path) ) {
 			out.result = path;
+			out.result_code = SAORIRESULT_OK;
+		}
+		else {
+			out.result_code = SAORIRESULT_NO_CONTENT;
+		}
+	}
+	else if ( wcsicmp(in.args[0].c_str(),L"get_disk_smart_info") == 0 ) {
+		if ( in.args.size() < 2 ) { return; }
+
+		int id = _wtoi(in.args[0].c_str());
+		if ( GetDiskSMARTInfo(id,out.result,out.values) ) {
 			out.result_code = SAORIRESULT_OK;
 		}
 		else {
@@ -147,5 +166,24 @@ static bool GetSpecialFolderPath(const std::wstring &nFolder, std::wstring &path
 		}
 	}
 
+	return false;
+}
+
+/*---------------------------------------------------------
+	get_disk_smart_info
+---------------------------------------------------------*/
+
+static bool GetDiskSMARTInfo(int diskID,std::wstring &result,std::vector<std::wstring> &values)
+{
+	if ( ! g_pSMARTInfo ) {
+		g_pSMARTInfo = new CSMARTInfo;
+	}
+
+	if ( g_pSMARTInfo->Init() ) {
+		CDriveSmartInfo *pDiskInfo = g_pSMARTInfo->GetInfo(diskID);
+		if ( pDiskInfo ) {
+			return true;
+		}
+	}
 	return false;
 }
