@@ -2,9 +2,7 @@
 
 #include "SMARTInfo.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include "smart_struct.h"
+#include <stdlib.h>
 
 /*-------------------------------------------------------
 	\’z/Á–Å
@@ -12,6 +10,7 @@
 
 CSMARTInfo::CSMARTInfo()
 {
+	m_isInited = false;
 }
 
 CSMARTInfo::~CSMARTInfo()
@@ -20,72 +19,67 @@ CSMARTInfo::~CSMARTInfo()
 }
 
 /*-------------------------------------------------------
-	‰Šú‰»ƒwƒ‹ƒp[ŠÖ”ŒQ
+	Žæ“¾
 -------------------------------------------------------*/
-static BOOL DoIDENTIFY(HANDLE hSMARTIOCTL, PSENDCMDINPARAMS pSCIP,
-	PSENDCMDOUTPARAMS pSCOP, BYTE bIDCmd, BYTE bDriveNum, PDWORD lpcbBytesReturned)
+
+CDriveSmartInfo *CSMARTInfo::GetInfo(int id)
 {
-	//
-	// Set up data structures for IDENTIFY command.
-	//
-
-	pSCIP->cBufferSize = IDENTIFY_BUFFER_SIZE;
-
-	pSCIP->irDriveRegs.bFeaturesReg = 0;
-	pSCIP->irDriveRegs.bSectorCountReg = 1;
-	pSCIP->irDriveRegs.bSectorNumberReg = 1;
-	pSCIP->irDriveRegs.bCylLowReg = 0;
-	pSCIP->irDriveRegs.bCylHighReg = 0;
-
-	//
-	// Compute the drive number.
-	//
-	pSCIP->irDriveRegs.bDriveHeadReg = 0xA0 | ((bDriveNum & 1) << 4); 
-
-	//
-	// The command can either be IDE identify or ATAPI identify.
-	//
-	pSCIP->irDriveRegs.bCommandReg = bIDCmd;
-	pSCIP->bDriveNumber = bDriveNum;
-	pSCIP->cBufferSize = IDENTIFY_BUFFER_SIZE;
-
-    return (DeviceIoControl(hSMARTIOCTL, DFP_RECEIVE_DRIVE_DATA,
-             	(LPVOID)pSCIP, sizeof(SENDCMDINPARAMS) - 1,
-               	(LPVOID)pSCOP, sizeof(SENDCMDOUTPARAMS) + IDENTIFY_BUFFER_SIZE - 1,
-               	lpcbBytesReturned, NULL) );
+	size_t n = m_driveInfo.size();
+	for ( size_t i = 0 ; i < n ; ++i ) {
+		if ( m_driveInfo[i].m_driveID == id ) {
+			return &(m_driveInfo[i]);
+		}
+	}
+	return NULL;
 }
 
-static BOOL DoEnableSMART(HANDLE hSMARTIOCTL, PSENDCMDINPARAMS pSCIP, PSENDCMDOUTPARAMS pSCOP, BYTE bDriveNum, PDWORD lpcbBytesReturned)
+/*-------------------------------------------------------
+	‰Šú‰»ƒwƒ‹ƒp[ŠÖ”ŒQ
+-------------------------------------------------------*/
+static BOOL DoReadCmd(HANDLE hSMARTIOCTL, PSENDCMDOUTPARAMS pSCOP, BYTE bDriveNum, BYTE cmd, DWORD ioCCode, DWORD bufsize = 0)
 {
-	//
-	// Set up data structures for Enable SMART Command.
-	//
-	pSCIP->cBufferSize = 0;
+	DWORD	cbBytesReturned;
 
-	pSCIP->irDriveRegs.bFeaturesReg = SMART_ENABLE_SMART_OPERATIONS;
-	pSCIP->irDriveRegs.bSectorCountReg = 1;
-	pSCIP->irDriveRegs.bSectorNumberReg = 1;
-	pSCIP->irDriveRegs.bCylLowReg = SMART_CYL_LOW;
-	pSCIP->irDriveRegs.bCylHighReg = SMART_CYL_HI;
+	SENDCMDINPARAMS 	scip;
 
-	//
-	// Compute the drive number.
-	//
-	pSCIP->irDriveRegs.bDriveHeadReg = 0xA0 | ((bDriveNum & 1) << 4); 
-	pSCIP->irDriveRegs.bCommandReg = IDE_EXECUTE_SMART_FUNCTION;
-	pSCIP->bDriveNumber = bDriveNum;
+	scip.cBufferSize = bufsize;
 
-        return ( DeviceIoControl(hSMARTIOCTL, DFP_SEND_DRIVE_COMMAND,
-                (LPVOID)pSCIP, sizeof(SENDCMDINPARAMS) - 1,
-                (LPVOID)pSCOP, sizeof(SENDCMDOUTPARAMS) - 1,
-                lpcbBytesReturned, NULL) );
+	scip.irDriveRegs.bFeaturesReg = cmd;
+	scip.irDriveRegs.bSectorCountReg = 1;
+	scip.irDriveRegs.bSectorNumberReg = 1;
+	scip.irDriveRegs.bCylLowReg = SMART_CYL_LOW;
+	scip.irDriveRegs.bCylHighReg = SMART_CYL_HI;
+	scip.irDriveRegs.bDriveHeadReg = 0xA0 | ((bDriveNum & 1) << 4); 
+	scip.irDriveRegs.bCommandReg = IDE_EXECUTE_SMART_FUNCTION;
+	scip.bDriveNumber = bDriveNum;
+
+	return ( DeviceIoControl(hSMARTIOCTL, ioCCode,
+		(LPVOID)&scip, sizeof(SENDCMDINPARAMS) - 1,
+		(LPVOID)pSCOP, sizeof(SENDCMDOUTPARAMS) + bufsize - 1,
+		&cbBytesReturned, NULL) );
+}
+
+static void ChangeByteOrder(PCHAR szString, USHORT uscStrSize)
+{
+	USHORT	i;
+	CHAR	temp;
+
+	for (i = 0; i < uscStrSize; i+=2) {
+		temp = szString[i];
+		szString[i] = szString[i+1];
+		szString[i+1] = temp;
+	}
 }
 
 /*-------------------------------------------------------
 	‰Šú‰»
 -------------------------------------------------------*/
+#define READ_BUFFER_SIZE 4096
+
 bool CSMARTInfo::Init()
 {
+	if ( m_isInited ) { return true; }
+
 	OSVERSIONINFO os;
 	os.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 	::GetVersionEx(&os);
@@ -105,11 +99,11 @@ bool CSMARTInfo::Init()
 		return false;
 	}
 
-	DWORD cbBytesReturned;
-
 	//VERSION
 	GETVERSIONOUTPARAMS VersionParams;
 	ZeroMemory(&VersionParams,sizeof(VersionParams));
+
+	DWORD cbBytesReturned;
 
 	if ( ! ::DeviceIoControl(hSMARTIOCTL, DFP_GET_VERSION,NULL, 0,
 		&VersionParams,sizeof(VersionParams),&cbBytesReturned, NULL) ) {
@@ -117,27 +111,97 @@ bool CSMARTInfo::Init()
 		return false;
 	}
 
-	SENDCMDINPARAMS 	scip;
 	SENDCMDOUTPARAMS	OutCmd;
+	bool found = false;
 
 	bool bDfpDriveMap[MAX_IDE_DRIVES];
 	ZeroMemory(&bDfpDriveMap,sizeof(bDfpDriveMap));
 
-	for ( int i = 0; i < MAX_IDE_DRIVES; ++i ) {
+	int i;
+	for ( i = 0; i < MAX_IDE_DRIVES; ++i ) {
 		if ( VersionParams.bIDEDeviceMap >> i & 1 ) {
 			if ( !(VersionParams.bIDEDeviceMap >> i & 0x10) ) {
-				ZeroMemory(&scip, sizeof(scip));
 				ZeroMemory(&OutCmd, sizeof(OutCmd));
 
-				if ( DoEnableSMART(hSMARTIOCTL,&scip,&OutCmd,i,&cbBytesReturned) ) {
+				if ( DoReadCmd(hSMARTIOCTL,&OutCmd,i,SMART_ENABLE_SMART_OPERATIONS,DFP_SEND_DRIVE_COMMAND) ) {
 					bDfpDriveMap[i] = true;
+					found = true;
 				}
 			}
 		}
+	}
+
+	if ( ! found ) {
+		::CloseHandle(hSMARTIOCTL);
+		return false;
+	}
+
+	SENDCMDOUTPARAMS* OutCmdData = reinterpret_cast<SENDCMDOUTPARAMS*>(calloc(sizeof(SENDCMDOUTPARAMS) + READ_BUFFER_SIZE + 1,1));
+	OutCmdData->cBufferSize = READ_BUFFER_SIZE;
+
+	SENDCMDOUTPARAMS* OutCmdDataThreshold = reinterpret_cast<SENDCMDOUTPARAMS*>(calloc(sizeof(SENDCMDOUTPARAMS) + READ_BUFFER_SIZE + 1,1));
+	OutCmdDataThreshold->cBufferSize = READ_BUFFER_SIZE;
+
+	for ( i = 0; i < MAX_IDE_DRIVES; ++i ) {
+		CDriveSmartInfo inf;
+		inf.m_driveID = i;
+
+		//IDENTIFY
+		if ( DoReadCmd(hSMARTIOCTL,OutCmdData,
+			i,0,DFP_RECEIVE_DRIVE_DATA,READ_BUFFER_SIZE) ) {
+			inf.m_sector = *reinterpret_cast<IDSECTOR*>(OutCmdData->bBuffer);
+
+			ChangeByteOrder(inf.m_sector.sModelNumber,sizeof(inf.m_sector.sModelNumber));
+			ChangeByteOrder(inf.m_sector.sFirmwareRev,sizeof(inf.m_sector.sFirmwareRev));
+			ChangeByteOrder(inf.m_sector.sSerialNumber,sizeof(inf.m_sector.sSerialNumber));
+
+			//Attr+Thresh
+			if ( DoReadCmd(hSMARTIOCTL,OutCmdData,
+				i,SMART_READ_ATTRIBUTE_VALUES,DFP_RECEIVE_DRIVE_DATA,READ_BUFFER_SIZE) ) {
+
+				if ( DoReadCmd(hSMARTIOCTL,OutCmdDataThreshold,
+					i,SMART_READ_ATTRIBUTE_THRESHOLDS,DFP_RECEIVE_DRIVE_DATA,READ_BUFFER_SIZE) ) {
+
+					inf.m_structRev = *reinterpret_cast<WORD*>(OutCmdData->bBuffer);
+
+					size_t n = (READ_BUFFER_SIZE-2) / sizeof(DRIVEATTRIBUTE);
+
+					DRIVEATTRIBUTE* pAttr = reinterpret_cast<DRIVEATTRIBUTE*>(OutCmdData->bBuffer + 2);
+					ATTRTHRESHOLD* pThresh = reinterpret_cast<ATTRTHRESHOLD*>(OutCmdDataThreshold->bBuffer + 2);
+
+					for ( size_t i = 0 ; i < n ; ++i ) {
+						if ( ! pAttr->bAttrID ) { break; }
+
+						DRIVEATTRTHRESH t;
+						t.attr = *pAttr;
+						t.thresh = *pThresh;
+
+						inf.m_smartParams.push_back(t);
+
+						++pAttr;
+						++pThresh;
+					}
+
+					m_driveInfo.push_back(inf);
+				}
+			}
+		}
+	}
+
+	free(OutCmdData);
+	free(OutCmdDataThreshold);
+
+	if ( m_driveInfo.size() ) {
+		m_isInited = true;
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 
 void CSMARTInfo::Release()
 {
-
+	m_driveInfo.clear();
+	m_isInited = false;
 }

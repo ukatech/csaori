@@ -1,21 +1,3 @@
-/****************************************************************************
-*                                                                           *
-* THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY     *
-* KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE       *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR     *
-* PURPOSE.                                                                  *
-*                                                                           *
-* Copyright 1993-98  Microsoft Corporation.  All Rights Reserved.           *
-*                                                                           *
-****************************************************************************/
-
-/****************************************************************************
-*
-* PROGRAM: SMART.H
-*
-* PURPOSE: Structure definitions for an application that calls SMART Ioctls
-*
-****************************************************************************/
 
 #ifndef SMARTIOCTL_INCLUDED
 #define SMARTIOCTL_INCLUDED
@@ -25,9 +7,6 @@
 // Miscellaneous
 
 #define	MAX_IDE_DRIVES	4	// Max number of drives assuming primary/secondary, master/slave topology
-#define READ_ATTRIBUTE_BUFFER_SIZE	4096
-#define IDENTIFY_BUFFER_SIZE		4096
-#define READ_THRESHOLD_BUFFER_SIZE	4096
 
 //
 // IOCTL commands
