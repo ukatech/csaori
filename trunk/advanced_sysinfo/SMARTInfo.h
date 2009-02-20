@@ -29,7 +29,7 @@ class CSMARTInfo
 {
 private:
 	std::vector<CDriveSmartInfo> m_driveInfo;
-	bool m_isInited;
+	DWORD m_initTime;
 
 public:
 	void Release(void);

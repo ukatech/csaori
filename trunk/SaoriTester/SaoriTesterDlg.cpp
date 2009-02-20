@@ -88,6 +88,17 @@ BOOL CSaoriTesterDlg::OnInitDialog()
 		}
 	}
 
+	m_a1 = AfxGetApp()->GetProfileString("Parameters","Argument0");
+	m_a2 = AfxGetApp()->GetProfileString("Parameters","Argument1");
+	m_a3 = AfxGetApp()->GetProfileString("Parameters","Argument2");
+	m_a4 = AfxGetApp()->GetProfileString("Parameters","Argument3");
+	m_a5 = AfxGetApp()->GetProfileString("Parameters","Argument4");
+	m_a6 = AfxGetApp()->GetProfileString("Parameters","Argument5");
+	m_a7 = AfxGetApp()->GetProfileString("Parameters","Argument6");
+	m_a8 = AfxGetApp()->GetProfileString("Parameters","Argument7");
+
+	UpdateData(FALSE);
+
 	if ( m_initialStr.GetLength() ) {
 		LoadSAORI(m_initialStr);
 	}
@@ -107,6 +118,17 @@ void CSaoriTesterDlg::OnDestroy()
 		sprintf(entryName,"History%d",i);
 		AfxGetApp()->WriteProfileString("General",entryName,m_fileHistory[i]);
 	}
+
+	UpdateData(TRUE);
+
+	AfxGetApp()->WriteProfileString("Parameters","Argument0",m_a1);
+	AfxGetApp()->WriteProfileString("Parameters","Argument1",m_a2);
+	AfxGetApp()->WriteProfileString("Parameters","Argument2",m_a3);
+	AfxGetApp()->WriteProfileString("Parameters","Argument3",m_a4);
+	AfxGetApp()->WriteProfileString("Parameters","Argument4",m_a5);
+	AfxGetApp()->WriteProfileString("Parameters","Argument5",m_a6);
+	AfxGetApp()->WriteProfileString("Parameters","Argument6",m_a7);
+	AfxGetApp()->WriteProfileString("Parameters","Argument7",m_a8);
 }
 
 void CSaoriTesterDlg::PostNcDestroy() 
