@@ -51,7 +51,11 @@ BOOL CSaoriTesterApp::InitInstance()
 	m_pszProfileName = (const char*)malloc(strlen(myPath) + 1);
 	strcpy((char*)m_pszProfileName,myPath);
 
-	m_pMainWnd = new CSaoriTesterDlg;
+	CCommandLineInfo cmdInfo;
+	ParseCommandLine(cmdInfo);
+
+	CSaoriTesterDlg *pDlg = new CSaoriTesterDlg(cmdInfo.m_strFileName);
+	m_pMainWnd = pDlg;
 
 	return TRUE;
 }
