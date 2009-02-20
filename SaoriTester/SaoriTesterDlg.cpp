@@ -16,8 +16,8 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CSaoriTesterDlg ダイアログ
 
-CSaoriTesterDlg::CSaoriTesterDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CSaoriTesterDlg::IDD, pParent)
+CSaoriTesterDlg::CSaoriTesterDlg(CString &f)
+	: CDialog(CSaoriTesterDlg::IDD, NULL)
 {
 	//{{AFX_DATA_INIT(CSaoriTesterDlg)
 	m_a1 = _T("");
@@ -33,8 +33,10 @@ CSaoriTesterDlg::CSaoriTesterDlg(CWnd* pParent /*=NULL*/)
 	m_response = _T("");
 	//}}AFX_DATA_INIT
 
-	Create(CSaoriTesterDlg::IDD,pParent);
+	m_initialStr = f;
 	m_hModule = NULL;
+
+	Create(CSaoriTesterDlg::IDD,NULL);
 }
 
 void CSaoriTesterDlg::DoDataExchange(CDataExchange* pDX)
@@ -85,6 +87,10 @@ BOOL CSaoriTesterDlg::OnInitDialog()
 			}
 		}
 	}
+
+	if ( m_initialStr.GetLength() ) {
+		LoadSAORI(m_initialStr);
+	}
 	
 	return TRUE;  // TRUE を返すとコントロールに設定したフォーカスは失われません。
 }
@@ -92,6 +98,8 @@ BOOL CSaoriTesterDlg::OnInitDialog()
 void CSaoriTesterDlg::OnDestroy() 
 {
 	CDialog::OnDestroy();
+
+	m_initialStr = "";
 	
 	char entryName[32];
 	int n = m_fileHistory.GetSize();

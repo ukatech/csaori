@@ -23,7 +23,8 @@ class CSaoriTesterDlg : public CDialog
 public:
 	virtual void OnCancel();
 	virtual void OnOK();
-	CSaoriTesterDlg(CWnd* pParent = NULL);	// 標準のコンストラクタ
+	CSaoriTesterDlg(CString &f);	// 標準のコンストラクタ
+	CString m_initialStr;
 
 // ダイアログ データ
 	//{{AFX_DATA(CSaoriTesterDlg)
