@@ -8,6 +8,15 @@
 #include "csaori.h"
 #include "SMARTInfo.h"
 
+//////////DEBUG/////////////////////////
+#ifdef _WINDOWS
+#ifdef _DEBUG
+#include <crtdbg.h>
+#define new new( _NORMAL_BLOCK, __FILE__, __LINE__)
+#endif
+#endif
+////////////////////////////////////////
+
 /*=========================================================
 	SAORI CORE
 =========================================================*/
@@ -172,6 +181,28 @@ static bool GetSpecialFolderPath(const std::wstring &nFolder, std::wstring &path
 /*---------------------------------------------------------
 	get_disk_smart_info
 ---------------------------------------------------------*/
+static std::wstring SMARTStringToWString(const char *pBuffer,size_t n)
+{
+	size_t i;
+	for ( i = 0 ; i < n ; ++i ) {
+		if ( pBuffer[i] != L' ' ) { break; }
+	}
+	if ( i == n ) { return L""; }
+
+	wchar_t buffer[128];
+	size_t j = 0;
+	for ( ; i < n ; ++i,++j ) {
+		buffer[j] = pBuffer[i];
+	}
+	buffer[j] = 0; //ゼロ終端
+
+	while ( j > 0 ) {
+		if ( buffer[j-1] != L' ' ) { break; }
+		buffer[j-1] = 0;
+		--j;
+	}
+	return buffer;
+}
 
 static bool GetDiskSMARTInfo(int diskID,std::wstring &result,std::vector<std::wstring> &values)
 {
@@ -179,11 +210,121 @@ static bool GetDiskSMARTInfo(int diskID,std::wstring &result,std::vector<std::ws
 		g_pSMARTInfo = new CSMARTInfo;
 	}
 
+	static const struct { unsigned int id; wchar_t *text; wchar_t *textj; } smart_description[] = {
+		{1  ,L"Raw Read Error Rate",L"読み取りエラー状況"},
+		{2  ,L"Throughput Performance",L"全体性能"},
+		{3  ,L"Spin Up Time",L"回転開始時間"},
+		{4  ,L"Start/Stop Count",L"起動回数"},
+		{5  ,L"Reallocated Sectors Count",L"代替処理セクタ数"},
+		{7  ,L"Seek Error Rate",L"シークエラー状況"},
+		{8  ,L"Seek Time Performance",L"シークタイム性能"},
+		{9  ,L"Power-On Hours",L"電源投入時間"},
+		{10 ,L"Spin Retry Count",L"再回転試行回数"},
+		{11 ,L"Recalibration Retries",L"再調整再試行回数"},
+		{12 ,L"Device Power Cycle Count",L"電源投入回数"},
+		{13 ,L"Soft Read Error Rate",L"オフトラック状況"},
+		{193,L"Load/Unload Cycle Count",L"退避回数"},
+		{194,L"Temperature",L"温度"},
+		{195,L"Hardware ECC recovered",L"ECC修正回数"},
+		{196,L"Reallocation Event Count",L"代替処理回数"},
+		{197,L"Current Pending Sector Count",L"代替処理待ちセクタ数"},
+		{198,L"Off-Line Scan Uncorrectable Sector Count",L"オフラインスキャン発見修正不可セクタ数"},
+		{199,L"UltraDMA CRC Error Count",L"UltraDMA CRCエラー回数"},
+		{200,L"Write Error Rate",L"書き込みエラー数"},
+		{201,L"Soft Read Error Rate",L"ソフト読み取りエラー状況"},
+		{202,L"Data Address Mark Error",L"DAMエラー状況"},
+		{203,L"Run Out Cancel",L"ECCエラー状況"},
+		{204,L"Soft ECC Correction",L"ECC修正状況"},
+		{205,L"Thermal Asperity Rate",L"サーマル・アスペリティ状況"},
+		{206,L"Flying Height",L"ヘッド飛行高"},
+		{207,L"Spin High Current",L"回転開始時超過電流状況"},
+		{208,L"Spin Buzz",L"ヘッド跳ね上げ状況"},
+		{209,L"Offline Seek Performance",L"オフラインスキャンシーク性能"},
+		{210,L"Vibration During Write",L"書き込み時の振動状況"},
+		{211,L"Vibration During Read",L"読み取り時の振動状況"},
+		{212,L"Shock During Write",L"書き込み時のショック状況"},
+		{220,L"Disk Shift",L"プラッタずれ回数"},
+		{221,L"G-Sense Error Rate",L"衝撃感知エラー状況"},
+		{222,L"Loaded Hours",L"ヘッド負荷状況"},
+		{223,L"Load/Unload Retry Count",L"ロード/アンロード再試行回数"},
+		{224,L"Load Friction",L"ヘッド摩擦負荷状況"},
+		{226,L"Load-in Time",L"ヘッド負荷状況"},
+		{227,L"Torque Amplification Count",L"回転負荷増大回数"},
+		{228,L"Power-Off Retract Count",L"電源切断緊急退避回数"},
+		{230,L"GMR Head Amplitude",L"ヘッド振幅"},
+		{240,L"Head Flying Hours",L"ヘッド飛行時間"},
+		{250,L"Read Error Retry Rate",L"読み取り再試行状況"},
+	};
+
+	wchar_t status[64] = L"Normal";
+
 	if ( g_pSMARTInfo->Init() ) {
 		CDriveSmartInfo *pDiskInfo = g_pSMARTInfo->GetInfo(diskID);
 		if ( pDiskInfo ) {
-			return true;
+			std::wstring tmpstr;
+			wchar_t buffer[512];
+
+			tmpstr = L"ModelNumber\1";
+			tmpstr += SMARTStringToWString(pDiskInfo->m_sector.sModelNumber,sizeof(pDiskInfo->m_sector.sModelNumber));
+			values.push_back(tmpstr);
+		
+			tmpstr = L"SerialNumber\1";
+			tmpstr += SMARTStringToWString(pDiskInfo->m_sector.sSerialNumber,sizeof(pDiskInfo->m_sector.sSerialNumber));
+			values.push_back(tmpstr);
+		
+			tmpstr = L"FirmwareRev\1";
+			tmpstr += SMARTStringToWString(pDiskInfo->m_sector.sFirmwareRev,sizeof(pDiskInfo->m_sector.sFirmwareRev));
+			values.push_back(tmpstr);
+
+			tmpstr = L"SectorCount\1";
+			swprintf(buffer,L"%u",pDiskInfo->m_sector.ulTotalAddressableSectors);
+			tmpstr += buffer;
+			values.push_back(tmpstr);
+
+			size_t n = pDiskInfo->m_smartParams.size();
+			unsigned int raw;
+			unsigned int attr;
+			wchar_t *desc;
+			wchar_t *descj;
+
+			for ( size_t i = 0 ; i < n ; ++i ) {
+				raw = pDiskInfo->m_smartParams[i].attr.bRawValue[3];
+				raw = raw << 8;
+				raw = pDiskInfo->m_smartParams[i].attr.bRawValue[2];
+				raw = raw << 8;
+				raw = pDiskInfo->m_smartParams[i].attr.bRawValue[1];
+				raw = raw << 8;
+				raw = pDiskInfo->m_smartParams[i].attr.bRawValue[0];
+
+				attr = pDiskInfo->m_smartParams[i].attr.bAttrID;
+				desc = L"";
+				descj = L"";
+				for ( size_t j = 0 ; j < (sizeof(smart_description)/sizeof(smart_description[0])) ; ++j ) {
+					if ( attr == smart_description[j].id ) {
+						desc = smart_description[j].text;
+						descj = smart_description[j].textj;
+						break;
+					}
+				}
+
+				swprintf(buffer,L"SMARTValue\1%u,%s,%s,%u,%u,%u,%u",
+					attr,desc,descj,
+					pDiskInfo->m_smartParams[i].attr.bAttrValue,
+					pDiskInfo->m_smartParams[i].attr.bWorstValue,
+					pDiskInfo->m_smartParams[i].thresh.bWarrantyThreshold,
+					raw);
+				values.push_back(buffer);
+
+				if ( pDiskInfo->m_smartParams[i].attr.bAttrValue < pDiskInfo->m_smartParams[i].thresh.bWarrantyThreshold ) {
+					swprintf(status,L"Emergency,%u",pDiskInfo->m_smartParams[i].attr.bAttrID);
+				}
+				else if ( pDiskInfo->m_smartParams[i].attr.bWorstValue < pDiskInfo->m_smartParams[i].thresh.bWarrantyThreshold ) {
+					swprintf(status,L"Warning,%u",pDiskInfo->m_smartParams[i].attr.bAttrID);
+				}
+			}
 		}
 	}
+	
+	result = status;
 	return false;
 }

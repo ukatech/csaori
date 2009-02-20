@@ -3,6 +3,16 @@
 #include "SMARTInfo.h"
 
 #include <stdlib.h>
+#include <mmsystem.h>
+
+//////////DEBUG/////////////////////////
+#ifdef _WINDOWS
+#ifdef _DEBUG
+#include <crtdbg.h>
+#define new new( _NORMAL_BLOCK, __FILE__, __LINE__)
+#endif
+#endif
+////////////////////////////////////////
 
 /*-------------------------------------------------------
 	構築/消滅
@@ -10,7 +20,7 @@
 
 CSMARTInfo::CSMARTInfo()
 {
-	m_isInited = false;
+	m_initTime = 0;
 }
 
 CSMARTInfo::~CSMARTInfo()
@@ -36,11 +46,12 @@ CDriveSmartInfo *CSMARTInfo::GetInfo(int id)
 /*-------------------------------------------------------
 	初期化ヘルパー関数群
 -------------------------------------------------------*/
-static BOOL DoReadCmd(HANDLE hSMARTIOCTL, PSENDCMDOUTPARAMS pSCOP, BYTE bDriveNum, BYTE cmd, DWORD ioCCode, DWORD bufsize = 0)
+static BOOL DoReadSMARTCmd(HANDLE hSMARTIOCTL, PSENDCMDOUTPARAMS pSCOP, BYTE bDriveNum, BYTE cmd, DWORD bufsize)
 {
 	DWORD	cbBytesReturned;
 
 	SENDCMDINPARAMS 	scip;
+	ZeroMemory(&scip,sizeof(scip));
 
 	scip.cBufferSize = bufsize;
 
@@ -53,7 +64,55 @@ static BOOL DoReadCmd(HANDLE hSMARTIOCTL, PSENDCMDOUTPARAMS pSCOP, BYTE bDriveNu
 	scip.irDriveRegs.bCommandReg = IDE_EXECUTE_SMART_FUNCTION;
 	scip.bDriveNumber = bDriveNum;
 
-	return ( DeviceIoControl(hSMARTIOCTL, ioCCode,
+	return ( DeviceIoControl(hSMARTIOCTL, DFP_RECEIVE_DRIVE_DATA,
+		(LPVOID)&scip, sizeof(SENDCMDINPARAMS) - 1,
+		(LPVOID)pSCOP, sizeof(SENDCMDOUTPARAMS) + bufsize - 1,
+		&cbBytesReturned, NULL) );
+}
+
+static BOOL DoSendSMARTCmd(HANDLE hSMARTIOCTL, PSENDCMDOUTPARAMS pSCOP, BYTE bDriveNum, BYTE cmd, DWORD bufsize)
+{
+	DWORD	cbBytesReturned;
+
+	SENDCMDINPARAMS 	scip;
+	ZeroMemory(&scip,sizeof(scip));
+
+	scip.cBufferSize = bufsize;
+
+	scip.irDriveRegs.bFeaturesReg = cmd;
+	scip.irDriveRegs.bSectorCountReg = 1;
+	scip.irDriveRegs.bSectorNumberReg = 1;
+	scip.irDriveRegs.bCylLowReg = SMART_CYL_LOW;
+	scip.irDriveRegs.bCylHighReg = SMART_CYL_HI;
+	scip.irDriveRegs.bDriveHeadReg = 0xA0 | ((bDriveNum & 1) << 4); 
+	scip.irDriveRegs.bCommandReg = IDE_EXECUTE_SMART_FUNCTION;
+	scip.bDriveNumber = bDriveNum;
+
+	return ( DeviceIoControl(hSMARTIOCTL, DFP_SEND_DRIVE_COMMAND,
+		(LPVOID)&scip, sizeof(SENDCMDINPARAMS) - 1,
+		(LPVOID)pSCOP, sizeof(SENDCMDOUTPARAMS) + bufsize - 1,
+		&cbBytesReturned, NULL) );
+}
+
+static BOOL DoIDCmd(HANDLE hSMARTIOCTL, PSENDCMDOUTPARAMS pSCOP, BYTE bDriveNum,DWORD bufsize)
+{
+	DWORD	cbBytesReturned;
+
+	SENDCMDINPARAMS 	scip;
+	ZeroMemory(&scip,sizeof(scip));
+
+	scip.cBufferSize = bufsize;
+
+	scip.irDriveRegs.bFeaturesReg = 0;
+	scip.irDriveRegs.bSectorCountReg = 1;
+	scip.irDriveRegs.bSectorNumberReg = 1;
+	//scip.irDriveRegs.bCylLowReg = 0;
+	//scip.irDriveRegs.bCylHighReg = 0;
+	scip.irDriveRegs.bDriveHeadReg = 0xA0 | ((bDriveNum & 1) << 4); 
+	scip.irDriveRegs.bCommandReg = IDE_ID_FUNCTION;
+	scip.bDriveNumber = bDriveNum;
+
+	return ( DeviceIoControl(hSMARTIOCTL, DFP_RECEIVE_DRIVE_DATA,
 		(LPVOID)&scip, sizeof(SENDCMDINPARAMS) - 1,
 		(LPVOID)pSCOP, sizeof(SENDCMDOUTPARAMS) + bufsize - 1,
 		&cbBytesReturned, NULL) );
@@ -78,7 +137,9 @@ static void ChangeByteOrder(PCHAR szString, USHORT uscStrSize)
 
 bool CSMARTInfo::Init()
 {
-	if ( m_isInited ) { return true; }
+	DWORD current = ::timeGetTime();
+	if ( (current - m_initTime) < 60000 ) { return true; } //1分間キャッシュ
+	m_initTime = current;
 
 	OSVERSIONINFO os;
 	os.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
@@ -99,7 +160,7 @@ bool CSMARTInfo::Init()
 		return false;
 	}
 
-	//VERSION
+	//バージョンと取り付けられているハードウェアの場所チェック
 	GETVERSIONOUTPARAMS VersionParams;
 	ZeroMemory(&VersionParams,sizeof(VersionParams));
 
@@ -117,13 +178,14 @@ bool CSMARTInfo::Init()
 	bool bDfpDriveMap[MAX_IDE_DRIVES];
 	ZeroMemory(&bDfpDriveMap,sizeof(bDfpDriveMap));
 
+	//ビット0～3 IDE Primary Master -> Secondary Slave  ビット4～7 ATAPIがついてる場合
 	int i;
 	for ( i = 0; i < MAX_IDE_DRIVES; ++i ) {
 		if ( VersionParams.bIDEDeviceMap >> i & 1 ) {
 			if ( !(VersionParams.bIDEDeviceMap >> i & 0x10) ) {
 				ZeroMemory(&OutCmd, sizeof(OutCmd));
 
-				if ( DoReadCmd(hSMARTIOCTL,&OutCmd,i,SMART_ENABLE_SMART_OPERATIONS,DFP_SEND_DRIVE_COMMAND) ) {
+				if ( DoSendSMARTCmd(hSMARTIOCTL,&OutCmd,i,SMART_ENABLE_SMART_OPERATIONS,0) ) {
 					bDfpDriveMap[i] = true;
 					found = true;
 				}
@@ -142,25 +204,27 @@ bool CSMARTInfo::Init()
 	SENDCMDOUTPARAMS* OutCmdDataThreshold = reinterpret_cast<SENDCMDOUTPARAMS*>(calloc(sizeof(SENDCMDOUTPARAMS) + READ_BUFFER_SIZE + 1,1));
 	OutCmdDataThreshold->cBufferSize = READ_BUFFER_SIZE;
 
+	//全ドライブの詳細情報と
 	for ( i = 0; i < MAX_IDE_DRIVES; ++i ) {
+		if ( ! bDfpDriveMap[i] ) { continue; }
+
 		CDriveSmartInfo inf;
 		inf.m_driveID = i;
 
 		//IDENTIFY
-		if ( DoReadCmd(hSMARTIOCTL,OutCmdData,
-			i,0,DFP_RECEIVE_DRIVE_DATA,READ_BUFFER_SIZE) ) {
+		if ( DoIDCmd(hSMARTIOCTL,OutCmdData,i,READ_BUFFER_SIZE) ) {
 			inf.m_sector = *reinterpret_cast<IDSECTOR*>(OutCmdData->bBuffer);
 
 			ChangeByteOrder(inf.m_sector.sModelNumber,sizeof(inf.m_sector.sModelNumber));
 			ChangeByteOrder(inf.m_sector.sFirmwareRev,sizeof(inf.m_sector.sFirmwareRev));
 			ChangeByteOrder(inf.m_sector.sSerialNumber,sizeof(inf.m_sector.sSerialNumber));
 
-			//Attr+Thresh
-			if ( DoReadCmd(hSMARTIOCTL,OutCmdData,
-				i,SMART_READ_ATTRIBUTE_VALUES,DFP_RECEIVE_DRIVE_DATA,READ_BUFFER_SIZE) ) {
+			//Attr+Threshold
+			if ( DoReadSMARTCmd(hSMARTIOCTL,OutCmdData,
+				i,SMART_READ_ATTRIBUTE_VALUES,READ_BUFFER_SIZE) ) {
 
-				if ( DoReadCmd(hSMARTIOCTL,OutCmdDataThreshold,
-					i,SMART_READ_ATTRIBUTE_THRESHOLDS,DFP_RECEIVE_DRIVE_DATA,READ_BUFFER_SIZE) ) {
+				if ( DoReadSMARTCmd(hSMARTIOCTL,OutCmdDataThreshold,
+					i,SMART_READ_ATTRIBUTE_THRESHOLDS,READ_BUFFER_SIZE) ) {
 
 					inf.m_structRev = *reinterpret_cast<WORD*>(OutCmdData->bBuffer);
 
@@ -191,17 +255,11 @@ bool CSMARTInfo::Init()
 	free(OutCmdData);
 	free(OutCmdDataThreshold);
 
-	if ( m_driveInfo.size() ) {
-		m_isInited = true;
-		return true;
-	}
-	else {
-		return false;
-	}
+	return m_driveInfo.size() != 0;
 }
 
 void CSMARTInfo::Release()
 {
 	m_driveInfo.clear();
-	m_isInited = false;
+	m_initTime = 0;
 }
