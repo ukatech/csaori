@@ -51,5 +51,10 @@ license.txtを見てください。
 
 ■更新履歴
 
-・2008/12/30 Initial Release
+・2008/12/30 1.0
+　Initial Release
+
+・2009/02/23 1.1
+　/hoge/@fuga のようにAttributeノードを指定した場合、自動で内容テキストを取るようにした
+　今まではきちんと /hoge/@fuga/text() のように指定しないとだめだった
 
