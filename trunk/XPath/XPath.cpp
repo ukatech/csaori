@@ -208,33 +208,53 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 				TinyXPath::node_set *np = r.nsp_get_node_set();
 				if ( np ) {
 					unsigned int n = np->u_get_nb_node_in_set();
-
-					TiXmlString str;
 					string_t wstr;
 
-					for ( unsigned int i = 0 ; i < n ; ++i ) {
-						if ( ! np->o_is_attrib(i) ) {
-							const TiXmlNode *xp = np->XNp_get_node_in_set(i);
-							if ( xp ) {
-								str.clear();
-								const TiXmlText *tp = xp->ToText();
-								if ( tp ) {
-									str = tp->Value();
-								}
-								else {
-									const TiXmlNode *cpl = xp->LastChild();
-									const TiXmlNode *cp = xp->FirstChild();
-									if ( cp && cpl && cp == cpl ) { //子がひとつだけ＋テキストノード
-										tp = cp->ToText();
-										if ( tp ) {
-											str = tp->Value();
+					if ( n == 1 ) {
+						if ( np->o_is_attrib(0) ) {
+							const TiXmlAttribute *ap = np->XAp_get_attribute_in_set(0);
+							if ( ap ) {
+								wstr = SAORI_FUNC::MultiByteToUnicode(ap->Value(),(**it).cp);
+								out.result = wstr;
+								out.values.push_back(wstr);
+							}
+						}
+						else {
+							const TiXmlNode *ap = np->XNp_get_node_in_set(0);
+							if ( ap ) {
+								wstr = SAORI_FUNC::MultiByteToUnicode(ap->Value(),(**it).cp);
+								out.result = wstr;
+								out.values.push_back(wstr);
+							}
+						}
+					}
+					else {
+						TiXmlString str;
+
+						for ( unsigned int i = 0 ; i < n ; ++i ) {
+							if ( ! np->o_is_attrib(i) ) {
+								const TiXmlNode *xp = np->XNp_get_node_in_set(i);
+								if ( xp ) {
+									str.clear();
+									const TiXmlText *tp = xp->ToText();
+									if ( tp ) {
+										str = tp->Value();
+									}
+									else {
+										const TiXmlNode *cpl = xp->LastChild();
+										const TiXmlNode *cp = xp->FirstChild();
+										if ( cp && cpl && cp == cpl ) { //子がひとつだけ＋テキストノード
+											tp = cp->ToText();
+											if ( tp ) {
+												str = tp->Value();
+											}
 										}
 									}
-								}
-								if ( str.length() ) {
-									wstr = SAORI_FUNC::MultiByteToUnicode(str.c_str(),(**it).cp);
-									out.result += wstr;
-									out.values.push_back(wstr);
+									if ( str.length() ) {
+										wstr = SAORI_FUNC::MultiByteToUnicode(str.c_str(),(**it).cp);
+										out.result += wstr;
+										out.values.push_back(wstr);
+									}
 								}
 							}
 						}
