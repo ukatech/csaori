@@ -223,13 +223,16 @@ static bool GetDriveInfo(int driveID,std::wstring &result,std::vector<std::wstri
 		{11 ,L"Recalibration Retries",L"再調整再試行回数"},
 		{12 ,L"Device Power Cycle Count",L"電源投入回数"},
 		{13 ,L"Soft Read Error Rate",L"オフトラック状況"},
-		{193,L"Load/Unload Cycle Count",L"退避回数"},
-		{194,L"Temperature",L"温度"},
+		{160,L"Free-fall Sensor Self Test Result",L"自由落下検知センサ状態"}, //HGST Travelstar
+		{191,L"G-Sense Error Rate",L"衝撃感知エラー状況"}, //HGST Travelstar
+		{192,L"Power-Off Retract Count",L"電源切断緊急退避回数"}, //HGST Travelstar
+		{193,L"Load/Unload Cycle Count",L"退避回数"}, //HGST Travelstar
+		{194,L"Device Temperature",L"温度"}, //HGST Travelstar
 		{195,L"Hardware ECC recovered",L"ECC修正回数"},
-		{196,L"Reallocation Event Count",L"代替処理回数"},
-		{197,L"Current Pending Sector Count",L"代替処理待ちセクタ数"},
-		{198,L"Off-Line Scan Uncorrectable Sector Count",L"オフラインスキャン発見修正不可セクタ数"},
-		{199,L"UltraDMA CRC Error Count",L"UltraDMA CRCエラー回数"},
+		{196,L"Reallocation Event Count",L"代替処理回数"}, //HGST Travelstar
+		{197,L"Current Pending Sector Count",L"代替処理待ちセクタ数"}, //HGST Travelstar
+		{198,L"Off-Line Scan Uncorrectable Sector Count",L"オフラインスキャン発見修正不可セクタ数"}, //HGST Travelstar
+		{199,L"UltraDMA CRC Error Count",L"UltraDMA CRCエラー回数"}, //HGST Travelstar
 		{200,L"Write Error Rate",L"書き込みエラー数"},
 		{201,L"Soft Read Error Rate",L"ソフト読み取りエラー状況"},
 		{202,L"Data Address Mark Error",L"DAMエラー状況"},
@@ -243,10 +246,10 @@ static bool GetDriveInfo(int driveID,std::wstring &result,std::vector<std::wstri
 		{210,L"Vibration During Write",L"書き込み時の振動状況"},
 		{211,L"Vibration During Read",L"読み取り時の振動状況"},
 		{212,L"Shock During Write",L"書き込み時のショック状況"},
-		{220,L"Drive Shift",L"プラッタずれ回数"},
+		{220,L"Drive Shift",L"プラッタずれ回数"}, //HGST MicroDrive
 		{221,L"G-Sense Error Rate",L"衝撃感知エラー状況"},
 		{222,L"Loaded Hours",L"ヘッド負荷状況"},
-		{223,L"Load/Unload Retry Count",L"ロード/アンロード再試行回数"},
+		{223,L"Load/Unload Retry Count",L"ロード/アンロード再試行回数"}, //HGST Travelstar
 		{224,L"Load Friction",L"ヘッド摩擦負荷状況"},
 		{226,L"Load-in Time",L"ヘッド負荷状況"},
 		{227,L"Torque Amplification Count",L"回転負荷増大回数"},
@@ -254,6 +257,7 @@ static bool GetDriveInfo(int driveID,std::wstring &result,std::vector<std::wstri
 		{230,L"GMR Head Amplitude",L"ヘッド振幅"},
 		{240,L"Head Flying Hours",L"ヘッド飛行時間"},
 		{250,L"Read Error Retry Rate",L"読み取り再試行状況"},
+		{254,L"Free-fall Sensor Work Count",L"自由落下検知センサ作動回数"}, //HGST Travelstar
 	};
 
 
