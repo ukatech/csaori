@@ -295,11 +295,11 @@ static bool GetDriveInfo(int driveID,std::wstring &result,std::vector<std::wstri
 			for ( size_t i = 0 ; i < n ; ++i ) {
 				raw = pDriveInfo->m_smartParams[i].attr.bRawValue[3];
 				raw = raw << 8;
-				raw = pDriveInfo->m_smartParams[i].attr.bRawValue[2];
+				raw |= pDriveInfo->m_smartParams[i].attr.bRawValue[2];
 				raw = raw << 8;
-				raw = pDriveInfo->m_smartParams[i].attr.bRawValue[1];
+				raw |= pDriveInfo->m_smartParams[i].attr.bRawValue[1];
 				raw = raw << 8;
-				raw = pDriveInfo->m_smartParams[i].attr.bRawValue[0];
+				raw |= pDriveInfo->m_smartParams[i].attr.bRawValue[0];
 
 				attr = pDriveInfo->m_smartParams[i].attr.bAttrID;
 				desc = L"";
@@ -344,10 +344,15 @@ static bool GetDriveInfo(int driveID,std::wstring &result,std::vector<std::wstri
 				values.push_back(buffer);
 
 				if ( pDriveInfo->m_smartParams[i].attr.bAttrValue < pDriveInfo->m_smartParams[i].thresh.bWarrantyThreshold ) {
-					swprintf(status,L"Emergency,%u",pDriveInfo->m_smartParams[i].attr.bAttrID);
+					swprintf(status,L"Emergency",pDriveInfo->m_smartParams[i].attr.bAttrID);
 				}
 				else if ( pDriveInfo->m_smartParams[i].attr.bWorstValue < pDriveInfo->m_smartParams[i].thresh.bWarrantyThreshold ) {
-					swprintf(status,L"Warning,%u",pDriveInfo->m_smartParams[i].attr.bAttrID);
+					swprintf(status,L"Warning",pDriveInfo->m_smartParams[i].attr.bAttrID);
+				}
+				else if ( attr == 5 || attr == 196 || attr == 197 || attr == 198 ) {
+					if ( raw ) {
+						swprintf(status,L"Warning",pDriveInfo->m_smartParams[i].attr.bAttrID);
+					}
 				}
 			}
 			result = status;

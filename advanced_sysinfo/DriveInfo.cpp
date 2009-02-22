@@ -140,6 +140,8 @@ bool CDriveInfo::Init()
 {
 	DWORD current = ::timeGetTime();
 	if ( (current - m_initTime) < 300*1000 ) { return true; } //5•ªŠÔƒLƒƒƒbƒVƒ…
+
+	m_driveInfo.clear();
 	m_initTime = current;
 
 	OSVERSIONINFO os;
