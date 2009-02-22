@@ -211,53 +211,56 @@ static bool GetDriveInfo(int driveID,std::wstring &result,std::vector<std::wstri
 	}
 
 	static const struct { unsigned int id; wchar_t *text; wchar_t *textj; } smart_description[] = {
-		{1  ,L"Raw Read Error Rate",L"読み取りエラー状況"},
-		{2  ,L"Throughput Performance",L"全体性能"},
-		{3  ,L"Spin Up Time",L"回転開始時間"},
-		{4  ,L"Start/Stop Count",L"起動回数"},
-		{5  ,L"Reallocated Sectors Count",L"代替処理セクタ数"},
-		{7  ,L"Seek Error Rate",L"シークエラー状況"},
-		{8  ,L"Seek Time Performance",L"シークタイム性能"},
-		{9  ,L"Power-On Hours",L"電源投入時間"},
-		{10 ,L"Spin Retry Count",L"再回転試行回数"},
-		{11 ,L"Recalibration Retries",L"再調整再試行回数"},
-		{12 ,L"Device Power Cycle Count",L"電源投入回数"},
-		{13 ,L"Soft Read Error Rate",L"オフトラック状況"},
-		{160,L"Free-fall Sensor Self Test Result",L"自由落下検知センサ状態"}, //HGST Travelstar
-		{191,L"G-Sense Error Rate",L"衝撃感知エラー状況"}, //HGST Travelstar
-		{192,L"Power-Off Retract Count",L"電源切断緊急退避回数"}, //HGST Travelstar
-		{193,L"Load/Unload Cycle Count",L"退避回数"}, //HGST Travelstar
-		{194,L"Device Temperature",L"温度"}, //HGST Travelstar
-		{195,L"Hardware ECC recovered",L"ECC修正回数"},
-		{196,L"Reallocation Event Count",L"代替処理回数"}, //HGST Travelstar
-		{197,L"Current Pending Sector Count",L"代替処理待ちセクタ数"}, //HGST Travelstar
-		{198,L"Off-Line Scan Uncorrectable Sector Count",L"オフラインスキャン発見修正不可セクタ数"}, //HGST Travelstar
-		{199,L"UltraDMA CRC Error Count",L"UltraDMA CRCエラー回数"}, //HGST Travelstar
-		{200,L"Write Error Rate",L"書き込みエラー数"},
-		{201,L"Soft Read Error Rate",L"ソフト読み取りエラー状況"},
-		{202,L"Data Address Mark Error",L"DAMエラー状況"},
-		{203,L"Run Out Cancel",L"ECCエラー状況"},
-		{204,L"Soft ECC Correction",L"ECC修正状況"},
-		{205,L"Thermal Asperity Rate",L"サーマル・アスペリティ状況"},
-		{206,L"Flying Height",L"ヘッド飛行高"},
-		{207,L"Spin High Current",L"回転開始時超過電流状況"},
-		{208,L"Spin Buzz",L"ヘッド跳ね上げ状況"},
-		{209,L"Offline Seek Performance",L"オフラインスキャンシーク性能"},
-		{210,L"Vibration During Write",L"書き込み時の振動状況"},
-		{211,L"Vibration During Read",L"読み取り時の振動状況"},
-		{212,L"Shock During Write",L"書き込み時のショック状況"},
-		{220,L"Drive Shift",L"プラッタずれ回数"}, //HGST MicroDrive
-		{221,L"G-Sense Error Rate",L"衝撃感知エラー状況"},
-		{222,L"Loaded Hours",L"ヘッド負荷状況"},
-		{223,L"Load/Unload Retry Count",L"ロード/アンロード再試行回数"}, //HGST Travelstar
-		{224,L"Load Friction",L"ヘッド摩擦負荷状況"},
-		{226,L"Load-in Time",L"ヘッド負荷状況"},
-		{227,L"Torque Amplification Count",L"回転負荷増大回数"},
-		{228,L"Power-Off Retract Count",L"電源切断緊急退避回数"},
-		{230,L"GMR Head Amplitude",L"ヘッド振幅"},
-		{240,L"Head Flying Hours",L"ヘッド飛行時間"},
-		{250,L"Read Error Retry Rate",L"読み取り再試行状況"},
-		{254,L"Free-fall Sensor Work Count",L"自由落下検知センサ作動回数"}, //HGST Travelstar
+		{0x01,L"Raw Read Error Rate",L"読み取りエラー状況"},
+		{0x02,L"Throughput Performance",L"全体性能"},
+		{0x03,L"Spin Up Time",L"回転開始時間"},
+		{0x04,L"Start/Stop Count",L"起動回数"},
+		{0x05,L"Reallocated Sectors Count",L"代替処理セクタ数"},
+		{0x06,L"Read Channel Margin",L"リードチャネルマージン"},
+		{0x07,L"Seek Error Rate",L"シークエラー状況"},
+		{0x08,L"Seek Time Performance",L"シークタイム性能"},
+		{0x09,L"Power-On Hours",L"電源投入時間"},
+		{0x0A,L"Spin Retry Count",L"再回転試行回数"},
+		{0x0B,L"Recalibration Retries",L"再調整再試行回数"},
+		{0x0C,L"Device Power Cycle Count",L"電源投入回数"},
+		{0x0D,L"Soft Read Error Rate",L"オフトラック状況"},
+		{0xA0,L"Free-fall Sensor Self Test Result",L"自由落下検知センサ状態"}, //HGST Travelstar
+		{0xBE,L"Airflow Temperature",L"エアフロー温度"}, //Seagate
+		{0xBF,L"G-Sense Error Rate",L"衝撃感知エラー状況"}, //HGST Travelstar
+		{0xC0,L"Power-Off Retract Count",L"電源切断緊急退避回数"}, //HGST Travelstar
+		{0xC1,L"Load/Unload Cycle Count",L"ヘッド退避回数"}, //HGST Travelstar
+		{0xC2,L"Device Temperature",L"温度"}, //HGST Travelstar
+		{0xC3,L"Hardware ECC recovered",L"ECC修正回数"},
+		{0xC4,L"Reallocation Event Count",L"代替処理回数"}, //HGST Travelstar
+		{0xC5,L"Current Pending Sector Count",L"代替処理待ちセクタ数"}, //HGST Travelstar
+		{0xC6,L"Off-Line Scan Uncorrectable Sector Count",L"オフラインスキャン発見修正不可セクタ数"}, //HGST Travelstar
+		{0xC7,L"UltraDMA CRC Error Count",L"UltraDMA CRCエラー回数"}, //HGST Travelstar
+		{0xC8,L"Write Error Rate",L"書き込みエラー数"},
+		{0xC9,L"Soft Read Error Rate",L"ソフト読み取りエラー状況"},
+		{0xCA,L"Data Address Mark Error",L"DAMエラー状況"},
+		{0xCB,L"Run Out Cancel",L"ECCエラー状況"},
+		{0xCC,L"Soft ECC Correction",L"ECC修正状況"},
+		{0xCD,L"Thermal Asperity Rate",L"サーマル・アスペリティ状況"},
+		{0xCE,L"Flying Height",L"ヘッド飛行高"},
+		{0xCF,L"Spin High Current",L"回転開始時超過電流状況"},
+		{0xD0,L"Spin Buzz",L"ヘッド跳ね上げ状況"},
+		{0xD1,L"Offline Seek Performance",L"オフラインスキャンシーク性能"},
+		{0xD2,L"Vibration During Write",L"書き込み時の振動状況"},
+		{0xD3,L"Vibration During Read",L"読み取り時の振動状況"},
+		{0xD4,L"Shock During Write",L"書き込み時のショック状況"},
+		{0xDC,L"Drive Shift",L"プラッタずれ回数"}, //HGST MicroDrive
+		{0xDD,L"G-Sense Error Rate",L"衝撃感知エラー状況"},
+		{0xDE,L"Loaded Hours",L"ヘッド負荷状況"},
+		{0xDF,L"Load/Unload Retry Count",L"ロード/アンロード再試行回数"}, //HGST Travelstar
+		{0xE0,L"Load Friction",L"ヘッド摩擦負荷状況"},
+		{0xE2,L"Load-in Time",L"ヘッド負荷状況"},
+		{0xE3,L"Torque Amplification Count",L"回転負荷増大回数"},
+		{0xE4,L"Power-Off Retract Count",L"電源切断緊急退避回数"},
+		{0xE5,L"Load/Unload Cycle Count",L"ヘッド退避回数"}, //?
+		{0xE6,L"GMR Head Amplitude",L"ヘッド振幅"},
+		{0xF0,L"Head Flying Hours",L"ヘッド飛行時間"},
+		{0xFA,L"Read Error Retry Rate",L"読み取り再試行状況"},
+		{0xFE,L"Free-fall Sensor Work Count",L"自由落下検知センサ作動回数"}, //HGST Travelstar
 	};
 
 
