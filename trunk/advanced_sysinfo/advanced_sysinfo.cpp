@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <shlobj.h>
 #include "csaori.h"
-#include "SMARTInfo.h"
+#include "DriveInfo.h"
 
 //////////DEBUG/////////////////////////
 #ifdef _WINDOWS
@@ -24,7 +24,7 @@
 /*---------------------------------------------------------
 	初期化
 ---------------------------------------------------------*/
-CSMARTInfo *g_pSMARTInfo = NULL;
+CDriveInfo *g_pDriveInfo = NULL;
 
 bool CSAORI::load(){
 	return true;
@@ -34,9 +34,9 @@ bool CSAORI::load(){
 	解放
 ---------------------------------------------------------*/
 bool CSAORI::unload(){
-	if ( g_pSMARTInfo ) {
-		delete g_pSMARTInfo;
-		g_pSMARTInfo = NULL;
+	if ( g_pDriveInfo ) {
+		delete g_pDriveInfo;
+		g_pDriveInfo = NULL;
 	}
 	return true;
 }
@@ -45,7 +45,7 @@ bool CSAORI::unload(){
 	実行
 ---------------------------------------------------------*/
 static bool GetSpecialFolderPath(const std::wstring &nFolder, std::wstring &path );
-static bool GetDiskSMARTInfo(int diskID,std::wstring &result,std::vector<std::wstring> &values);
+static bool GetDriveInfo(int driveID,std::wstring &result,std::vector<std::wstring> &values);
 
 void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 	out.result_code = SAORIRESULT_BAD_REQUEST;
@@ -63,11 +63,11 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 			out.result_code = SAORIRESULT_NO_CONTENT;
 		}
 	}
-	else if ( wcsicmp(in.args[0].c_str(),L"get_disk_smart_info") == 0 ) {
+	else if ( wcsicmp(in.args[0].c_str(),L"get_drive_info") == 0 ) {
 		if ( in.args.size() < 2 ) { return; }
 
-		int id = _wtoi(in.args[0].c_str());
-		if ( GetDiskSMARTInfo(id,out.result,out.values) ) {
+		int id = _wtoi(in.args[1].c_str());
+		if ( GetDriveInfo(id,out.result,out.values) ) {
 			out.result_code = SAORIRESULT_OK;
 		}
 		else {
@@ -179,9 +179,9 @@ static bool GetSpecialFolderPath(const std::wstring &nFolder, std::wstring &path
 }
 
 /*---------------------------------------------------------
-	get_disk_smart_info
+	get_drive_smart_info
 ---------------------------------------------------------*/
-static std::wstring SMARTStringToWString(const char *pBuffer,size_t n)
+static std::wstring DriveStringToWString(const char *pBuffer,size_t n)
 {
 	size_t i;
 	for ( i = 0 ; i < n ; ++i ) {
@@ -204,10 +204,10 @@ static std::wstring SMARTStringToWString(const char *pBuffer,size_t n)
 	return buffer;
 }
 
-static bool GetDiskSMARTInfo(int diskID,std::wstring &result,std::vector<std::wstring> &values)
+static bool GetDriveInfo(int driveID,std::wstring &result,std::vector<std::wstring> &values)
 {
-	if ( ! g_pSMARTInfo ) {
-		g_pSMARTInfo = new CSMARTInfo;
+	if ( ! g_pDriveInfo ) {
+		g_pDriveInfo = new CDriveInfo;
 	}
 
 	static const struct { unsigned int id; wchar_t *text; wchar_t *textj; } smart_description[] = {
@@ -243,7 +243,7 @@ static bool GetDiskSMARTInfo(int diskID,std::wstring &result,std::vector<std::ws
 		{210,L"Vibration During Write",L"書き込み時の振動状況"},
 		{211,L"Vibration During Read",L"読み取り時の振動状況"},
 		{212,L"Shock During Write",L"書き込み時のショック状況"},
-		{220,L"Disk Shift",L"プラッタずれ回数"},
+		{220,L"Drive Shift",L"プラッタずれ回数"},
 		{221,L"G-Sense Error Rate",L"衝撃感知エラー状況"},
 		{222,L"Loaded Hours",L"ヘッド負荷状況"},
 		{223,L"Load/Unload Retry Count",L"ロード/アンロード再試行回数"},
@@ -256,47 +256,48 @@ static bool GetDiskSMARTInfo(int diskID,std::wstring &result,std::vector<std::ws
 		{250,L"Read Error Retry Rate",L"読み取り再試行状況"},
 	};
 
-	wchar_t status[64] = L"Normal";
 
-	if ( g_pSMARTInfo->Init() ) {
-		CDriveSmartInfo *pDiskInfo = g_pSMARTInfo->GetInfo(diskID);
-		if ( pDiskInfo ) {
+	if ( g_pDriveInfo->Init() ) {
+		CDriveSmartInfo *pDriveInfo = g_pDriveInfo->GetInfo(driveID);
+		if ( pDriveInfo ) {
+			wchar_t status[64] = L"Normal";
 			std::wstring tmpstr;
 			wchar_t buffer[512];
 
 			tmpstr = L"ModelNumber\1";
-			tmpstr += SMARTStringToWString(pDiskInfo->m_sector.sModelNumber,sizeof(pDiskInfo->m_sector.sModelNumber));
+			tmpstr += DriveStringToWString(pDriveInfo->m_sector.sModelNumber,sizeof(pDriveInfo->m_sector.sModelNumber));
 			values.push_back(tmpstr);
 		
 			tmpstr = L"SerialNumber\1";
-			tmpstr += SMARTStringToWString(pDiskInfo->m_sector.sSerialNumber,sizeof(pDiskInfo->m_sector.sSerialNumber));
+			tmpstr += DriveStringToWString(pDriveInfo->m_sector.sSerialNumber,sizeof(pDriveInfo->m_sector.sSerialNumber));
 			values.push_back(tmpstr);
 		
 			tmpstr = L"FirmwareRev\1";
-			tmpstr += SMARTStringToWString(pDiskInfo->m_sector.sFirmwareRev,sizeof(pDiskInfo->m_sector.sFirmwareRev));
+			tmpstr += DriveStringToWString(pDriveInfo->m_sector.sFirmwareRev,sizeof(pDriveInfo->m_sector.sFirmwareRev));
 			values.push_back(tmpstr);
 
 			tmpstr = L"SectorCount\1";
-			swprintf(buffer,L"%u",pDiskInfo->m_sector.ulTotalAddressableSectors);
+			swprintf(buffer,L"%u",pDriveInfo->m_sector.ulTotalAddressableSectors);
 			tmpstr += buffer;
 			values.push_back(tmpstr);
 
-			size_t n = pDiskInfo->m_smartParams.size();
+			size_t n = pDriveInfo->m_smartParams.size();
 			unsigned int raw;
 			unsigned int attr;
 			wchar_t *desc;
 			wchar_t *descj;
+			std::wstring flags;
 
 			for ( size_t i = 0 ; i < n ; ++i ) {
-				raw = pDiskInfo->m_smartParams[i].attr.bRawValue[3];
+				raw = pDriveInfo->m_smartParams[i].attr.bRawValue[3];
 				raw = raw << 8;
-				raw = pDiskInfo->m_smartParams[i].attr.bRawValue[2];
+				raw = pDriveInfo->m_smartParams[i].attr.bRawValue[2];
 				raw = raw << 8;
-				raw = pDiskInfo->m_smartParams[i].attr.bRawValue[1];
+				raw = pDriveInfo->m_smartParams[i].attr.bRawValue[1];
 				raw = raw << 8;
-				raw = pDiskInfo->m_smartParams[i].attr.bRawValue[0];
+				raw = pDriveInfo->m_smartParams[i].attr.bRawValue[0];
 
-				attr = pDiskInfo->m_smartParams[i].attr.bAttrID;
+				attr = pDriveInfo->m_smartParams[i].attr.bAttrID;
 				desc = L"";
 				descj = L"";
 				for ( size_t j = 0 ; j < (sizeof(smart_description)/sizeof(smart_description[0])) ; ++j ) {
@@ -307,24 +308,48 @@ static bool GetDiskSMARTInfo(int diskID,std::wstring &result,std::vector<std::ws
 					}
 				}
 
-				swprintf(buffer,L"SMARTValue\1%u,%s,%s,%u,%u,%u,%u",
+				flags = L"";
+				if ( pDriveInfo->m_smartParams[i].attr.wStatusFlags & PRE_FAILURE_WARRANTY ) {
+					flags += L"PW|";
+				}
+				else if ( pDriveInfo->m_smartParams[i].attr.wStatusFlags & ON_LINE_COLLECTION ) {
+					flags += L"OC|";
+				}
+				else if ( pDriveInfo->m_smartParams[i].attr.wStatusFlags & PERFORMANCE_ATTRIBUTE ) {
+					flags += L"PE|";
+				}
+				else if ( pDriveInfo->m_smartParams[i].attr.wStatusFlags & ERROR_RATE_ATTRIBUTE ) {
+					flags += L"ER|";
+				}
+				else if ( pDriveInfo->m_smartParams[i].attr.wStatusFlags & EVENT_COUNT_ATTRIBUTE ) {
+					flags += L"EC|";
+				}
+				else if ( pDriveInfo->m_smartParams[i].attr.wStatusFlags & SELF_PRESERVING_ATTRIBUTE ) {
+					flags += L"SP|";
+				}
+				if ( flags.size() ) {
+					flags.erase(flags.end()-1,flags.end());
+				}
+
+				swprintf(buffer,L"SMARTValue\1%u,%s,%s,%u,%u,%u,%u,%s",
 					attr,desc,descj,
-					pDiskInfo->m_smartParams[i].attr.bAttrValue,
-					pDiskInfo->m_smartParams[i].attr.bWorstValue,
-					pDiskInfo->m_smartParams[i].thresh.bWarrantyThreshold,
-					raw);
+					pDriveInfo->m_smartParams[i].attr.bAttrValue,
+					pDriveInfo->m_smartParams[i].attr.bWorstValue,
+					pDriveInfo->m_smartParams[i].thresh.bWarrantyThreshold,
+					raw,flags.c_str());
 				values.push_back(buffer);
 
-				if ( pDiskInfo->m_smartParams[i].attr.bAttrValue < pDiskInfo->m_smartParams[i].thresh.bWarrantyThreshold ) {
-					swprintf(status,L"Emergency,%u",pDiskInfo->m_smartParams[i].attr.bAttrID);
+				if ( pDriveInfo->m_smartParams[i].attr.bAttrValue < pDriveInfo->m_smartParams[i].thresh.bWarrantyThreshold ) {
+					swprintf(status,L"Emergency,%u",pDriveInfo->m_smartParams[i].attr.bAttrID);
 				}
-				else if ( pDiskInfo->m_smartParams[i].attr.bWorstValue < pDiskInfo->m_smartParams[i].thresh.bWarrantyThreshold ) {
-					swprintf(status,L"Warning,%u",pDiskInfo->m_smartParams[i].attr.bAttrID);
+				else if ( pDriveInfo->m_smartParams[i].attr.bWorstValue < pDriveInfo->m_smartParams[i].thresh.bWarrantyThreshold ) {
+					swprintf(status,L"Warning,%u",pDriveInfo->m_smartParams[i].attr.bAttrID);
 				}
 			}
+			result = status;
+			return true;
 		}
 	}
 	
-	result = status;
 	return false;
 }
