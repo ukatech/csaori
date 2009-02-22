@@ -261,20 +261,25 @@ string_t CSAORIOutput::toString()
 {
 	string_t rcstr = SAORI_FUNC::getResultString(result_code);
 	
-	std::wostringstream dest;
-	dest << SAORI_VERSIONSTRING L" ";
-	dest << result_code << L" " << rcstr << L"\r\n";
+	wchar_t tmptxt[32];
+	swprintf(tmptxt,L"%d",result_code);
 
-	dest << L"Charset: " << SAORI_FUNC::CodePagetoString(codepage) << L"\r\n";
+	std::wstring dest;
+	dest += SAORI_VERSIONSTRING L" ";
+	dest += tmptxt + std::wstring(L" ") + std::wstring(rcstr) + L"\r\n";
+
+	dest += L"Charset: " + SAORI_FUNC::CodePagetoString(codepage) + L"\r\n";
 	
 //	if (!result.empty()) { //‹ó•¶Žš—ñ‚Å‚àŒ‹‰Ê‚Í•Ô‚·‚×‚«
-		dest << L"Result: " << result << L"\r\n";
+		dest += L"Result: " + result + L"\r\n";
 //	}
 	if (!values.empty()) {
 		int i, n = (int)(values.size());
 		string_t tmp;
 		for(i=0; i<n; i++) {
-			dest << L"Value" << i << L": ";
+			swprintf(tmptxt,L"Value%d",i);
+
+			dest += std::wstring(tmptxt) + std::wstring(L": ");
 
 			tmp = values[i];
 			std::string::size_type nPos = 0;
@@ -288,18 +293,18 @@ string_t CSAORIOutput::toString()
 				tmp.replace(nPos, 2 , L"\1");
 			}
 
-			dest << values[i] << L"\r\n";
+			dest += values[i] + L"\r\n";
 		}
 	}
 	if (!opts.empty()) {
 		std::map<string_t,string_t>::iterator i;
 		for(i=opts.begin(); i != opts.end(); i++) {
-			dest << i->first << L": " << i->second << L"\r\n";
+			dest += i->first + L": " + i->second + L"\r\n";
 		}
 	}
 	
-	dest << L"\r\n";
-	return dest.str();
+	dest += L"\r\n";
+	return dest;
 }
 
 //------------------------------------------------------------------------------
@@ -413,6 +418,9 @@ BOOL
 SAORICDECL
 load(HGLOBAL h, long len)
 {
+#ifdef _DEBUG
+	//_CrtSetBreakAlloc(255);
+#endif
 	if(pSaori!=NULL){
 		unload();
 	}

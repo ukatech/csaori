@@ -1,7 +1,7 @@
-// SMARTInfo.h: CSMARTInfo クラスのインターフェイス
+// DriveInfo.h: CDriveInfo クラスのインターフェイス
 
-#if !defined(AFX_SMARTINFO_H__9EED1D90_5944_4B4D_AE7D_1EA1A06D793B__INCLUDED_)
-#define AFX_SMARTINFO_H__9EED1D90_5944_4B4D_AE7D_1EA1A06D793B__INCLUDED_
+#if !defined(AFX_DriveINFO_H__9EED1D90_5944_4B4D_AE7D_1EA1A06D793B__INCLUDED_)
+#define AFX_DriveINFO_H__9EED1D90_5944_4B4D_AE7D_1EA1A06D793B__INCLUDED_
 
 #if _MSC_VER > 1000
 #pragma once
@@ -10,6 +10,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <vector>
+
 #include "smart_struct.h"
 
 typedef struct tagDRIVEATTRTHRESH {
@@ -25,18 +26,22 @@ public:
 	std::vector<DRIVEATTRTHRESH> m_smartParams;
 };
 
-class CSMARTInfo  
+class CDriveInfo  
 {
 private:
 	std::vector<CDriveSmartInfo> m_driveInfo;
 	DWORD m_initTime;
 
+	bool InitOneDrive(HANDLE hDriveIOCTL,int driveID,DWORD capability);
+
 public:
+	CDriveInfo();
+	virtual ~CDriveInfo();
+
 	void Release(void);
 	bool Init(void);
-	CSMARTInfo();
-	virtual ~CSMARTInfo();
+	
 	CDriveSmartInfo *GetInfo(int id);
 };
 
-#endif // !defined(AFX_SMARTINFO_H__9EED1D90_5944_4B4D_AE7D_1EA1A06D793B__INCLUDED_)
+#endif // !defined(AFX_DriveINFO_H__9EED1D90_5944_4B4D_AE7D_1EA1A06D793B__INCLUDED_)
