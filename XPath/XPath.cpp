@@ -79,7 +79,6 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	if ( wcsicmp(in.args[0].c_str(),L"open") == 0 ) {
 		//入力：open,ファイル名
 		//出力：ファイルID
-
 		if ( in.args.size() < 2 ) {
 			return;
 		}
@@ -87,8 +86,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		//同名のファイルが開いてたら再利用
 		for ( XMLPtrVector::iterator it = g_xml.begin() ; it != g_xml.end() ; ++it ) {
 			if ( (**it).filepath == in.args[1] ) {
-				std::wstringstream outstr(out.result);
-				outstr << (**it).id;
+				out.result = SAORI_FUNC::intToString((**it).id);
 
 				out.result_code = SAORIRESULT_OK;
 				return;
@@ -96,7 +94,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 
 		//ふぁいるおーぽん！
-		std::string fname = SAORI_FUNC::UnicodeToMultiByte(in.args[1]);
+		std::string fname = SAORI_FUNC::UnicodeToMultiByte(checkAndModifyPath(in.args[1]));
 
 		TiXmlDocument *doc = new TiXmlDocument;
 		if ( ! doc->LoadFile(fname.c_str()) ) {
@@ -127,10 +125,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		XMLDocInfo *pInfo = new XMLDocInfo(doc,id,in.args[1],cp);
 		g_xml.push_back(pInfo);
 
-		std::wstringstream outstr;
-		outstr << id;
-
-		out.result = outstr.str();
+		out.result = SAORI_FUNC::intToString(id);
 		out.result_code = SAORIRESULT_OK;
 	}
 	else if ( wcsicmp(in.args[0].c_str(),L"close") == 0 ) {
@@ -189,75 +184,79 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 			if ( r.e_type == TinyXPath::e_bool ) {
 				out.result = r.o_get_bool() ? L"1" : L"0";
+				out.values.push_back(out.result);
 			}
 			else if ( r.e_type == TinyXPath::e_string ) {
 				TiXmlString str = r.S_get_string();
 				out.result = SAORI_FUNC::MultiByteToUnicode(str.c_str(),(**it).cp);
+				out.values.push_back(out.result);
 			}
 			else if ( r.e_type == TinyXPath::e_int ) {
-				wchar_t s[32];
-				swprintf(s,L"%d",r.i_get_int());
-				out.result = s;
+				std::wostringstream os;
+				os << r.i_get_int();
+				out.result = os.str();
+				out.values.push_back(out.result);
 			}
 			else if ( r.e_type == TinyXPath::e_double ) {
-				wchar_t s[64];
-				swprintf(s,L"%f",r.d_get_double());
-				out.result = s;
+				std::wostringstream os;
+				os << r.d_get_double();
+				out.result = os.str();
+				out.values.push_back(out.result);
 			}
 			else if ( r.e_type == TinyXPath::e_node_set ) {
 				TinyXPath::node_set *np = r.nsp_get_node_set();
 				if ( np ) {
-					unsigned int n = np->u_get_nb_node_in_set();
+					size_t n = np->u_get_nb_node_in_set();
 					string_t wstr;
+					TiXmlString str;
 
-					if ( n == 1 && np->o_is_attrib(0) ) {
-						const TiXmlAttribute *ap = np->XAp_get_attribute_in_set(0);
-						if ( ap ) {
-							wstr = SAORI_FUNC::MultiByteToUnicode(ap->Value(),(**it).cp);
-							out.result = wstr;
-							out.values.push_back(wstr);
+					for ( size_t i = 0 ; i < n ; ++i ) {
+						if ( np->o_is_attrib(i) ) {
+							const TiXmlAttribute *ap = np->XAp_get_attribute_in_set(i);
+							if ( ap ) {
+								wstr = SAORI_FUNC::MultiByteToUnicode(ap->Value(),(**it).cp);
+								out.result += wstr;
+								out.result += L"\1";
+								out.values.push_back(wstr);
+							}
 						}
-					}
-					else {
-						TiXmlString str;
-
-						for ( unsigned int i = 0 ; i < n ; ++i ) {
-							if ( ! np->o_is_attrib(i) ) {
-								const TiXmlNode *xp = np->XNp_get_node_in_set(i);
-								if ( xp ) {
-									str.clear();
-									const TiXmlText *tp = xp->ToText();
-									if ( tp ) {
-										str = tp->Value();
-									}
-									else {
-										const TiXmlNode *cpl = xp->LastChild();
-										const TiXmlNode *cp = xp->FirstChild();
-										if ( cp && cpl && cp == cpl ) { //子がひとつだけ＋テキストノード
-											tp = cp->ToText();
-											if ( tp ) {
-												str = tp->Value();
-											}
+						else {
+							const TiXmlNode *xp = np->XNp_get_node_in_set(i);
+							if ( xp ) {
+								str.clear();
+								const TiXmlText *tp = xp->ToText();
+								if ( tp ) {
+									str = tp->Value();
+								}
+								else {
+									const TiXmlNode *cpl = xp->LastChild();
+									const TiXmlNode *cp = xp->FirstChild();
+									if ( cp && cpl && cp == cpl ) { //子がひとつだけ＋テキストノード
+										tp = cp->ToText();
+										if ( tp ) {
+											str = tp->Value();
 										}
 									}
-									if ( str.length() ) {
-										wstr = SAORI_FUNC::MultiByteToUnicode(str.c_str(),(**it).cp);
-										out.result += wstr;
-										out.values.push_back(wstr);
-									}
+								}
+								if ( str.length() ) {
+									wstr = SAORI_FUNC::MultiByteToUnicode(str.c_str(),(**it).cp);
+									out.result += wstr;
+									out.result += L"\1";
+									out.values.push_back(wstr);
 								}
 							}
 						}
 					}
 				}
+				if ( out.result.size() ) {
+					out.result.erase(out.result.end()-1,out.result.end());
+				}
 			}
-
+			out.result_code = SAORIRESULT_OK;
 		}
 		catch(...) {
 			out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
 		}
-
-		out.result_code = SAORIRESULT_OK;
 	}
 }
 

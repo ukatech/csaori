@@ -42,7 +42,7 @@ typedef enum {CP_SJIS=932,CP_EUCJP=20932,CP_ISO2022JP=50220,CP_UTF8=65001} CODEP
 typedef enum {SAORIRESULT_OK=200,SAORIRESULT_NO_CONTENT=204,SAORIRESULT_BAD_REQUEST=400,SAORIRESULT_INTERNAL_SERVER_ERROR=500} SAORIRESULT;
 
 //global functions
-namespace SAORI_FUNC{
+namespace SAORI_FUNC {
 	string_t intToString(int num);
 	string_t::size_type  getLine(string_t &, const string_t &, string_t::size_type);
 	string_t getResultString(int);
@@ -93,8 +93,12 @@ private:
 	string_t module_path;
 
 public:
+	//内部関数
 	void setModulePath(const std::string &str);
 	std::string request(const std::string &req);
+	
+	//相対パスかどうかをチェックして全部絶対パスに変換
+	string_t checkAndModifyPath(const string_t &path);
 
 	//以下が実装すべき関数
 	void exec(const CSAORIInput& in,CSAORIOutput& out);

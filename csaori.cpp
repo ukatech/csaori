@@ -179,10 +179,9 @@ namespace SAORI_FUNC{
 
 	string_t intToString(int num)
 	{
-		std::wostringstream stream;
-		stream << num;
-		string_t result = stream.str();
-		return result;
+		std::wostringstream os;
+		os << num;
+		return os.str();
 	}
 }
 
@@ -259,6 +258,11 @@ bool CSAORIInput::parseString(const string_t &src)
 //------------------------------------------------------------------------------
 string_t CSAORIOutput::toString()
 {
+	//No Content‚ÉŽ©“®•â³
+	if ( result.empty() && values.empty() && result_code == SAORIRESULT_OK ) {
+		result_code = SAORIRESULT_NO_CONTENT;
+	}
+
 	string_t rcstr = SAORI_FUNC::getResultString(result_code);
 	
 	wchar_t tmptxt[32];
@@ -370,6 +374,35 @@ void CSAORI::setModulePath(const std::string &str){
 	module_path=SAORI_FUNC::MultiByteToUnicode(str);
 }
 
+string_t CSAORI::checkAndModifyPath(const string_t &path)
+{
+	if ( path.size() >= 3 ) {
+#ifdef _WINDOWS
+		//Windows â‘ÎƒpƒX
+		if ( wcsncmp(path.c_str(),L"\\\\",2) == 0 || wcsncmp(path.c_str()+1,L":\\",2) == 0 ||
+			wcsncmp(path.c_str(),L"//",2) == 0 || wcsncmp(path.c_str()+1,L":/",2) == 0 ) {
+			return path;
+		}
+#else
+		//Unix
+		if ( path[0] == '/' ) {
+			return path;
+		}
+#endif
+	}
+	string_t fullpath = module_path;
+#ifdef _WINDOWS
+	if ( fullpath[fullpath.size()-1] != L'\\' ) {
+		fullpath += L"\\";
+	}
+#else
+	if ( fullpath[fullpath.size()-1] != L'/' ) {
+		fullpath += L"/";
+	}
+#endif
+	fullpath += path;
+	return fullpath;
+}
 
 //------------------------------------------------------------------------------
 //SAORI INTERFACES
@@ -419,7 +452,8 @@ SAORICDECL
 load(HGLOBAL h, long len)
 {
 #ifdef _DEBUG
-	//_CrtSetBreakAlloc(255);
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	//_CrtSetBreakAlloc(2240);
 #endif
 	if(pSaori!=NULL){
 		unload();
@@ -445,8 +479,6 @@ unload()
 	BOOL re=pSaori->unload();
 	delete pSaori;
 	pSaori=NULL;
-#ifdef _DEBUG
-	_CrtDumpMemoryLeaks();
-#endif
+
 	return re;
 }
