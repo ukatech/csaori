@@ -210,22 +210,12 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 					unsigned int n = np->u_get_nb_node_in_set();
 					string_t wstr;
 
-					if ( n == 1 ) {
-						if ( np->o_is_attrib(0) ) {
-							const TiXmlAttribute *ap = np->XAp_get_attribute_in_set(0);
-							if ( ap ) {
-								wstr = SAORI_FUNC::MultiByteToUnicode(ap->Value(),(**it).cp);
-								out.result = wstr;
-								out.values.push_back(wstr);
-							}
-						}
-						else {
-							const TiXmlNode *ap = np->XNp_get_node_in_set(0);
-							if ( ap ) {
-								wstr = SAORI_FUNC::MultiByteToUnicode(ap->Value(),(**it).cp);
-								out.result = wstr;
-								out.values.push_back(wstr);
-							}
+					if ( n == 1 && np->o_is_attrib(0) ) {
+						const TiXmlAttribute *ap = np->XAp_get_attribute_in_set(0);
+						if ( ap ) {
+							wstr = SAORI_FUNC::MultiByteToUnicode(ap->Value(),(**it).cp);
+							out.result = wstr;
+							out.values.push_back(wstr);
 						}
 					}
 					else {
