@@ -42,25 +42,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 	out.result_code = SAORIRESULT_BAD_REQUEST;
 	if ( in.args.size() < 1 ) { return; }
 
-	std::string filepath = SAORI_FUNC::UnicodeToMultiByte(in.args[0]);
-
-	std::string::size_type len = filepath.size() < MAX_PATH ? MAX_PATH : filepath.size();
-	len *= 2;
-
-	{ //ŠÂ‹«•Ï”“WŠJ
-		void *pBuf = malloc(len+1);
-		std::string::size_type realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(char*)pBuf,len);
-		if ( realLen > len ) {
-			free(pBuf);
-			pBuf = malloc(realLen+1);
-			realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(char*)pBuf,realLen);
-		}
-
-		if ( realLen ) {
-			filepath = (char*)pBuf;
-		}
-		free(pBuf);
-	}
+	std::string filepath = checkAndModifyPath(SAORI_FUNC::UnicodeToMultiByte(in.args[0]));
 
 	const char* pFile = filepath.c_str();
 
