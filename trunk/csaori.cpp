@@ -456,7 +456,18 @@ request(HGLOBAL h, long *len)
 	std::string rq((char *)h, *len);
 	GlobalFree(h);
 	
-	std::string re=pSaori->request(rq);
+	std::string re;
+
+#ifndef _DEBUG
+	try {
+#endif
+		re = pSaori->request(rq);
+#ifndef _DEBUG
+	}
+	catch(...) {
+		re = SAORI_VERSIONSTRING_A " 500 Internal Server Error\r\n\r\n";
+	}
+#endif
 
 	*len = (long)(re.size());
 	h = GlobalAlloc(GMEM_FIXED, *len+1);
@@ -486,7 +497,21 @@ load(HGLOBAL h, long len)
 		GlobalFree(h);
 		pSaori->setModulePath(mpath);
 	}
-	return pSaori->load();
+
+	BOOL re;
+
+#ifndef _DEBUG
+	try {
+#endif
+		re = pSaori->load();
+#ifndef _DEBUG
+	}
+	catch(...) {
+		re = FALSE;
+	}
+#endif
+
+	return re;
 }
 
 SAORIAPI
@@ -497,7 +522,19 @@ unload()
 	if(pSaori==NULL){
 		return TRUE;
 	}
-	BOOL re=pSaori->unload();
+
+	BOOL re;
+
+#ifndef _DEBUG
+	try {
+#endif
+		re=pSaori->unload();
+#ifndef _DEBUG
+	}
+	catch(...) {
+		re = 0;
+	}
+#endif
 	delete pSaori;
 	pSaori=NULL;
 
