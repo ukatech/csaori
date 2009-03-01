@@ -374,33 +374,54 @@ void CSAORI::setModulePath(const std::string &str){
 	module_path=SAORI_FUNC::MultiByteToUnicode(str);
 }
 
-string_t CSAORI::checkAndModifyPath(const string_t &path)
+std::string CSAORI::checkAndModifyPath(const std::string &p)
 {
-	if ( path.size() >= 3 ) {
+	std::string filepath = p;
+
+	if ( p.size() >= 3 ) {
 #ifdef _WINDOWS
+		//環境変数展開用特殊コード
+		std::string::size_type len = filepath.size() < MAX_PATH ? MAX_PATH : filepath.size();
+		len *= 2;
+
+		{
+			void *pBuf = malloc(len+1);
+			std::string::size_type realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(char*)pBuf,len);
+			if ( realLen > len ) {
+				free(pBuf);
+				pBuf = malloc(realLen+1);
+				realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(char*)pBuf,realLen);
+			}
+
+			if ( realLen ) {
+				filepath = (char*)pBuf;
+			}
+			free(pBuf);
+		}
+
 		//Windows 絶対パス
-		if ( wcsncmp(path.c_str(),L"\\\\",2) == 0 || wcsncmp(path.c_str()+1,L":\\",2) == 0 ||
-			wcsncmp(path.c_str(),L"//",2) == 0 || wcsncmp(path.c_str()+1,L":/",2) == 0 ) {
-			return path;
+		if ( strncmp(filepath.c_str(),"\\\\",2) == 0 || strncmp(filepath.c_str()+1,":\\",2) == 0 ||
+			strncmp(filepath.c_str(),"//",2) == 0 || strncmp(filepath.c_str()+1,":/",2) == 0 ) {
+			return filepath;
 		}
 #else
 		//Unix
-		if ( path[0] == '/' ) {
-			return path;
+		if ( filepath[0] == '/' ) {
+			return filepath;
 		}
 #endif
 	}
-	string_t fullpath = module_path;
+	std::string fullpath = SAORI_FUNC::UnicodeToMultiByte(module_path);
 #ifdef _WINDOWS
-	if ( fullpath[fullpath.size()-1] != L'\\' ) {
-		fullpath += L"\\";
+	if ( fullpath[fullpath.size()-1] != '\\' ) {
+		fullpath += "\\";
 	}
 #else
-	if ( fullpath[fullpath.size()-1] != L'/' ) {
-		fullpath += L"/";
+	if ( fullpath[fullpath.size()-1] != '/' ) {
+		fullpath += "/";
 	}
 #endif
-	fullpath += path;
+	fullpath += filepath;
 	return fullpath;
 }
 

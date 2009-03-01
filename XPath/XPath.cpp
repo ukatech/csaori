@@ -94,7 +94,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 
 		//‚Ó‚Ÿ‚¢‚é‚¨[‚Û‚ñI
-		std::string fname = SAORI_FUNC::UnicodeToMultiByte(checkAndModifyPath(in.args[1]));
+		std::string fname = checkAndModifyPath(SAORI_FUNC::UnicodeToMultiByte(in.args[1]));
 
 		TiXmlDocument *doc = new TiXmlDocument;
 		if ( ! doc->LoadFile(fname.c_str()) ) {

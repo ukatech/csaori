@@ -98,7 +98,7 @@ public:
 	std::string request(const std::string &req);
 	
 	//相対パスかどうかをチェックして全部絶対パスに変換
-	string_t checkAndModifyPath(const string_t &path);
+	std::string checkAndModifyPath(const std::string &path);
 
 	//以下が実装すべき関数
 	void exec(const CSAORIInput& in,CSAORIOutput& out);
