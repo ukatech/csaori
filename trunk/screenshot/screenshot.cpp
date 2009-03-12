@@ -50,7 +50,7 @@ GetError(VOID)
 }
 BOOL
 DoWriteFile(PSCREENSHOT pScrSht,
-            LPCWSTR pstrFileName)
+            LPCSTR pstrFileName)
 {
     BITMAPFILEHEADER bmfh;
     BOOL bSuccess;
@@ -58,7 +58,7 @@ DoWriteFile(PSCREENSHOT pScrSht,
     HANDLE hFile;
     //INT PalEntries;
 
-    hFile = CreateFileW(pstrFileName,
+    hFile = CreateFileA(pstrFileName,
                        GENERIC_WRITE,
                        0,
                        NULL,
@@ -137,14 +137,14 @@ DoWriteFile(PSCREENSHOT pScrSht,
                          sizeof(bmfh),
                          &dwBytesWritten,
                          NULL);
+    if (hFile) CloseHandle(hFile);
     if ((!bSuccess) || (dwBytesWritten < sizeof(bmfh)))
         goto fail;
 
     return TRUE;
 
 fail:
-    if (hFile) CloseHandle(hFile);
-    DeleteFileW(pstrFileName);
+    DeleteFileA(pstrFileName);
     return FALSE;
 
 }
@@ -321,6 +321,9 @@ ConvertDDBtoDIB(PSCREENSHOT pScrSht)
 
 }
 
+////////////////////////////////////////////////////
+// CSaori Main Part
+
 bool CSAORI::load()
 {
 	return true;
@@ -376,13 +379,15 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		out.values.push_back(string_t(L"Error. RetCode=" + SAORI_FUNC::intToString(dwError) ));
     }
 
-    if (captureResult = CaptureScreen(pScrSht))
+	std::string fname = checkAndModifyPath(SAORI_FUNC::UnicodeToMultiByte(in.args[0]));
+
+	if (captureResult = CaptureScreen(pScrSht))
     {
         /* convert the DDB image to DIB */
         if(captureResult = ConvertDDBtoDIB(pScrSht))
         {
             /* build the headers and write to file */
-            if(!(captureResult = DoWriteFile(pScrSht, in.args[0].c_str())))
+            if(!(captureResult = DoWriteFile(pScrSht, fname.c_str())))
 			{
 	        	GetError();
 			}
