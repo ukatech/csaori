@@ -15,9 +15,13 @@ Usage:
   - Value0: Error. RetCode=<code>
 
 Known Issue:
-(currently none)
+* Windows with transparency are not captured.
 
 Version History:
+ 20090312-2014:
+ - update CSaori to SVN r65
+ - use ANSI version of File I/O API due to limitation of CSaori
+ - fix not closing file after write
  20090310-2137:
  - Initial Version
 
@@ -48,9 +52,13 @@ screenshot.dll 是一個伺か(ukagaka)的 SAORI 插件。
   - Value0: Error. RetCode=<code>
 
 已知問題:
-(暫時沒有)
+* 有透明度的視窗不會被截取到
 
 版本紀錄:
+ 20090312-2014:
+ - 更新 CSaori 至 SVN r65
+ - 因 CSaori 的限制而 ANSI 版的檔案輸入輸出 API
+ - 修正輸出檔案沒有關閉的問題
  20090310-2137:
  - 初版
 
