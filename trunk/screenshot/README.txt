@@ -15,9 +15,12 @@ Usage:
   - Value0: Error. RetCode=<code>
 
 Known Issue:
-* Windows with transparency are not captured.
+(currently none)
 
 Version History:
+ 20090313-1927:
+ - Windows with transparency will be captured
+ - output file will be in same directory of dll
  20090312-2014:
  - update CSaori to SVN r65
  - use ANSI version of File I/O API due to limitation of CSaori
@@ -52,9 +55,12 @@ screenshot.dll 是一個伺か(ukagaka)的 SAORI 插件。
   - Value0: Error. RetCode=<code>
 
 已知問題:
-* 有透明度的視窗不會被截取到
+(暫時沒有)
 
 版本紀錄:
+ 20090313-1927:
+ - 有透明度的視窗將會被截取到
+ - 輸出檔案將會和 DLL 位於相同位置
  20090312-2014:
  - 更新 CSaori 至 SVN r65
  - 因 CSaori 的限制而 ANSI 版的檔案輸入輸出 API

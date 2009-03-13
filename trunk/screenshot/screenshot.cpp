@@ -200,7 +200,7 @@ CaptureScreen(PSCREENSHOT pScrSht)
            ScreenDC,
            0,
            0,
-           SRCCOPY);
+           SRCCOPY | CAPTUREBLT);
 
     /* we're finished with the screen DC */
     ReleaseDC(pScrSht->hSelf, ScreenDC);
