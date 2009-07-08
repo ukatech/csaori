@@ -32,8 +32,11 @@ bool Gainer::Init(int portNum, int mode)
 	m_config = mode;
 	m_port = portNum;
 	m_endFlag = false;
-	m_button_func = NULL;
 
+	m_button_func = NULL;
+	m_digital_func = NULL;
+	m_analog_func = NULL;
+	
 	InitializeCriticalSection(&m_receive_queue_lock);
 	
 	m_receive_queue_semaphore = ::CreateSemaphore(NULL,0,9999,NULL);
@@ -203,12 +206,12 @@ bool Gainer::GetAnalogAll(std::vector<BYTE> &result)
 *****************************************************************************/
 void Gainer::ExecuteContinuousDigital()
 {
-	command("r");
+	command("r",true);
 }
 
 void Gainer::ExecuteContinuousAnalog()
 {
-	command("i");
+	command("i",true);
 }
 
 void Gainer::ExecuteExitContinuous()
@@ -258,6 +261,72 @@ bool Gainer::SetServoSingle(int port,BYTE value)
 {
 	char buf[64];
 	sprintf(buf,"p%d%02X",port,value);
+	return command(buf).size() != 0;
+}
+
+/*****************************************************************************
+	PGA / AGND(2.5v) . VSS(0v)
+*****************************************************************************/
+bool Gainer::SetPGA(double gain,bool isAGNDRef)
+{
+	char buf[64];
+	int gi;
+
+	if ( gain <= 1.00 ) {
+		gi = 0;
+	}
+	else if ( gain <= 1.14 ) {
+		gi = 1;
+	}
+	else if ( gain <= 1.33 ) {
+		gi = 2;
+	}
+	else if ( gain <= 1.46 ) {
+		gi = 3;
+	}
+	else if ( gain <= 1.60 ) {
+		gi = 4;
+	}
+	else if ( gain <= 1.78 ) {
+		gi = 5;
+	}
+	else if ( gain <= 2.00 ) {
+		gi = 6;
+	}
+	else if ( gain <= 2.27 ) {
+		gi = 7;
+	}
+	else if ( gain <= 2.67 ) {
+		gi = 8;
+	}
+	else if ( gain <= 3.20 ) {
+		gi = 9;
+	}
+	else if ( gain <= 4.00 ) {
+		gi = 10;
+	}
+	else if ( gain <= 5.33 ) {
+		gi = 11;
+	}
+	else if ( gain <= 8.00 ) {
+		gi = 12;
+	}
+	else if ( gain <= 16.0 ) {
+		gi = 13;
+	}
+	else if ( gain <= 24.0 ) {
+		gi = 14;
+	}
+	else /*if ( gain > 24.0 )*/ {
+		gi = 15;
+	}
+
+	if ( isAGNDRef ) {
+		sprintf(buf,"G%01X1",gi);
+	}
+	else {
+		sprintf(buf,"G%01X0",gi);
+	}
 	return command(buf).size() != 0;
 }
 
@@ -371,12 +440,15 @@ void Gainer::processEvent(std::string &event)
 	{
 	case '!': // something wrong
 		break;
+
 	case 'h': // led on
 		m_led = true;
 		break;
+
 	case 'l': // led off
 		m_led = false;
 		break;
+
 	case 'N': // button pressed
 		if(m_button_func){
 			m_button_func(true);
@@ -387,43 +459,57 @@ void Gainer::processEvent(std::string &event)
 			m_button_func(false);
 		}
 		break;
+
 	case 'i':
-	case 'I': { // analog_input
-		std::string::size_type ast(event.find('*'));
-		std::string s(event.substr(1, ast-1));
-
-		int ai[GAINER_MAX_INPUTS];
-
-		if ( CONFIG[m_config][AIN] == 4 ) {
-			sscanf(s.c_str(), "%02X%02X%02X%02X",
-				&ai[0], &ai[1],&ai[2], &ai[3]);
-
-			for ( int i = 0 ; i < 4 ; ++i ) {
-				m_analogInputs[i] = static_cast<BYTE>(ai[i]);
+	case 'I':
+		{ // analog_input
+			std::string::size_type ast(event.find('*'));
+			std::string s(event.substr(1, ast-1));
+			
+			int ai[GAINER_MAX_INPUTS];
+			
+			if ( CONFIG[m_config][AIN] == 4 ) {
+				sscanf(s.c_str(), "%02X%02X%02X%02X",
+					&ai[0], &ai[1],&ai[2], &ai[3]);
+				
+				for ( int i = 0 ; i < 4 ; ++i ) {
+					m_analogInputs[i] = static_cast<BYTE>(ai[i]);
+				}
 			}
-		}
-		else if ( CONFIG[m_config][AIN] == 8 ) {
-			sscanf(s.c_str(), "%02X%02X%02X%02X%02X%02X%02X%02X",
-				&ai[0], &ai[1],&ai[2], &ai[3], 
-				&ai[4], &ai[5],&ai[6], &ai[7] );
+			else if ( CONFIG[m_config][AIN] == 8 ) {
+				sscanf(s.c_str(), "%02X%02X%02X%02X%02X%02X%02X%02X",
+					&ai[0], &ai[1],&ai[2], &ai[3], 
+					&ai[4], &ai[5],&ai[6], &ai[7] );
+				
+				for ( int i = 0 ; i < 8 ; ++i ) {
+					m_analogInputs[i] = static_cast<BYTE>(ai[i]);
+				}
+			}
 
-			for ( int i = 0 ; i < 8 ; ++i ) {
-				m_analogInputs[i] = static_cast<BYTE>(ai[i]);
+			if ( event[0] == 'i' && m_analog_func ) {
+				m_analog_func(m_analogInputs,CONFIG[m_config][AIN]);
 			}
 		}
 		break;
-			  }
+
 	case 'r':
-	case 'R': { // digital input
-		std::string::size_type ast(event.find('*'));		std::string s(event.substr(1, ast-1));
-		sscanf(s.c_str(),"%04X",&m_digitalInputs);
+	case 'R':
+		{ // digital input
+			std::string::size_type ast(event.find('*'));		std::string s(event.substr(1, ast-1));
+			sscanf(s.c_str(),"%04X",&m_digitalInputs);
+			
+			if ( event[0] == 'r' && m_digital_func ) {
+				m_digital_func(m_digitalInputs,CONFIG[m_config][DIN]);
+			}
+		}
 		break;
-			  }
+
 	default:
 		break;
 	}
 
 	char c = event[0];
+
 	if ( c != 'r' && c != 'i' && c != 'N' && c != 'F' ) {
 		EnterCriticalSection(&m_receive_queue_lock);
 		m_receive_queue.push(event);
