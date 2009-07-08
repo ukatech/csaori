@@ -1,17 +1,18 @@
 gainer
 
 以下のライセンスは、バイナリ＋ソースコードのうちgainer.cppのみに適用されます。
-erslib.h、gainercxx.cpp/hは、gainer SAORI用改造版ですので、通常他の用途には
-あまり適しません。また、使用に関しては原作者の意図を尊重してください。
+erslib.hは、gainer SAORI用改造版ですので、通常他の用途にはあまり適しません。
+また、使用に関しては原作者の意図を尊重してください。
 
 ----------------------------------------------------------------
 謝辞
 ・Easy RS-232C LIBrary "erslib.h"  by I.N.
 　http://www.geocities.jp/in_subaru/erslib/
+このSAORIは以上の方のソースコードを使用して製作されました。
+
 ・gainercxx by dandelion
 　http://www.atinfinity.info/wiki/index.php?gainercxx
-
-このSAORIは以上の方のソースコードを使用して制作されました。
+このSAORIは以上の方のソースコードを参考にして製作されました。
 
 ----------------------------------------------------------------
 gainerは、以下の2.で明記したライセンスに従って利用できます。

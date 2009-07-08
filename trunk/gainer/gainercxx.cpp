@@ -1,15 +1,8 @@
-/** 
- * @file Gainer.cpp
- * @brief Gainer Class
- * @author dandelion
- * @date 2009-04-18
- * @version $Id: Gainer.cpp, v0.1$
- *
- * Copyright (C) 2009 dandelion. All rights reserved.
- * Modified by CSAORI Project
- */
-
-// http://www.atinfinity.info/wiki/index.php?gainercxx
+/*============================================================================
+	Gainer制御クラス (cpp)
+	以下のgainercxx (dandelionさん作) をたくさん参考にしました。
+	http://www.atinfinity.info/wiki/index.php?gainercxx
+============================================================================*/
 
 #pragma warning( disable : 4786 )
 
@@ -17,10 +10,7 @@
 #include <string>
 #include <sstream>
 
-// Gainer class header
 #include "gainercxx.h"
-
-// ERSLIB(http://www.geocities.jp/in_subaru/erslib/)
 #include "erslib.h"
 
 const int Gainer::MATRIX_LED_CONFIGURATION = 7;
@@ -29,87 +19,94 @@ const int Gainer::MATRIX_LED_CONFIGURATION = 7;
 #define RECV_TIMEOUT_INTERVAL 100
 #define RECV_BUFFER	          1000
 
-/**
- * Gainer class default constructor. COM port number is COM1.
- * @param portNum COM port number
- * @param mode configutation mode (1-8)
- */
+/*****************************************************************************
+	初期化
+*****************************************************************************/
 bool Gainer::Init(int portNum, int mode)
 {
-	if ( inited ) {
+	if ( m_inited ) {
 		return true;
 	}
 
-	led_ = false;
-	portNum_ = portNum;
-	config_ = mode;
-	endFlag = false;
-	on_pressed = NULL;
-	on_released = NULL;
+	m_led = false;
+	m_config = mode;
+	m_port = portNum;
+	m_endFlag = false;
+	m_button_func = NULL;
 
-	InitializeCriticalSection(&port_lock);
+	InitializeCriticalSection(&m_receive_queue_lock);
 	
-	receive_semaphore = ::CreateSemaphore(NULL,0,9999,NULL);
+	m_receive_queue_semaphore = ::CreateSemaphore(NULL,0,9999,NULL);
 
 	// COM port open
-	if ( ERS_Open(portNum_, RECV_BUFFER, RECV_BUFFER) != 0 ) {
+	if ( ERS_Open(m_port, RECV_BUFFER, RECV_BUFFER) != 0 ) {
 		return false;
 	}
 	// setting of COM port
-	if ( ERS_Config(portNum_, ERS_38400 | ERS_NO | ERS_1 | ERS_8) != 0 ) {
-		ERS_Close(portNum_);
+	if ( ERS_Config(m_port, ERS_38400 | ERS_NO | ERS_1 | ERS_8) != 0 ) {
+		ERS_Close(m_port);
 		return false;
 	}
 
 	// setting receiving timeout
-	ERS_RecvTimeOut(portNum_, RECV_TIMEOUT_COMM, RECV_TIMEOUT_INTERVAL);
+	ERS_RecvTimeOut(m_port, RECV_TIMEOUT_COMM, RECV_TIMEOUT_INTERVAL);
 
 	// software reset
 	reboot(true);
-	handle = (HANDLE)_beginthreadex(NULL, 0, receiver, this, 0, NULL);
+	m_thread_handle = (HANDLE)_beginthreadex(NULL, 0, receiver, this, 0, NULL);
 	wait_recv();
 
 	// ver.
-	ver = command("?");
+	m_version_string = command("?");
+	m_version_string.erase(0,1);
+	m_version_string.erase(m_version_string.size()-1,1);
 
 	// set configulation mode
-	if ( config_ ) {
-		setConfiguration(config_);
+	if ( m_config ) {
+		SetConfiguration(m_config);
 	}
 
-	inited = true;
+	m_inited = true;
 	return true;
 }
 
-/**
- * Gainer class destructor.
- */
+/*****************************************************************************
+	終了
+*****************************************************************************/
 void Gainer::Exit()
 {
-	if ( ! inited ) {
+	if ( ! m_inited ) {
 		return;
 	}
 
 	// software reset
-	endFlag = true;
+	m_endFlag = true;
 	reboot(true);
 
-	WaitForSingleObject(handle, INFINITE);
-	CloseHandle(handle);
+	WaitForSingleObject(m_thread_handle, INFINITE);
+	CloseHandle(m_thread_handle);
 
 	// COM port close
-	ERS_Close(portNum_);
+	ERS_Close(m_port);
 
-	::CloseHandle(receive_semaphore);
+	::CloseHandle(m_receive_queue_semaphore);
 
-	DeleteCriticalSection(&port_lock);
+	DeleteCriticalSection(&m_receive_queue_lock);
+
+	m_inited = false;
 }
 
+/*****************************************************************************
+	バージョン
+*****************************************************************************/
 std::string Gainer::Version(void)
 {
-	return ver;
+	return m_version_string;
 }
 
+/*****************************************************************************
+	探索
+*****************************************************************************/
 void Gainer::Search(std::vector<int> &v)
 {
 	for ( int i = 1 ; i <= 32 ; ++i ) {
@@ -145,14 +142,17 @@ void Gainer::Search(std::vector<int> &v)
 	}
 }
 
-bool Gainer::setConfiguration(int mode)
+/*****************************************************************************
+	KONFIGURATION_N
+*****************************************************************************/
+bool Gainer::SetConfiguration(int mode)
 {
 	// Configulation Mode check
 	if (1 > mode || mode > 8) {
 		return false;
 	}
 
-	config_ = mode;
+	m_config = mode;
 	std::stringstream ss("");
 	ss << "KONFIGURATION_" << mode;
 	command(ss.str());
@@ -161,77 +161,75 @@ bool Gainer::setConfiguration(int mode)
 	return true;
 }
 
-/**
- * Turn on the LED on gainer. command "h*" 
- * @return
- */
-bool Gainer::turnOnLED()
+/*****************************************************************************
+	LED(h/l)
+*****************************************************************************/
+bool Gainer::SetLED(bool isOn)
 {
-	return command("h").size() != 0;
+	if ( isOn ) {
+		return command("h").size() != 0;
+	}
+	else {
+		return command("l").size() != 0;
+	}
 }
 
-/**
- * Turn off the LED on gainer. command "l*" 
- * @return
- */
-bool Gainer::turnOffLED()
-{
-	return command("l").size() != 0;
-}
-
-
-bool Gainer::getDigitalInputAll(WORD &result,size_t &bits)
+/*****************************************************************************
+	全デジタル取得
+*****************************************************************************/
+bool Gainer::GetDigitalAll(WORD &result,size_t &bits)
 {
 	std::string r = command("R");
-	result = digitalInputs;
-	bits = CONFIG[config_][DIN];
+	result = m_digitalInputs;
+	bits = CONFIG[m_config][DIN];
 	return r.size() != 0;
 }
 
-bool Gainer::getAnalogInputAll(std::vector<BYTE> &result)
+/*****************************************************************************
+	全アナログ取得
+*****************************************************************************/
+bool Gainer::GetAnalogAll(std::vector<BYTE> &result)
 {
 	std::string r = command("I");
-	size_t n = CONFIG[config_][AIN];
+	size_t n = CONFIG[m_config][AIN];
 	for ( size_t i = 0 ; i < n ; ++i ) {
-		result.push_back(analogInputs[i]);
+		result.push_back(m_analogInputs[i]);
 	}
 	return r.size() != 0 && result.size() != 0;
 }
 
-void Gainer::continuous_digital_inputs()
+/*****************************************************************************
+	Continuous系(うまく動かない?)
+*****************************************************************************/
+void Gainer::ExecuteContinuousDigital()
 {
 	command("r");
 }
 
-void Gainer::continuous_analog_inputs()
+void Gainer::ExecuteContinuousAnalog()
 {
 	command("i");
 }
 
-void Gainer::exit_continuous()
+void Gainer::ExecuteExitContinuous()
 {
 	command("E");
 }
-//------------------------------------------
 
-/**
- * It makes 0V or +5V on digital output port.
- * @param value values of the digital output ports true:1 false:0	
- * @return
- */
-bool Gainer::setDigitalOutputAll(int value)
+/*****************************************************************************
+	全デジタル設定
+*****************************************************************************/
+bool Gainer::SetDigitalAll(int value)
 {
 	TCHAR c[32];
 	_stprintf(c,_T("D%04X"),value);
 	return command(c).size() != 0;
 }
 
-/**
- * It makes +5V on digital output port.
- * @param port number of the digital output port
- * @return
- */
-bool Gainer::setDigitalOutput(int port,bool high)
+/*****************************************************************************
+	単独デジタル設定
+*****************************************************************************/
+bool Gainer::SetDigitalSingle(int port,bool high)
 {
 	char buf[32];
 	if ( high ) {
@@ -243,26 +241,29 @@ bool Gainer::setDigitalOutput(int port,bool high)
 	return command(buf).size() != 0;
 }
 
-bool Gainer::setAnalogOutput(int port,BYTE value)
+/*****************************************************************************
+	単独アナログ設定
+*****************************************************************************/
+bool Gainer::SetAnalogSingle(int port,BYTE value)
 {
 	char buf[64];
 	sprintf(buf,"a%d%02X",port,value);
 	return command(buf).size() != 0;
 }
 
-bool Gainer::setServoOutput(int port,BYTE value)
+/*****************************************************************************
+	単独サーボ設定
+*****************************************************************************/
+bool Gainer::SetServoSingle(int port,BYTE value)
 {
 	char buf[64];
 	sprintf(buf,"p%d%02X",port,value);
 	return command(buf).size() != 0;
 }
 
-//------------------------------------------
-
-/**
- * Software reset. User should not use this.
- * @return
- */
+/*****************************************************************************
+	再起動
+*****************************************************************************/
 void Gainer::reboot(bool nowait)
 {
 	command("Q",nowait);
@@ -271,12 +272,9 @@ void Gainer::reboot(bool nowait)
 	}
 }
 
-/**
- * 
- * @param cmd command string
- * @param wait wait time(ms)
- * @return
- */
+/*****************************************************************************
+	コマンド送信
+*****************************************************************************/
 std::string Gainer::command(const std::string &cmd,bool nowait)
 {
 	return command_send(cmd + "*",nowait);
@@ -288,9 +286,9 @@ std::string Gainer::command_send(const std::string &cmd,bool nowait)
 	std::cout << "command_send : " << cmd.c_str() << std::endl << std::flush;
 #endif
 
-	ERS_Send(portNum_, const_cast<char *>(cmd.c_str()),cmd.length());
+	ERS_Send(m_port, const_cast<char *>(cmd.c_str()),cmd.length());
 
-	//ERS_WaitSend(portNum_);
+	//ERS_WaitSend(m_port);
 
 	if ( nowait ) {
 		return _T("");
@@ -300,22 +298,25 @@ std::string Gainer::command_send(const std::string &cmd,bool nowait)
 	}
 }
 
+/*****************************************************************************
+	コマンド受信
+*****************************************************************************/
 void Gainer::command_recv(void)
 {
 	char buf[RECV_BUFFER+1] = "";
 	size_t i = 0;
 
 	while (strchr(buf,'*') == NULL && i < RECV_BUFFER) {
-		if ( endFlag ) {
+		if ( m_endFlag ) {
 			break;
 		}
 
-		int r = ERS_CheckRecv(portNum_);
+		int r = ERS_CheckRecv(m_port);
 		if ( r == 0 ) {
 			r = 1; //1バイト読んで待機
 		}
 
-		i += ERS_Recv(portNum_,buf+i,r);
+		i += ERS_Recv(m_port,buf+i,r);
 		buf[i] = 0;
 
 #ifdef _DEBUG
@@ -335,14 +336,17 @@ void Gainer::command_recv(void)
 	}
 }
 
+/*****************************************************************************
+	受信待機
+*****************************************************************************/
 std::string Gainer::wait_recv(void)
 {
-	::WaitForSingleObject(receive_semaphore,INFINITE);
+	::WaitForSingleObject(m_receive_queue_semaphore,INFINITE);
 
-	EnterCriticalSection(&port_lock);
-	std::string result = receive_queue.front();
-	receive_queue.pop();
-	LeaveCriticalSection(&port_lock);
+	EnterCriticalSection(&m_receive_queue_lock);
+	std::string result = m_receive_queue.front();
+	m_receive_queue.pop();
+	LeaveCriticalSection(&m_receive_queue_lock);
 	
 #ifdef _DEBUG
 	std::cout << "command_recv : " << result << std::endl << std::flush;
@@ -354,6 +358,9 @@ std::string Gainer::wait_recv(void)
 	return result;
 }
 
+/*****************************************************************************
+	受信結果処理
+*****************************************************************************/
 void Gainer::processEvent(std::string &event)
 {
 	if ( event.length() == 0 ) {
@@ -365,21 +372,19 @@ void Gainer::processEvent(std::string &event)
 	case '!': // something wrong
 		break;
 	case 'h': // led on
-		led_ = true;
+		m_led = true;
 		break;
 	case 'l': // led off
-		led_ = false;
+		m_led = false;
 		break;
 	case 'N': // button pressed
-		if(on_pressed)
-		{
-			on_pressed();
+		if(m_button_func){
+			m_button_func(true);
 		}
 		break;
 	case 'F': // button released
-		if(on_released)
-		{
-			on_released();
+		if(m_button_func){
+			m_button_func(false);
 		}
 		break;
 	case 'i':
@@ -389,21 +394,21 @@ void Gainer::processEvent(std::string &event)
 
 		int ai[GAINER_MAX_INPUTS];
 
-		if ( CONFIG[config_][AIN] == 4 ) {
+		if ( CONFIG[m_config][AIN] == 4 ) {
 			sscanf(s.c_str(), "%02X%02X%02X%02X",
 				&ai[0], &ai[1],&ai[2], &ai[3]);
 
 			for ( int i = 0 ; i < 4 ; ++i ) {
-				analogInputs[i] = static_cast<BYTE>(ai[i]);
+				m_analogInputs[i] = static_cast<BYTE>(ai[i]);
 			}
 		}
-		else if ( CONFIG[config_][AIN] == 8 ) {
+		else if ( CONFIG[m_config][AIN] == 8 ) {
 			sscanf(s.c_str(), "%02X%02X%02X%02X%02X%02X%02X%02X",
 				&ai[0], &ai[1],&ai[2], &ai[3], 
 				&ai[4], &ai[5],&ai[6], &ai[7] );
 
 			for ( int i = 0 ; i < 8 ; ++i ) {
-				analogInputs[i] = static_cast<BYTE>(ai[i]);
+				m_analogInputs[i] = static_cast<BYTE>(ai[i]);
 			}
 		}
 		break;
@@ -411,7 +416,7 @@ void Gainer::processEvent(std::string &event)
 	case 'r':
 	case 'R': { // digital input
 		std::string::size_type ast(event.find('*'));		std::string s(event.substr(1, ast-1));
-		sscanf(s.c_str(),"%04X",&digitalInputs);
+		sscanf(s.c_str(),"%04X",&m_digitalInputs);
 		break;
 			  }
 	default:
@@ -420,23 +425,29 @@ void Gainer::processEvent(std::string &event)
 
 	char c = event[0];
 	if ( c != 'r' && c != 'i' && c != 'N' && c != 'F' ) {
-		EnterCriticalSection(&port_lock);
-		receive_queue.push(event);
-		ReleaseSemaphore(receive_semaphore,1,NULL);
-		LeaveCriticalSection(&port_lock);
+		EnterCriticalSection(&m_receive_queue_lock);
+		m_receive_queue.push(event);
+		ReleaseSemaphore(m_receive_queue_semaphore,1,NULL);
+		LeaveCriticalSection(&m_receive_queue_lock);
 	}
 }
 
+/*****************************************************************************
+	受信スレッド
+*****************************************************************************/
 unsigned __stdcall Gainer::receiver(void *arg)
 {
 	Gainer *self = reinterpret_cast<Gainer *>(arg);
-	while (!self->endFlag) {
+	while (!self->m_endFlag) {
 		self->command_recv();
 	}
 	_endthreadex(0);
 	return NULL;
 }
 
+/*****************************************************************************
+	設定構造体
+*****************************************************************************/
 const int Gainer::CONFIG[][4] = 
 {
 	// N_AIN, N_DIN, N_AOUT, N_DOUT
@@ -447,7 +458,7 @@ const int Gainer::CONFIG[][4] =
 	{8, 0, 8, 0}, // 4
 	{0,16, 0, 0}, // 5
 	{0, 0, 0,16}, // 6
-	{0, 0, 8, 8},  // 7 for matrix LED
+	{0, 0, 8, 8}, // 7 for matrix LED
 	{4, 0, 0, 4}  // 8 for Servo
 };
 

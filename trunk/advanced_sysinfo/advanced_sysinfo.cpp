@@ -267,7 +267,7 @@ static bool GetDriveInfo(int driveID,std::wstring &result,std::vector<std::wstri
 	if ( g_pDriveInfo->Init() ) {
 		CDriveSmartInfo *pDriveInfo = g_pDriveInfo->GetInfo(driveID);
 		if ( pDriveInfo ) {
-			wchar_t status[64] = L"Normal";
+			int status = 0;
 			std::wstring tmpstr;
 			wchar_t buffer[512];
 
@@ -347,18 +347,27 @@ static bool GetDriveInfo(int driveID,std::wstring &result,std::vector<std::wstri
 				values.push_back(buffer);
 
 				if ( pDriveInfo->m_smartParams[i].attr.bAttrValue < pDriveInfo->m_smartParams[i].thresh.bWarrantyThreshold ) {
-					swprintf(status,L"Emergency",pDriveInfo->m_smartParams[i].attr.bAttrID);
+					if ( attr < 14 || attr >= 191 ) {
+						if ( status <= 1 ) {
+							status = 2;
+						}
+					}
 				}
 				else if ( pDriveInfo->m_smartParams[i].attr.bWorstValue < pDriveInfo->m_smartParams[i].thresh.bWarrantyThreshold ) {
-					swprintf(status,L"Warning",pDriveInfo->m_smartParams[i].attr.bAttrID);
+					if ( status <= 0) {
+						status = 1;
+					}
 				}
 				else if ( attr == 5 || attr == 196 || attr == 197 || attr == 198 ) {
 					if ( raw ) {
-						swprintf(status,L"Warning",pDriveInfo->m_smartParams[i].attr.bAttrID);
+						if ( status <= 0) {
+							status = 1;
+						}
 					}
 				}
 			}
-			result = status;
+			static const wchar_t* status_table[] = {L"Normal",L"Warning",L"Error"};
+			result = status_table[status];
 			return true;
 		}
 	}

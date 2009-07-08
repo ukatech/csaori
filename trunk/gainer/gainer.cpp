@@ -15,6 +15,7 @@ static HWND g_hwnd;
 ---------------------------------------------------------*/
 bool CSAORI::load()
 {
+	g_gainer.clear();
 	return true;
 }
 
@@ -105,7 +106,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	if ( ! pGainer ) {
 		size_t n = g_gainer.size();
 		for ( size_t i = 0 ; i < n ; ++i ) {
-			if ( g_gainer[i]->port() == port ) {
+			if ( g_gainer[i]->GetCOMPort() == port ) {
 				pGainer = g_gainer[i];
 			}
 		}
@@ -123,11 +124,17 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 
 	//以降パラメータ2の場合のコマンド群
+	if ( wcsicmp(subcommand.c_str(),L"version") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+		out.result = SAORI_FUNC::MultiByteToUnicode(pGainer->Version());
+		return;
+	}
+
 	if ( wcsicmp(subcommand.c_str(),L"in.analog.all") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 
 		std::vector<BYTE> result;
-		if ( ! pGainer->getAnalogInputAll(result) ) {
+		if ( ! pGainer->GetAnalogAll(result) ) {
 			out.result = L"NG";
 		}
 		else {
@@ -147,14 +154,14 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 		WORD result;
 		size_t bits;
-		if ( ! pGainer->getDigitalInputAll(result,bits) ) {
+		if ( ! pGainer->GetDigitalAll(result,bits) ) {
 			out.result = L"NG";
 		}
 		else {
 			out.result = L"OK";
 
 			char_t buf[32];
-			if ( wcsicmp(subcommand.c_str()+14,L".bit") == 0 ) {
+			if ( wcsnicmp(subcommand.c_str()+14,L".bit",4) == 0 ) {
 				DWORD r2 = result;
 				for ( size_t i = 0 ; i < bits ; ++i ) {
 					if ( (r2 & (0UL << i)) != 0 ) {
@@ -180,18 +187,13 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 	if ( wcsicmp(subcommand.c_str(),L"config") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
-		out.result = pGainer->setConfiguration(_wtoi(in.args[2].c_str())) ? L"OK" : L"NG";
+		out.result = pGainer->SetConfiguration(_wtoi(in.args[2].c_str())) ? L"OK" : L"NG";
 		return;
 	}
 
 	if ( wcsicmp(subcommand.c_str(),L"out.led") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
-		if ( _wtoi(in.args[2].c_str()) != 0 ) {
-			out.result = pGainer->turnOnLED() ? L"OK" : L"NG";
-		}
-		else {
-			out.result = pGainer->turnOffLED() ? L"OK" : L"NG";
-		}
+		out.result = pGainer->SetLED(_wtoi(in.args[2].c_str()) != 0) ? L"OK" : L"NG";
 		return;
 	}
 
@@ -199,7 +201,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		out.result_code = SAORIRESULT_OK;
 
 		DWORD outd = 0;
-		if ( wcsicmp(subcommand.c_str()+15,L".bit") == 0 ) {
+		if ( wcsnicmp(subcommand.c_str()+15,L".bit",4) == 0 ) {
 			size_t n = in.args.size();
 			for ( size_t i = 2 ; i < n ; ++i ) {
 				outd |= 1UL << (i-2);
@@ -208,7 +210,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		else {
 			outd = _wtoi(in.args[2].c_str());
 		}
-		out.result = pGainer->setDigitalOutputAll(outd) ? L"OK" : L"NG";
+		out.result = pGainer->SetDigitalAll(outd) ? L"OK" : L"NG";
 		return;
 	}
 
@@ -223,7 +225,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		int port = _wtoi(in.args[2].c_str());
 		int data = _wtoi(in.args[3].c_str());
 
-		out.result = pGainer->setAnalogOutput(port,data) ? L"OK" : L"NG";
+		out.result = pGainer->SetAnalogSingle(port,data) ? L"OK" : L"NG";
 		return;
 	}
 
@@ -233,7 +235,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		int port = _wtoi(in.args[2].c_str());
 		int data = _wtoi(in.args[3].c_str());
 
-		out.result = pGainer->setDigitalOutput(port,data != 0) ? L"OK" : L"NG";
+		out.result = pGainer->SetDigitalSingle(port,data != 0) ? L"OK" : L"NG";
 		return;
 	}
 
@@ -243,7 +245,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		int port = _wtoi(in.args[2].c_str());
 		int data = _wtoi(in.args[3].c_str());
 
-		out.result = pGainer->setServoOutput(port,data) ? L"OK" : L"NG";
+		out.result = pGainer->SetServoSingle(port,data) ? L"OK" : L"NG";
 		return;
 	}
 
