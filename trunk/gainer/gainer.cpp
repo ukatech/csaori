@@ -64,7 +64,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"hwnd") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"set.hwnd") == 0 ) {
 		if ( in.args.size() < 2 ) {
 			return;
 		}
@@ -124,7 +124,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 
 	//以降パラメータ2の場合のコマンド群
-	if ( wcsicmp(subcommand.c_str(),L"version") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"get.version") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 		out.result = SAORI_FUNC::MultiByteToUnicode(pGainer->Version());
 		return;
@@ -180,14 +180,47 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
+	if ( wcsicmp(subcommand.c_str(),L"in.digital.continuous") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+		out.result = L"OK";
+		pGainer->ExecuteContinuousDigital();
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"in.analog.continuous") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+		out.result = L"OK";
+		pGainer->ExecuteContinuousAnalog();
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"in.continuous.exit") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+		out.result = L"OK";
+		pGainer->ExecuteExitContinuous();
+		return;
+	}
+
 	//******************** パラメータ3 ********************
 	if ( in.args.size() < 3 ) {
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"config") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"set.config") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 		out.result = pGainer->SetConfiguration(_wtoi(in.args[2].c_str())) ? L"OK" : L"NG";
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"set.pga.dgnd") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+		out.result = pGainer->SetPGA(wcstod(in.args[2].c_str(),NULL),0) ? L"OK" : L"NG";
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"set.pga.agnd") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+		out.result = pGainer->SetPGA(wcstod(in.args[2].c_str(),NULL),1) ? L"OK" : L"NG";
 		return;
 	}
 

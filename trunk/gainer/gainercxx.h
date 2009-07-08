@@ -24,6 +24,9 @@ class Gainer
 public:
 	//--------------------ä÷êî--------------------
 	typedef void (*callback_t)(int state);
+
+	typedef void (*callback_digital_t)(DWORD data,int num);
+	typedef void (*callback_analog_t)(BYTE *data,int num);
 	
 	Gainer() {
 		m_inited = false;
@@ -53,12 +56,16 @@ public:
 	bool SetAnalogSingle(int port,BYTE value);
 	bool SetServoSingle(int port,BYTE value);
 	
-	void SetButtonCallbackFunc(callback_t funcp){m_button_func = funcp;}
+	void SetButtonCallbackFunc(callback_t funcp){ m_button_func = funcp; }
+	void SetAnalogCallbackFunc(callback_analog_t funcp){ m_analog_func = funcp; }
+	void SetDigitalCallbackFunc(callback_digital_t funcp){ m_digital_func = funcp; }
 	
 	int GetCOMPort(void) { return m_port; }
 	
 	bool SetConfiguration(int mode);
-	
+
+	bool SetPGA(double gain,bool isAGNDRef);
+
 private:
 	//--------------------ä÷êî--------------------
 
@@ -87,6 +94,8 @@ private:
 	bool m_inited;
 	
 	callback_t m_button_func;
+	callback_digital_t m_digital_func;
+	callback_analog_t  m_analog_func;
 	
 	HANDLE m_thread_handle;
 	
