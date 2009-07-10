@@ -19,6 +19,7 @@
 #define IDC_UNLOAD                      1013
 #define IDC_RELOAD                      1014
 #define IDC_HISTORY                     1015
+#define IDC_SSTP                        1016
 
 // Next default values for new objects
 // 

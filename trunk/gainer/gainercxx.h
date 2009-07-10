@@ -23,11 +23,6 @@ class Gainer
 {
 public:
 	//--------------------ä÷êî--------------------
-	typedef void (*callback_t)(int state);
-
-	typedef void (*callback_digital_t)(DWORD data,int num);
-	typedef void (*callback_analog_t)(BYTE *data,int num);
-	
 	Gainer() {
 		m_inited = false;
 	}
@@ -44,8 +39,8 @@ public:
 	
 	bool SetLED(bool isOn);
 	
-	void ExecuteContinuousDigital();
-	void ExecuteContinuousAnalog();
+	void ExecuteContinuousDigital(DWORD period);
+	void ExecuteContinuousAnalog(DWORD period);
 	void ExecuteExitContinuous();
 	
 	bool GetDigitalAll(WORD &result,size_t &bits);
@@ -53,24 +48,29 @@ public:
 	
 	bool SetDigitalAll(int value);
 	bool SetDigitalSingle(int port,bool high);
+
+	bool SetAnalogAll(const std::vector<WORD> &data);
 	bool SetAnalogSingle(int port,BYTE value);
+
+	bool SetServoAll(const std::vector<WORD> &data);
 	bool SetServoSingle(int port,BYTE value);
-	
-	void SetButtonCallbackFunc(callback_t funcp){ m_button_func = funcp; }
-	void SetAnalogCallbackFunc(callback_analog_t funcp){ m_analog_func = funcp; }
-	void SetDigitalCallbackFunc(callback_digital_t funcp){ m_digital_func = funcp; }
-	
+		
 	int GetCOMPort(void) { return m_port; }
 	
 	bool SetConfiguration(int mode);
 
 	bool SetPGA(double gain,bool isAGNDRef);
 
+	void Reboot(bool nowait = false);
+	
+	void SetHWND(HWND h) { m_hwnd_sstp = h; }
+
+	bool ScanLine(size_t row,BYTE data[8],bool isNoWait = false);
+	bool ScanMatrix(BYTE data[8][8]);
+
 private:
 	//--------------------ä÷êî--------------------
 
-	void reboot(bool nowait = false);
-	
 	std::string command(const std::string &cmd,bool nowait = false);
 	std::string command_send(const std::string &cmd,bool nowait = false);
 	
@@ -81,8 +81,13 @@ private:
 
 	static unsigned __stdcall receiver(void *arg);
 
+	void execute_sstp_button(bool isPressed);
+	void execute_sstp_digital(void);
+	void execute_sstp_analog(void);
+
+	void send_sstp(std::string &sstp);
+
 	//--------------------ïœêî--------------------
-	
 	bool  m_led;
 	BYTE  m_analogInputs[GAINER_MAX_INPUTS];
 	DWORD m_digitalInputs;
@@ -93,18 +98,23 @@ private:
 	bool m_endFlag;
 	bool m_inited;
 	
-	callback_t m_button_func;
-	callback_digital_t m_digital_func;
-	callback_analog_t  m_analog_func;
-	
 	HANDLE m_thread_handle;
+
+	HWND m_hwnd_sstp;
 	
 	CRITICAL_SECTION m_receive_queue_lock;
 	
 	HANDLE m_receive_queue_semaphore;
 	std::queue<std::string> m_receive_queue;
+
+	std::vector<char> m_receive_buffer;
 	
 	std::string m_version_string;
+
+	DWORD m_analog_period;
+	DWORD m_analog_last;
+	DWORD m_digital_period;
+	DWORD m_digital_last;
 	
 	enum pin_t {AIN = 0, DIN, AOUT, DOUT};
 	static const int CONFIG[][4];

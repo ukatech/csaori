@@ -1,12 +1,12 @@
 ----------------------------------------------------------------------
-■「gainer」：現在開いているウインドウを列挙するSAORI
-■Written by CSaori Project / original by 櫛ヶ浜やぎ
+■「gainer」：Gainerまたはその互換用ボードを制御するSAORI
+■Written by CSaori Project
 　http://code.google.com/p/csaori/
 ----------------------------------------------------------------------
 
 ■これは何をするものか
 
-　現在開いているウインドウを列挙するためのSAORIです。
+　Gainerまたはその互換用ボードを制御するSAORIです。
 
 ■動作環境
 
@@ -14,9 +14,10 @@
 
 ■使用方法
 
-[汎用コマンド]
+■汎用コマンド
 必ず1パラメータ以上必要です。
 1つめのパラメータ(Argument0)は「コマンド」です。以降の項目名を設定して下さい。
+
 
 □search
 ・機能
@@ -26,10 +27,12 @@
 　Result：列挙できたポートの総数 / 0は見つからなかった
 　Value0～：順番にポート番号
 
-□set.hwnd
+
+□hwnd
 ・機能
 　Gainerからの結果をSSTPで通知するためのhwndです（ボタン状態など）。
 　不要な場合は設定する必要はありません。
+　（イベント内容後述）
 
 ・パラメータ
 　Argument1：SSTPを受け付けるウインドウのHWND
@@ -37,13 +40,16 @@
 ・結果
 　Result：OK
 
-[Gainer用コマンド群]
+
+■Gainer用コマンド群
 必ず2パラメータ以上必要です。
 1つめのパラメータ(Argument0)は「コマンド」です。以降の項目名を設定して下さい。
 2つめのパラメータ(Argument1)は「シリアルポート番号」です。
-1から128までの数値を指定するか、あるいは0を指定すると勝手にGainerを探索します。
+1から128までの数値を指定可能です。
+また、0を指定すると勝手にGainerを探索し、最初に見つかったものを制御します。
 
-□set.config
+
+□configuration
 ・機能
 　Gainerのモードを設定します(KONFIGURATION_n命令)
 　
@@ -51,24 +57,66 @@
 　Argument2：モード番号(1～8をサポート)
 
 ・結果
-　Result：OK/NG
+　Result：OK/NG:理由:理由
 
-□get.version
+
+□version
 ・機能
 　Gainerのファームウェアのバージョンを取得します。
 　
 ・結果
 　Result：ファームウェアのバージョン番号
 
-□in.analog.all
+
+□reboot
 ・機能
-　アナログ入力ピンの状態をすべて取得します
+　Gainerを再初期化します（モード0）。
+　
+・結果
+　Result：OK/NG:理由
+
+
+□peekAnalogInput
+・機能
+　アナログ入力ピンの入力電圧をすべて取得します
 
 ・結果
-　Result：OK/NG
-　Value0～：
+　Result：OK/NG:理由
+　Value0～：ピン0から順番に 0～255
 
-□out.analog.single
+
+□beginAnalogInput
+・機能
+　アナログ入力ピンの入力電圧をすべて取得します
+　hwndで指定したウインドウに取得ごとにイベントを送ります。（イベント内容後述）
+
+・パラメータ
+　Argument2：取得間隔（ミリ秒）　省略かあるいは0を指定すると「ありったけ」
+
+・結果
+　Result：OK/NG:理由
+
+
+□endAnalogInput
+・機能
+　beginAnalogInputを終了します。
+
+・結果
+　Result：OK/NG:理由
+
+
+□analogOutput
+・機能
+　アナログ出力ピンへの出力電圧を変更します。
+
+・パラメータ
+　Argument2～：ピン0からのデータ～
+
+・結果
+　Result：OK/NG:理由
+
+
+□analogOutputSingle
 ・機能
 　1つのアナログ出力ピンへの出力電圧を変更します。
 
@@ -77,39 +125,73 @@
 　Argument3：値(0～255)
 
 ・結果
-　Result：OK/NG
+　Result：OK/NG:理由
 
-□in.digital.all
-□in.digital.all.bit
+
+□peekDigitalInput
 ・機能
 　デジタル入力ピンの状態をすべて取得します
 
 ・結果
-　Result：OK/NG
-　Value0：ピン0を最下位ビットとして解釈した場合の数値
-　Value0～：(.bit)ピン0から順番に0/1
+　Result：OK/NG:理由
+　Value0～：ピン0から順番に 0/1
 
-□out.digital.all
-□out.digital.all.bit
+
+□beginDigitalInput
+・機能
+　デジタル入力ピンの状態をすべて取得します
+　hwndで指定したウインドウに取得ごとにイベントを送ります。（イベント内容後述）
+
+・パラメータ
+　Argument2：取得間隔（ミリ秒）　省略かあるいは0を指定すると「ありったけ」
+
+・結果
+　Result：OK/NG:理由
+
+
+□endDigitalInput
+・機能
+　beginDigitalInputを終了します。
+
+・結果
+　Result：OK/NG:理由
+
+
+□digitalOutput
 ・機能
 　デジタル出力ピンの状態をすべて変更します
 
 ・パラメータ
-　Argument2：ピン0を最下位ビットとして解釈した場合の数値
-　Argument2～：(.bit)ピン0から順番に0/1
+　Argument2～：ピン0から順番に0/1～
 
-□out.digital.single
+
+□digitalOutputSingle
+□setLow
+□setHigh
 ・機能
 　1つのデジタル出力ピンへの出力フラグを変更します。
 
 ・パラメータ
 　Argument2：ピン番号
-　Argument3：0/1
+　Argument3：0/1（digitalOutputSingleの場合）／なし（setLow／setHighの場合）
 
 ・結果
-　Result：OK/NG
+　Result：OK/NG:理由
 
-□out.servo.single
+
+□servoOutput
+・機能
+　1つのRCサーボ制御ピンへの出力情報を変更します。
+　[注意] Gainer mini config=8 のみのサポートです。
+
+・パラメータ
+　Argument2～：ピン0から順番に0-255～
+
+・結果
+　Result：OK/NG:理由
+
+
+□servoOutputSingle
 ・機能
 　1つのRCサーボ制御ピンへの出力情報を変更します。
 　[注意] Gainer mini config=8 のみのサポートです。
@@ -119,19 +201,19 @@
 　Argument3：0～255
 
 ・結果
-　Result：OK/NG
+　Result：OK/NG:理由
 
-□out.led
+
+□turnOnLED
+□turnOffLED
 ・機能
-　Gainer基盤上のLEDを光らせます
-
-・パラメータ
-　Argument2：1で点灯、0で消灯
+　Gainer基盤上のLEDを光らせます/消灯させます
 
 ・結果
-　Result：OK/NG
+　Result：OK/NG:理由
 
-□set.pga.dgnd
+
+□ampGainDGND
 ・機能
 　0v基準で入力アナログ信号の倍率を設定します。
 
@@ -142,9 +224,10 @@
 　中間の値を設定すると適当な近い値を選びます。
 
 ・結果
-　Result：OK/NG
+　Result：OK/NG:理由
 
-□set.pga.agnd
+
+□ampGainAGND
 ・機能
 　2.5v基準で入力アナログ信号の倍率を設定します。
 
@@ -155,7 +238,105 @@
 　中間の値を設定すると適当な近い値を選びます。
 
 ・結果
-　Result：OK/NG
+　Result：OK/NG:理由
+
+
+□scanLine
+・機能
+　LEDアレイへの出力を1行分セットします。
+　[注意] Gainer config=7 のみのサポートです。
+
+・パラメータ
+　Argument2：行番号0～8
+　Argument3：0～15の数値をカンマ区切りで8つ（例：1,3,5,7,9,11,13,15）
+
+・結果
+　Result：OK/NG:理由
+
+
+□scanMatrix
+・機能
+　LEDアレイへの出力を全部セットします。
+　[注意] Gainer config=7 のみのサポートです。
+
+・パラメータ
+　Argument2～9：0～15の数値をカンマ区切りで8つ（例：1,3,5,7,9,11,13,15）
+
+・結果
+　Result：OK/NG:理由
+
+
+■イベント通知
+beginDigitalInput / AnalogInputで連続取得中のデータは、SSTPを使い本体に通知されます。
+hwndコマンドであらかじめSSTPを受信可能なウインドウハンドルを設定してください。
+
+[注意]送信元hwndが存在しませんのでHWnd: 0になっています。
+　　　動作はそれをサポートする本体(SSPなど)に限定されます。
+
+
+□OnGainerAnalogInput
+アナログピン入力データを受信しました。
+
+イベントID：OnGainerAnalogInput
+Reference0：COMポート番号
+Reference1：データをカンマ区切りで
+
+　サンプル：
+　　NOTIFY SSTP/1.1
+　　Charset: Shift_JIS
+　　Sender: GainerSAORI
+　　HWnd: 0
+　　Event: OnGainerAnalogInput
+　　Reference0: 10
+　　Reference1: 66,56,47,38
+
+
+□OnGainerDigitalInput
+デジタルピン入力データを受信しました。
+
+イベントID：OnGainerDigitalInput
+Reference0：COMポート番号
+Reference1：データをカンマ区切りで
+
+　サンプル：
+　　NOTIFY SSTP/1.1
+　　Charset: Shift_JIS
+　　Sender: GainerSAORI
+　　HWnd: 0
+　　Event: OnGainerDigitalInput
+　　Reference0: 10
+　　Reference1: 0,0,0,0
+
+
+□OnGainerButtonPressed
+Gainer本体のボタンが押されました。
+
+イベントID：OnGainerButtonPressed
+Reference0：COMポート番号
+
+　サンプル：
+　　NOTIFY SSTP/1.1
+　　Charset: Shift_JIS
+　　Sender: GainerSAORI
+　　HWnd: 0
+　　Event: OnGainerButtonPressed
+　　Reference0: 10
+
+
+□OnGainerButtonReleased
+Gainer本体のボタンが離されました。
+
+イベントID：OnGainerButtonReleased
+Reference0：COMポート番号
+
+　サンプル：
+　　NOTIFY SSTP/1.1
+　　Charset: Shift_JIS
+　　Sender: GainerSAORI
+　　HWnd: 0
+　　Event: OnGainerButtonReleased
+　　Reference0: 10
+
 
 ■配布条件等
 
@@ -163,5 +344,5 @@ license.txtを見てください。
 
 ■更新履歴
 
-・2008/8/16 Initial Release
+・2009/7/10 Initial Release
 
