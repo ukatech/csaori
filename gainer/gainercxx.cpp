@@ -8,10 +8,11 @@
 
 #include <iostream>
 #include <string>
-#include <sstream>
 
 #include "gainercxx.h"
 #include "erslib.h"
+
+#include <mmsystem.h>
 
 const int Gainer::MATRIX_LED_CONFIGURATION = 7;
 
@@ -32,10 +33,14 @@ bool Gainer::Init(int portNum, int mode)
 	m_config = mode;
 	m_port = portNum;
 	m_endFlag = false;
+	m_hwnd_sstp = NULL;
 
-	m_button_func = NULL;
-	m_digital_func = NULL;
-	m_analog_func = NULL;
+	m_analog_period = 0;
+	m_analog_last = 0;
+	m_digital_period = 0;
+	m_digital_last = 0;
+
+	m_receive_buffer.assign(RECV_BUFFER,0);
 	
 	InitializeCriticalSection(&m_receive_queue_lock);
 	
@@ -55,7 +60,7 @@ bool Gainer::Init(int portNum, int mode)
 	ERS_RecvTimeOut(m_port, RECV_TIMEOUT_COMM, RECV_TIMEOUT_INTERVAL);
 
 	// software reset
-	reboot(true);
+	Reboot(true);
 	m_thread_handle = (HANDLE)_beginthreadex(NULL, 0, receiver, this, 0, NULL);
 	wait_recv();
 
@@ -84,7 +89,7 @@ void Gainer::Exit()
 
 	// software reset
 	m_endFlag = true;
-	reboot(true);
+	Reboot(true);
 
 	WaitForSingleObject(m_thread_handle, INFINITE);
 	CloseHandle(m_thread_handle);
@@ -156,9 +161,10 @@ bool Gainer::SetConfiguration(int mode)
 	}
 
 	m_config = mode;
-	std::stringstream ss("");
-	ss << "KONFIGURATION_" << mode;
-	command(ss.str());
+
+	char buf[64];
+	sprintf(buf,"KONFIGURATION_%d",mode);
+	command(buf);
 
 	::Sleep(100);
 	return true;
@@ -204,13 +210,15 @@ bool Gainer::GetAnalogAll(std::vector<BYTE> &result)
 /*****************************************************************************
 	Continuous系(うまく動かない?)
 *****************************************************************************/
-void Gainer::ExecuteContinuousDigital()
+void Gainer::ExecuteContinuousDigital(DWORD period)
 {
+	m_digital_period = period;
 	command("r",true);
 }
 
-void Gainer::ExecuteContinuousAnalog()
+void Gainer::ExecuteContinuousAnalog(DWORD period)
 {
+	m_analog_period = period;
 	command("i",true);
 }
 
@@ -224,8 +232,74 @@ void Gainer::ExecuteExitContinuous()
 *****************************************************************************/
 bool Gainer::SetDigitalAll(int value)
 {
-	TCHAR c[32];
-	_stprintf(c,_T("D%04X"),value);
+	if ( ! CONFIG[m_config][DOUT] ) {
+		return false;
+	}
+
+	char c[32];
+	sprintf(c,"D%04X",value);
+	return command(c).size() != 0;
+}
+
+/*****************************************************************************
+	全アナログ設定
+*****************************************************************************/
+bool Gainer::SetAnalogAll(const std::vector<WORD> &data)
+{
+	int limit = CONFIG[m_config][AOUT];
+	if ( ! limit ) {
+		return false;
+	}
+
+	std::string c("A");
+	char buf[32];
+
+	size_t n = data.size();
+	if ( n > limit ) {
+		n = limit;
+	}
+
+	for ( size_t i = 0 ; i < n ; ++i ) {
+		sprintf(buf,"%02X",data[i]);
+		c += buf;
+	}
+
+	int diff = limit - n;
+	while ( diff > 0 ) {
+		c += "00";
+		--diff;
+	}
+
+	return command(c).size() != 0;
+}
+
+/*****************************************************************************
+	全サーボ設定
+*****************************************************************************/
+bool Gainer::SetServoAll(const std::vector<WORD> &data)
+{
+	int limit = 8;
+	if ( m_config != 8 ) { return false; }
+
+	std::string c("P");
+	char buf[32];
+
+	size_t n = data.size();
+	if ( n > limit ) {
+		n = limit;
+	}
+
+	for ( size_t i = 0 ; i < n ; ++i ) {
+		sprintf(buf,"%02X",data[i]);
+		c += buf;
+	}
+
+	int diff = limit - n;
+	while ( diff > 0 ) {
+		c += "00";
+		--diff;
+	}
+
 	return command(c).size() != 0;
 }
 
@@ -259,6 +333,9 @@ bool Gainer::SetAnalogSingle(int port,BYTE value)
 *****************************************************************************/
 bool Gainer::SetServoSingle(int port,BYTE value)
 {
+	int limit = 8;
+	if ( m_config != 8 ) { return false; }
+
 	char buf[64];
 	sprintf(buf,"p%d%02X",port,value);
 	return command(buf).size() != 0;
@@ -333,12 +410,56 @@ bool Gainer::SetPGA(double gain,bool isAGNDRef)
 /*****************************************************************************
 	再起動
 *****************************************************************************/
-void Gainer::reboot(bool nowait)
+void Gainer::Reboot(bool nowait)
 {
 	command("Q",nowait);
 	if ( ! nowait ) {
 		Sleep(100);
 	}
+}
+
+/*****************************************************************************
+	LEDアレイ用
+*****************************************************************************/
+bool Gainer::ScanLine(size_t row,BYTE data[8],bool isNoWait)
+{
+	if ( m_config != 7 ) { return false; }
+	if ( row > 7 ) { return false; }
+
+	std::string c = "a";
+	size_t i;
+	char buf[32];
+
+	sprintf(buf,"%u",row);
+	c += buf;
+
+	for ( i = 0 ; i < 8 ; ++i ) {
+		if ( data[i] > 15 ) {
+			data[i] = 15;
+		}
+		sprintf(buf,"%01X",data[i]);
+		c += buf;
+	}
+
+	return command(c,isNoWait).size() != 0;
+}
+
+bool Gainer::ScanMatrix(BYTE data[8][8])
+{
+	if ( m_config != 7 ) { return false; }
+
+	size_t i;
+	for ( i = 0 ; i < 8 ; ++i ) {
+		ScanLine(i,data[i],true);
+	}
+
+	bool isSuccess = true;
+	for ( i = 0 ; i < 8 ; ++i ) {
+		if ( wait_recv().size() == 0 ) {
+			isSuccess = false;
+		}
+	}
+	return isSuccess;
 }
 
 /*****************************************************************************
@@ -372,10 +493,10 @@ std::string Gainer::command_send(const std::string &cmd,bool nowait)
 *****************************************************************************/
 void Gainer::command_recv(void)
 {
-	char buf[RECV_BUFFER+1] = "";
 	size_t i = 0;
+	m_receive_buffer[0] = 0;
 
-	while (strchr(buf,'*') == NULL && i < RECV_BUFFER) {
+	while ( strchr(&m_receive_buffer[0],'*') == NULL ) {
 		if ( m_endFlag ) {
 			break;
 		}
@@ -385,8 +506,12 @@ void Gainer::command_recv(void)
 			r = 1; //1バイト読んで待機
 		}
 
-		i += ERS_Recv(m_port,buf+i,r);
-		buf[i] = 0;
+		if ( m_receive_buffer.size() < r+1 ) {
+			m_receive_buffer.assign(r+1,0);
+		}
+
+		i += ERS_Recv(m_port,&m_receive_buffer[i],r);
+		m_receive_buffer[i] = 0;
 
 #ifdef _DEBUG
 		std::cout << "*";
@@ -396,12 +521,34 @@ void Gainer::command_recv(void)
 	size_t len = i;
 	size_t start = 0;
 	std::string s;
+
+	std::string data_i;
+	std::string data_r;
+
 	for ( i = 0 ; i < len ; ++i ) {
-		if ( buf[i] == '*' ) {
-			s.assign(buf+start,i-start+1);
+		if ( m_receive_buffer[i] == '*' ) {
+			s.assign(&m_receive_buffer[start],i-start+1);
 			start = i+1;
-			processEvent(s);
+
+			if ( s[0] != 'r' && s[0] != 'i' ) {
+				processEvent(s);
+			}
+			else {
+				if ( s[0] == 'r' ) {
+					data_r = s;
+				}
+				else {
+					data_i = s;
+				}
+			}
 		}
+	}
+
+	if ( data_r.size() ) {
+		processEvent(data_r);
+	}
+	if ( data_i.size() ) {
+		processEvent(data_i);
 	}
 }
 
@@ -450,14 +597,10 @@ void Gainer::processEvent(std::string &event)
 		break;
 
 	case 'N': // button pressed
-		if(m_button_func){
-			m_button_func(true);
-		}
+		execute_sstp_button(true);
 		break;
 	case 'F': // button released
-		if(m_button_func){
-			m_button_func(false);
-		}
+		execute_sstp_button(false);
 		break;
 
 	case 'i':
@@ -486,8 +629,8 @@ void Gainer::processEvent(std::string &event)
 				}
 			}
 
-			if ( event[0] == 'i' && m_analog_func ) {
-				m_analog_func(m_analogInputs,CONFIG[m_config][AIN]);
+			if ( event[0] == 'i' ) {
+				execute_sstp_analog();
 			}
 		}
 		break;
@@ -495,11 +638,12 @@ void Gainer::processEvent(std::string &event)
 	case 'r':
 	case 'R':
 		{ // digital input
-			std::string::size_type ast(event.find('*'));		std::string s(event.substr(1, ast-1));
+			std::string::size_type ast(event.find('*'));
+			std::string s(event.substr(1, ast-1));
 			sscanf(s.c_str(),"%04X",&m_digitalInputs);
 			
-			if ( event[0] == 'r' && m_digital_func ) {
-				m_digital_func(m_digitalInputs,CONFIG[m_config][DIN]);
+			if ( event[0] == 'r' ) {
+				execute_sstp_digital();
 			}
 		}
 		break;
@@ -529,6 +673,127 @@ unsigned __stdcall Gainer::receiver(void *arg)
 	}
 	_endthreadex(0);
 	return NULL;
+}
+
+/*****************************************************************************
+	SSTP
+*****************************************************************************/
+void Gainer::execute_sstp_button(bool isPressed)
+{
+	if ( ! m_hwnd_sstp ) {
+		return;
+	}
+
+	std::string sstp = "NOTIFY SSTP/1.1\r\nCharset: Shift_JIS\r\nSender: GainerSAORI\r\n";
+	sstp += "HWnd: 0\r\nEvent: ";
+
+	if ( isPressed ) {
+		sstp += "OnGainerButtonPressed";
+	}
+	else {
+		sstp += "OnGainerButtonReleased";
+	}
+	
+	sstp += "\r\nReference0: ";
+	char buf[32];
+	sprintf(buf,"%d",m_port);
+	sstp += buf;
+
+	sstp += "\r\n\r\n";
+
+	send_sstp(sstp);
+}
+
+void Gainer::execute_sstp_digital(void)
+{
+	if ( ! m_hwnd_sstp ) {
+		return;
+	}
+	if ( m_digital_period ) {
+		DWORD current = ::timeGetTime();
+		if ( (current - m_digital_last) < m_digital_period ) {
+			return;
+		}
+		m_digital_last = current;
+	}
+
+	std::string sstp = "NOTIFY SSTP/1.1\r\nCharset: Shift_JIS\r\nSender: GainerSAORI\r\n";
+	sstp += "HWnd: 0\r\nEvent: OnGainerDigitalInput\r\nReference0: ";
+
+	char buf[512];
+	sprintf(buf,"%d\r\n",m_port);
+	sstp += buf;
+
+	sstp += "Reference1: ";
+	if ( CONFIG[m_config][DIN] == 4 ) {
+		sprintf(buf,"%d,%d,%d,%d\r\n",
+			m_digitalInputs & 1, m_digitalInputs & 2, m_digitalInputs & 4, m_digitalInputs & 8 );
+	}
+	else if ( CONFIG[m_config][DIN] == 8 ) {
+		sprintf(buf,"%d,%d,%d,%d,%d,%d,%d,%d\r\n",
+			m_digitalInputs & 1, m_digitalInputs & 2, m_digitalInputs & 4, m_digitalInputs & 8,
+			m_digitalInputs & 16, m_digitalInputs & 32, m_digitalInputs & 64, m_digitalInputs & 128 );
+	}
+	else /*if ( CONFIG[m_config][DIN] == 16 )*/ {
+		sprintf(buf,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n",
+			m_digitalInputs & 1, m_digitalInputs & 2, m_digitalInputs & 4, m_digitalInputs & 8,
+			m_digitalInputs & 16, m_digitalInputs & 32, m_digitalInputs & 64, m_digitalInputs & 128,
+			m_digitalInputs & 256, m_digitalInputs & 512, m_digitalInputs & 1024, m_digitalInputs & 2048,
+			m_digitalInputs & 4096, m_digitalInputs & 8192, m_digitalInputs & 16384, m_digitalInputs & 32768 );
+	}
+	sstp += buf;
+
+	send_sstp(sstp);
+}
+
+void Gainer::execute_sstp_analog(void)
+{
+	if ( ! m_hwnd_sstp ) {
+		return;
+	}
+	if ( m_analog_period ) {
+		DWORD current = ::timeGetTime();
+		if ( (current - m_analog_last) < m_analog_period ) {
+			return;
+		}
+		m_analog_last = current;
+	}
+
+	std::string sstp = "NOTIFY SSTP/1.1\r\nCharset: Shift_JIS\r\nSender: GainerSAORI\r\n";
+	sstp += "HWnd: 0\r\nEvent: OnGainerAnalogInput\r\nReference0: ";
+
+	char buf[512];
+	sprintf(buf,"%d\r\n",m_port);
+	sstp += buf;
+
+	sstp += "Reference1: ";
+	if ( CONFIG[m_config][AIN] == 4 ) {
+		sprintf(buf,"%d,%d,%d,%d\r\n",
+			m_analogInputs[0], m_analogInputs[1], m_analogInputs[2], m_analogInputs[3] );
+	}
+	else /*if ( CONFIG[m_config][AIN] == 8 )*/ {
+		sprintf(buf,"%d,%d,%d,%d,%d,%d,%d,%d\r\n",
+			m_analogInputs[0], m_analogInputs[1], m_analogInputs[2], m_analogInputs[3],
+			m_analogInputs[4], m_analogInputs[5], m_analogInputs[6], m_analogInputs[7] );
+	}
+	sstp += buf;
+
+	send_sstp(sstp);
+}
+
+void Gainer::send_sstp(std::string &sstp)
+{
+	DWORD result;
+	
+	COPYDATASTRUCT c;
+	c.dwData = 9801;
+	c.cbData = sstp.size();
+	c.lpData = const_cast<char*>(sstp.c_str());
+
+	SendMessageTimeout(m_hwnd_sstp,WM_COPYDATA,
+		reinterpret_cast<WPARAM>(m_hwnd_sstp),
+		reinterpret_cast<LPARAM>(&c),
+		SMTO_ABORTIFHUNG,1000,&result);
 }
 
 /*****************************************************************************

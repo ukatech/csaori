@@ -64,13 +64,18 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"set.hwnd") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"hwnd") == 0 ) {
 		if ( in.args.size() < 2 ) {
 			return;
 		}
 		out.result_code = SAORIRESULT_OK;
 		out.values.push_back(L"OK");
 		g_hwnd = reinterpret_cast<HWND>(wcstoul(in.args[1].c_str(),NULL,10));
+
+		size_t n = g_gainer.size();
+		for ( size_t i = 0 ; i < n ; ++i ) {
+			g_gainer[i]->SetHWND(g_hwnd);
+		}
 		return;
 	}
 
@@ -92,7 +97,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 			if ( port_array.size() == 0 ) {
 				out.result_code = SAORIRESULT_NO_CONTENT;
-				out.result = L"Gainer not found.";
+				out.result = L"NG:Gainer not found.";
 				return;
 			}
 
@@ -119,18 +124,26 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result = L"Gainer not found.";
 			return;
 		}
+		pGainer->SetHWND(g_hwnd);
 
 		g_gainer.push_back(pGainer);
 	}
 
 	//ˆÈ~ƒpƒ‰ƒ[ƒ^2‚Ìê‡‚ÌƒRƒ}ƒ“ƒhŒQ
-	if ( wcsicmp(subcommand.c_str(),L"get.version") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"version") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 		out.result = SAORI_FUNC::MultiByteToUnicode(pGainer->Version());
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"in.analog.all") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"reboot") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+		pGainer->Reboot();
+		out.result = L"OK";
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"peekAnalogInput") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 
 		std::vector<BYTE> result;
@@ -149,7 +162,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
-	if ( wcsnicmp(subcommand.c_str(),L"in.digital.all",14) == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"peekDigitalInput") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 
 		WORD result;
@@ -160,44 +173,58 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		else {
 			out.result = L"OK";
 
-			char_t buf[32];
-			if ( wcsnicmp(subcommand.c_str()+14,L".bit",4) == 0 ) {
-				DWORD r2 = result;
-				for ( size_t i = 0 ; i < bits ; ++i ) {
-					if ( (r2 & (0UL << i)) != 0 ) {
-						out.values.push_back(L"1");
-					}
-					else {
-						out.values.push_back(L"0");
-					}
+			DWORD r2 = result;
+			for ( size_t i = 0 ; i < bits ; ++i ) {
+				if ( (r2 & (0UL << i)) != 0 ) {
+					out.values.push_back(L"1");
 				}
-			}
-			else {
-				swprintf(buf,L"%u",result);
-				out.values.push_back(buf);
+				else {
+					out.values.push_back(L"0");
+				}
 			}
 		}
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"in.digital.continuous") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"beginDigitalInput") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 		out.result = L"OK";
-		pGainer->ExecuteContinuousDigital();
+		DWORD period = 0;
+		if ( in.args.size() >= 3 ) {
+			period = wcstoul(in.args[2].c_str(),NULL,10);
+		}
+		pGainer->ExecuteContinuousDigital(period);
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"in.analog.continuous") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"beginAnalogInput") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 		out.result = L"OK";
-		pGainer->ExecuteContinuousAnalog();
+		DWORD period = 0;
+		if ( in.args.size() >= 3 ) {
+			period = wcstoul(in.args[2].c_str(),NULL,10);
+		}
+		pGainer->ExecuteContinuousAnalog(period);
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"in.continuous.exit") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"endAnalogInput") == 0 ||
+		wcsicmp(subcommand.c_str(),L"endDigitalInput") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 		out.result = L"OK";
 		pGainer->ExecuteExitContinuous();
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"turnOnLED") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+		out.result = pGainer->SetLED(1) ? L"OK" : L"NG";
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"turnOffLED") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+		out.result = pGainer->SetLED(0) ? L"OK" : L"NG";
 		return;
 	}
 
@@ -206,44 +233,109 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"set.config") == 0 ) {
+	if ( wcsnicmp(subcommand.c_str(),L"config",6) == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 		out.result = pGainer->SetConfiguration(_wtoi(in.args[2].c_str())) ? L"OK" : L"NG";
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"set.pga.dgnd") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"ampGainDGND") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 		out.result = pGainer->SetPGA(wcstod(in.args[2].c_str(),NULL),0) ? L"OK" : L"NG";
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"set.pga.agnd") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"ampGainAGND") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 		out.result = pGainer->SetPGA(wcstod(in.args[2].c_str(),NULL),1) ? L"OK" : L"NG";
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"out.led") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"setHigh") == 0 || wcsicmp(subcommand.c_str(),L"setLow") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
-		out.result = pGainer->SetLED(_wtoi(in.args[2].c_str()) != 0) ? L"OK" : L"NG";
+		
+		int port = _wtoi(in.args[2].c_str());
+
+		out.result = pGainer->SetDigitalSingle(port,wcsicmp(subcommand.c_str(),L"setLow") != 0) ? L"OK" : L"NG";
 		return;
 	}
 
-	if ( wcsnicmp(subcommand.c_str(),L"out.digital.all",15) == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"analogOutput") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+
+		size_t n = in.args.size();
+		std::vector<WORD> data;
+
+		for ( size_t i = 2 ; i < n ; ++i ) {
+			int d = _wtol(in.args[i].c_str());
+			data.push_back(static_cast<WORD>(d));
+		}
+		out.result = pGainer->SetAnalogAll(data) ? L"OK" : L"NG";
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"digitalOutput") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 
 		DWORD outd = 0;
-		if ( wcsnicmp(subcommand.c_str()+15,L".bit",4) == 0 ) {
-			size_t n = in.args.size();
-			for ( size_t i = 2 ; i < n ; ++i ) {
+		size_t n = in.args.size();
+
+		for ( size_t i = 2 ; i < n ; ++i ) {
+			if ( _wtol(in.args[i].c_str()) ) {
 				outd |= 1UL << (i-2);
 			}
 		}
-		else {
-			outd = _wtoi(in.args[2].c_str());
-		}
 		out.result = pGainer->SetDigitalAll(outd) ? L"OK" : L"NG";
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"servoOutput") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+
+		size_t n = in.args.size();
+		std::vector<WORD> data;
+
+		for ( size_t i = 2 ; i < n ; ++i ) {
+			int d = _wtol(in.args[i].c_str());
+			data.push_back(static_cast<WORD>(d));
+		}
+		out.result = pGainer->SetServoAll(data) ? L"OK" : L"NG";
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"scanMatrix") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+
+		BYTE data[8][8];
+		ZeroMemory(data,sizeof(data));
+
+		size_t n = in.args.size() - 2;
+		if ( n > 8 ) { n = 8; }
+
+		string_t buf;
+		string_t str;
+		int cutAt;
+		size_t count = 0;
+		for ( size_t i = 0 ; i < n ; ++i ) {
+			str = in.args[i+2];
+			count = 0;
+
+			while ( (cutAt = str.find_first_of(L',')) != str.npos ) {
+				if ( cutAt > 0 ) {
+					buf = str.substr(0, cutAt);
+				}
+				str = str.substr(cutAt + 1);
+				
+				data[i][count] = _wtol(buf.c_str());
+				++count;
+				if ( count >= 7 ) { break; } //‚Æ‚è‚ ‚¦‚¸7—v‘f–Ú‚Ü‚Å
+			}
+			if ( str.length() > 0 ) {
+				data[i][count] = _wtol(str.c_str());
+			}
+		}
+
+		out.result = pGainer->ScanMatrix(data) ? L"OK" : L"NG";
 		return;
 	}
 
@@ -252,7 +344,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"out.analog.single") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"analogOutputSingle") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 
 		int port = _wtoi(in.args[2].c_str());
@@ -262,7 +354,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"out.digital.single") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"digitalOutputSingle") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 		
 		int port = _wtoi(in.args[2].c_str());
@@ -272,13 +364,43 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
-	if ( wcsicmp(subcommand.c_str(),L"out.servo.single") == 0 ) {
+	if ( wcsicmp(subcommand.c_str(),L"servoOutputSingle") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 
 		int port = _wtoi(in.args[2].c_str());
 		int data = _wtoi(in.args[3].c_str());
 
 		out.result = pGainer->SetServoSingle(port,data) ? L"OK" : L"NG";
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"scanLine") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+
+		int raw = _wtoi(in.args[2].c_str());
+		BYTE data[8];
+		ZeroMemory(data,sizeof(data));
+
+		int cutAt;
+		string_t str = in.args[3];
+		string_t buf;
+		size_t count = 0;
+
+		while ( (cutAt = str.find_first_of(L',')) != str.npos ) {
+			if ( cutAt > 0 ) {
+				buf = str.substr(0, cutAt);
+			}
+			str = str.substr(cutAt + 1);
+			
+			data[count] = _wtol(buf.c_str());
+			++count;
+			if ( count >= 7 ) { break; } //‚Æ‚è‚ ‚¦‚¸7—v‘f–Ú‚Ü‚Å
+		}
+		if ( str.length() > 0 ) {
+			data[count] = _wtol(str.c_str());
+		}
+
+		out.result = pGainer->ScanLine(raw,data) ? L"OK" : L"NG";
 		return;
 	}
 

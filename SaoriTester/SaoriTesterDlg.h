@@ -29,6 +29,7 @@ public:
 // ダイアログ データ
 	//{{AFX_DATA(CSaoriTesterDlg)
 	enum { IDD = IDD_SAORITESTER_DIALOG };
+	CEdit	m_sstp;
 	CString	m_a1;
 	CString	m_a2;
 	CString	m_a3;
@@ -67,6 +68,7 @@ protected:
 	afx_msg void OnReload();
 	afx_msg void OnDestroy();
 	afx_msg void OnHistory();
+	afx_msg BOOL OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:

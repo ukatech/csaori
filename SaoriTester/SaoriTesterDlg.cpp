@@ -43,6 +43,7 @@ void CSaoriTesterDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CSaoriTesterDlg)
+	DDX_Control(pDX, IDC_SSTP, m_sstp);
 	DDX_Text(pDX, IDC_ARG1, m_a1);
 	DDX_Text(pDX, IDC_ARG2, m_a2);
 	DDX_Text(pDX, IDC_ARG3, m_a3);
@@ -65,6 +66,7 @@ BEGIN_MESSAGE_MAP(CSaoriTesterDlg, CDialog)
 	ON_BN_CLICKED(IDC_RELOAD, OnReload)
 	ON_WM_DESTROY()
 	ON_BN_CLICKED(IDC_HISTORY, OnHistory)
+	ON_WM_COPYDATA()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -319,6 +321,25 @@ bool CSaoriTesterDlg::LoadSAORI(const char *pPath)
 			::GlobalFree(h);
 		}
 
+		CString str = "EXECUTE SAORI/1.0\r\nCharset: Shift_JIS\r\nSender: SAORI_TESTER\r\nSecurityLevel: Local\r\n";
+		str += "Argument0 : hwnd\r\n";
+		str += "Argument1 : ";
+
+		char buf[32];
+		sprintf(buf,"%u",m_hWnd);
+		str += buf;
+
+		str += "\r\n\r\n";
+
+		h = ::GlobalAlloc(GMEM_FIXED,str.GetLength()+1);
+		strcpy(static_cast<char*>(h),static_cast<LPCTSTR>(str));
+
+		l = str.GetLength();
+		h = request(h,&l);
+		if ( h ) {
+			::GlobalFree(h);
+		}
+
 		return true;
 	}
 	return false;
@@ -345,4 +366,15 @@ void CSaoriTesterDlg::OnHistory()
 	if ( id > 0 ) {
 		LoadSAORI(m_fileHistory[id-100]);
 	}
+}
+
+BOOL CSaoriTesterDlg::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct) 
+{
+	if ( pCopyDataStruct->dwData == 9801 ) {
+		CString str(static_cast<char*>(pCopyDataStruct->lpData),pCopyDataStruct->cbData);
+		m_sstp.SetWindowText(str);
+		return TRUE;
+	}
+	
+	return CDialog::OnCopyData(pWnd, pCopyDataStruct);
 }
