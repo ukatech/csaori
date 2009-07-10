@@ -49,3 +49,9 @@
 
 == Version 1.0.0.0 2009/3/21 ==
  * 新規作成 (ponapalt)
+
+----
+= gainer =
+
+== Version 1.0.0.0 2009/7/10 ==
+ * 新規作成 (ponapalt)
