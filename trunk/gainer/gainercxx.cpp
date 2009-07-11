@@ -727,19 +727,19 @@ void Gainer::execute_sstp_digital(void)
 	sstp += "Reference1: ";
 	if ( CONFIG[m_config][DIN] == 4 ) {
 		sprintf(buf,"%d,%d,%d,%d\r\n",
-			m_digitalInputs & 1, m_digitalInputs & 2, m_digitalInputs & 4, m_digitalInputs & 8 );
+			(m_digitalInputs & 1) != 0, (m_digitalInputs & 2) != 0, (m_digitalInputs & 4) != 0, (m_digitalInputs & 8) != 0 );
 	}
 	else if ( CONFIG[m_config][DIN] == 8 ) {
 		sprintf(buf,"%d,%d,%d,%d,%d,%d,%d,%d\r\n",
-			m_digitalInputs & 1, m_digitalInputs & 2, m_digitalInputs & 4, m_digitalInputs & 8,
-			m_digitalInputs & 16, m_digitalInputs & 32, m_digitalInputs & 64, m_digitalInputs & 128 );
+			(m_digitalInputs & 1) != 0, (m_digitalInputs & 2) != 0, (m_digitalInputs & 4) != 0, (m_digitalInputs & 8) != 0,
+			(m_digitalInputs & 16) != 0, (m_digitalInputs & 32) != 0, (m_digitalInputs & 64) != 0, (m_digitalInputs & 128) != 0 );
 	}
 	else /*if ( CONFIG[m_config][DIN] == 16 )*/ {
 		sprintf(buf,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n",
-			m_digitalInputs & 1, m_digitalInputs & 2, m_digitalInputs & 4, m_digitalInputs & 8,
-			m_digitalInputs & 16, m_digitalInputs & 32, m_digitalInputs & 64, m_digitalInputs & 128,
-			m_digitalInputs & 256, m_digitalInputs & 512, m_digitalInputs & 1024, m_digitalInputs & 2048,
-			m_digitalInputs & 4096, m_digitalInputs & 8192, m_digitalInputs & 16384, m_digitalInputs & 32768 );
+			(m_digitalInputs & 1) != 0, (m_digitalInputs & 2) != 0, (m_digitalInputs & 4) != 0, (m_digitalInputs & 8) != 0,
+			(m_digitalInputs & 16) != 0, (m_digitalInputs & 32) != 0, (m_digitalInputs & 64) != 0, (m_digitalInputs & 128) != 0,
+			(m_digitalInputs & 256) != 0, (m_digitalInputs & 512) != 0, (m_digitalInputs & 1024) != 0, (m_digitalInputs & 2048) != 0,
+			(m_digitalInputs & 4096) != 0, (m_digitalInputs & 8192) != 0, (m_digitalInputs & 16384) != 0, (m_digitalInputs & 32768) != 0 );
 	}
 	sstp += buf;
 
