@@ -345,4 +345,5 @@ license.txtを見てください。
 ■更新履歴
 
 ・2009/7/10 Initial Release
+・2009/7/11 OnGainerDigitalInputの値が0/1じゃなかった問題を修正
 
