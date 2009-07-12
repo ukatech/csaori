@@ -41,6 +41,8 @@ public:
 	CString	m_path;
 	CString	m_request;
 	CString	m_response;
+	CString	m_a9;
+	CString	m_a10;
 	//}}AFX_DATA
 
 	// ClassWizard は仮想関数のオーバーライドを生成します。

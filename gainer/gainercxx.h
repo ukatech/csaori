@@ -18,6 +18,7 @@
 class Gainer;
 
 #define GAINER_MAX_INPUTS 8
+#define GAINER_LED_MATRIX 8
 
 class Gainer
 {
