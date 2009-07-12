@@ -31,6 +31,8 @@ CSaoriTesterDlg::CSaoriTesterDlg(CString &f)
 	m_path = _T("");
 	m_request = _T("");
 	m_response = _T("");
+	m_a9 = _T("");
+	m_a10 = _T("");
 	//}}AFX_DATA_INIT
 
 	m_initialStr = f;
@@ -55,6 +57,8 @@ void CSaoriTesterDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_PATH, m_path);
 	DDX_Text(pDX, IDC_REQUEST, m_request);
 	DDX_Text(pDX, IDC_RESPONSE, m_response);
+	DDX_Text(pDX, IDC_ARG9, m_a9);
+	DDX_Text(pDX, IDC_ARG10, m_a10);
 	//}}AFX_DATA_MAP
 }
 
@@ -98,6 +102,8 @@ BOOL CSaoriTesterDlg::OnInitDialog()
 	m_a6 = AfxGetApp()->GetProfileString("Parameters","Argument5");
 	m_a7 = AfxGetApp()->GetProfileString("Parameters","Argument6");
 	m_a8 = AfxGetApp()->GetProfileString("Parameters","Argument7");
+	m_a9 = AfxGetApp()->GetProfileString("Parameters","Argument8");
+	m_a10= AfxGetApp()->GetProfileString("Parameters","Argument9");
 
 	UpdateData(FALSE);
 
@@ -131,6 +137,8 @@ void CSaoriTesterDlg::OnDestroy()
 	AfxGetApp()->WriteProfileString("Parameters","Argument5",m_a6);
 	AfxGetApp()->WriteProfileString("Parameters","Argument6",m_a7);
 	AfxGetApp()->WriteProfileString("Parameters","Argument7",m_a8);
+	AfxGetApp()->WriteProfileString("Parameters","Argument8",m_a9);
+	AfxGetApp()->WriteProfileString("Parameters","Argument9",m_a10);
 }
 
 void CSaoriTesterDlg::PostNcDestroy() 
@@ -192,6 +200,12 @@ void CSaoriTesterDlg::OnExecute()
 		}
 		if ( m_a8.GetLength() ) {
 			m_request += "Argument7: " + m_a8 + "\r\n";
+		}
+		if ( m_a9.GetLength() ) {
+			m_request += "Argument8: " + m_a9 + "\r\n";
+		}
+		if ( m_a10.GetLength() ) {
+			m_request += "Argument9: " + m_a10 + "\r\n";
 		}
 		m_request += "\r\n";
 

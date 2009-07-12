@@ -90,6 +90,8 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 	//Gainer初期化
 	Gainer *pGainer = NULL;
+	int p_gainer_pos = 0;
+
 	if ( port == 0 ) {
 		if ( g_gainer.size() == 0 ) {
 			std::vector<int> port_array;
@@ -105,6 +107,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 		else {
 			pGainer = g_gainer[0];
+			p_gainer_pos = 0;
 		}
 	}
 
@@ -113,6 +116,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		for ( size_t i = 0 ; i < n ; ++i ) {
 			if ( g_gainer[i]->GetCOMPort() == port ) {
 				pGainer = g_gainer[i];
+				p_gainer_pos = i;
 			}
 		}
 	}
@@ -121,12 +125,13 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		pGainer = new Gainer;
 		if ( ! pGainer->Init(port) ) {
 			out.result_code = SAORIRESULT_NO_CONTENT;
-			out.result = L"Gainer not found.";
+			out.result = L"NG:Gainer not found.";
 			return;
 		}
 		pGainer->SetHWND(g_hwnd);
 
 		g_gainer.push_back(pGainer);
+		p_gainer_pos = g_gainer.size() - 1;
 	}
 
 	//以降パラメータ2の場合のコマンド群
@@ -139,6 +144,14 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	if ( wcsicmp(subcommand.c_str(),L"reboot") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 		pGainer->Reboot();
+		out.result = L"OK";
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"disconnect") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+		delete pGainer;
+		g_gainer.erase(g_gainer.begin() + p_gainer_pos);
 		out.result = L"OK";
 		return;
 	}
@@ -306,11 +319,11 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	if ( wcsicmp(subcommand.c_str(),L"scanMatrix") == 0 ) {
 		out.result_code = SAORIRESULT_OK;
 
-		BYTE data[8][8];
+		BYTE data[GAINER_LED_MATRIX][GAINER_LED_MATRIX];
 		ZeroMemory(data,sizeof(data));
 
 		size_t n = in.args.size() - 2;
-		if ( n > 8 ) { n = 8; }
+		if ( n > GAINER_LED_MATRIX ) { n = GAINER_LED_MATRIX; }
 
 		string_t buf;
 		string_t str;
@@ -328,10 +341,80 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 				
 				data[i][count] = _wtol(buf.c_str());
 				++count;
-				if ( count >= 7 ) { break; } //とりあえず7要素目まで
+				if ( count >= GAINER_LED_MATRIX-1 ) { break; } //とりあえず7要素目まで
 			}
 			if ( str.length() > 0 ) {
 				data[i][count] = _wtol(str.c_str());
+			}
+		}
+
+		out.result = pGainer->ScanMatrix(data) ? L"OK" : L"NG";
+		return;
+	}
+
+	if ( wcsicmp(subcommand.c_str(),L"scan7segLED") == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+
+		char_t proctext[GAINER_LED_MATRIX];
+		ZeroMemory(proctext,sizeof(proctext));
+
+		bool procdot[GAINER_LED_MATRIX];
+		ZeroMemory(procdot,sizeof(procdot));
+
+		int i;
+		int count = GAINER_LED_MATRIX;
+		const string_t &s = in.args[2];
+
+		//配列入れ替えとドット抽出
+		for ( i = s.size() - 1; i >= 0 ; --i ) {
+			if ( s[i] >= L'0' && s[i] <= L'9' ) {
+				proctext[GAINER_LED_MATRIX-count] = s[i];
+				--count;
+			}
+			else if ( s[i] == L'.' ) {
+				procdot[GAINER_LED_MATRIX-count] = true;
+			}
+			if ( count <= 0 ) { break; }
+		}
+		//最後の0を消す
+		for ( i = GAINER_LED_MATRIX-1 ; i >= 1 ; --i ) {
+			if ( proctext[i] == 0 || proctext[i] == L'0' ) {
+				proctext[i] = 0;
+			}
+			else {
+				break;
+			}
+		}
+
+		//7セグLED配列
+		static const bool led_7seg_data[10][7] = {
+			{1,1,1,1,1,1,0}, //0
+			{0,1,1,0,0,0,0}, //1
+			{1,1,0,1,1,0,1}, //2
+			{1,1,1,1,0,0,1}, //3
+			{0,1,1,0,0,1,1}, //4
+			{1,0,1,1,0,1,1}, //5
+			{1,0,1,1,1,1,1}, //6
+			{1,1,1,0,0,0,0}, //7
+			{1,1,1,1,1,1,1}, //8
+			{1,1,1,1,0,1,1}  //9
+		};
+
+		BYTE data[GAINER_LED_MATRIX][GAINER_LED_MATRIX];
+		ZeroMemory(data,sizeof(data));
+
+		//出力
+		for ( i = 0 ; i < GAINER_LED_MATRIX ; ++i ) {
+			if ( proctext[i] == 0 ) { break; }
+
+			const bool *segdata = led_7seg_data[proctext[i]-L'0'];
+			for ( int j = 0 ; j < 7 ; ++j ) {
+				if ( segdata[j] ) {
+					data[j][GAINER_LED_MATRIX-i-1] = 0xF;
+				}
+			}
+			if ( procdot[i] ) {
+				data[7][GAINER_LED_MATRIX-i-1] = 0xF;
 			}
 		}
 
@@ -378,7 +461,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		out.result_code = SAORIRESULT_OK;
 
 		int raw = _wtoi(in.args[2].c_str());
-		BYTE data[8];
+		BYTE data[GAINER_LED_MATRIX];
 		ZeroMemory(data,sizeof(data));
 
 		int cutAt;
@@ -394,7 +477,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			
 			data[count] = _wtol(buf.c_str());
 			++count;
-			if ( count >= 7 ) { break; } //とりあえず7要素目まで
+			if ( count >= GAINER_LED_MATRIX-1 ) { break; } //とりあえず7要素目まで
 		}
 		if ( str.length() > 0 ) {
 			data[count] = _wtol(str.c_str());
