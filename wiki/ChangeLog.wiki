@@ -58,3 +58,6 @@
 
 == Version 1.0.1.0 2009/7/11 ==
  * OnGainerDigitalInput のRef1が0/1のはずがそれ以外の値も出していた問題を修正
+
+== Version 1.1.0.0 2009/7/12 ==
+ * disconnect と scan7segLED を追加
