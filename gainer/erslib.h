@@ -71,6 +71,8 @@ int ers_initdone[ERSLIBMAXPORT]={
 #define ERS_X_Y			0x10000000
 #define ERS_X_N			0x20000000
 
+#define ERS_NO_FLOW_CONTROL (ERS_CTS_N|ERS_DSR_N|ERS_DTR_N|ERS_RTS_N|ERS_X_N)
+
 //ハンドル値
 HANDLE ers_hcom[ERSLIBMAXPORT];
 DWORD ers_hevt[ERSLIBMAXPORT];
@@ -107,13 +109,15 @@ int ERS_XoffXon(int n, int xoff, int xon)
 int ERS_Config(int n, unsigned int data)
 {
 	DCB dcb;
+	dcb.DCBlength = sizeof(dcb);
+
 	int d;
-	int baud[16]={0,CBR_110,CBR_300,CBR_600,CBR_1200,CBR_2400,CBR_4800,CBR_9600,CBR_14400,CBR_19200,CBR_38400,CBR_56000,CBR_57600,CBR_115200,CBR_128000,CBR_256000};
-	int stopbit[4]={0,ONESTOPBIT,ONE5STOPBITS,TWOSTOPBITS};
-	int parity[6]={0,NOPARITY,ODDPARITY,EVENPARITY,MARKPARITY,SPACEPARITY};
-	int bytesize[6]={0,4,5,6,7,8};
-	int dtr[4]={0,DTR_CONTROL_DISABLE,DTR_CONTROL_ENABLE,DTR_CONTROL_HANDSHAKE};
-	int rts[5]={0,RTS_CONTROL_DISABLE,RTS_CONTROL_ENABLE,RTS_CONTROL_HANDSHAKE,RTS_CONTROL_TOGGLE};
+	static const int baud[16]={0,CBR_110,CBR_300,CBR_600,CBR_1200,CBR_2400,CBR_4800,CBR_9600,CBR_14400,CBR_19200,CBR_38400,CBR_56000,CBR_57600,CBR_115200,CBR_128000,CBR_256000};
+	static const int stopbit[4]={0,ONESTOPBIT,ONE5STOPBITS,TWOSTOPBITS};
+	static const int parity[6]={0,NOPARITY,ODDPARITY,EVENPARITY,MARKPARITY,SPACEPARITY};
+	static const int bytesize[6]={0,4,5,6,7,8};
+	static const int dtr[4]={0,DTR_CONTROL_DISABLE,DTR_CONTROL_ENABLE,DTR_CONTROL_HANDSHAKE};
+	static const int rts[5]={0,RTS_CONTROL_DISABLE,RTS_CONTROL_ENABLE,RTS_CONTROL_HANDSHAKE,RTS_CONTROL_TOGGLE};
 
 	if(ers_check(n)) return 1;
 
@@ -171,35 +175,50 @@ int ERS_Config(int n, unsigned int data)
 
 	if (!SetCommState(ERSHCOMn, &dcb)) return 2;
 
+	SetCommMask(ERSHCOMn,EV_ERR | EV_RXCHAR | EV_BREAK);
+
 	return 0;
 }
 
 // 受信タイムアウト時間の設定(ms単位)	ver.1.3
-int ERS_RecvTimeOut(int n, int rto, int interval)
+int ERS_RecvTimeOut(int n, DWORD rto, DWORD interval)
 {
 	COMMTIMEOUTS ct;
 
 	if(ers_check(n)) return 1;
 	GetCommTimeouts(ERSHCOMn,&ct);
 
-	ct.ReadIntervalTimeout=interval;
-	ct.ReadTotalTimeoutMultiplier=rto/interval;
-	ct.ReadTotalTimeoutConstant=interval;
+	if ( rto == 0 ) {
+		ct.ReadIntervalTimeout=MAXDWORD;
+		ct.ReadTotalTimeoutMultiplier=0;
+		ct.ReadTotalTimeoutConstant=0;
+	}
+	else {
+		ct.ReadIntervalTimeout=interval;
+		ct.ReadTotalTimeoutMultiplier=rto/interval;
+		ct.ReadTotalTimeoutConstant=interval;
+	}
 	
 	if(!SetCommTimeouts(ERSHCOMn,&ct)) return 2;
 	return 0;
 }
 
 // 送信タイムアウト時間の設定(ms単位)	ver.1.3
-int ERS_SendTimeOut(int n, int sto)
+int ERS_SendTimeOut(int n, DWORD sto)
 {
 	COMMTIMEOUTS ct;
 	
 	if(ers_check(n)) return 1;
 	GetCommTimeouts(ERSHCOMn,&ct);
 
-	ct.WriteTotalTimeoutMultiplier=1;
-	ct.WriteTotalTimeoutConstant=sto;
+	if ( sto == 0 ) {
+		ct.WriteTotalTimeoutMultiplier=0;
+		ct.WriteTotalTimeoutConstant=0;
+	}
+	else {
+		ct.WriteTotalTimeoutMultiplier=1;
+		ct.WriteTotalTimeoutConstant=sto;
+	}
 	
 	if(!SetCommTimeouts(ERSHCOMn,&ct)) return 2;
 	return 0;
@@ -352,6 +371,28 @@ int ERS_Puts(int n, char *s)
 	if(!m)return cnt;
 	cnt++;
 	return cnt;
+}
+
+int ERS_WaitSend(int n)
+{
+	if (ers_check(n)) return 0;
+	FlushFileBuffers(ERSHCOMn);
+	return true;
+}
+
+DWORD ERS_WaitEvent(int n)
+{
+	if (ers_check(n)) return 0;
+	DWORD w;
+	WaitCommEvent(ERSHCOMn,&w,NULL);
+	return w;
+}
+
+int ERS_WaitRecv(int n)
+{
+	DWORD mask;
+	WaitCommEvent(ERSHCOMn,&mask,NULL);
+	return true;
 }
 
 //COMポートへのprintf() 1.7
