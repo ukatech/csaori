@@ -16,9 +16,12 @@
 
 const int Gainer::MATRIX_LED_CONFIGURATION = 7;
 
-#define RECV_TIMEOUT_COMM     50000
+static std::vector<int> g_gainer_open_ports;
+
+#define RECV_TIMEOUT_COMM     5000
 #define RECV_TIMEOUT_INTERVAL 100
-#define RECV_BUFFER	          1000
+#define SEND_TIMEOUT_COMM     1000
+#define RECV_BUFFER	          64
 
 /*****************************************************************************
 	初期化
@@ -40,6 +43,8 @@ bool Gainer::Init(int portNum, int mode)
 	m_digital_period = 0;
 	m_digital_last = 0;
 
+	ZeroMemory(m_LEDMatrixOutputs,sizeof(m_LEDMatrixOutputs));
+
 	m_receive_buffer.assign(RECV_BUFFER,0);
 	
 	InitializeCriticalSection(&m_receive_queue_lock);
@@ -51,13 +56,14 @@ bool Gainer::Init(int portNum, int mode)
 		return false;
 	}
 	// setting of COM port
-	if ( ERS_Config(m_port, ERS_38400 | ERS_NO | ERS_1 | ERS_8) != 0 ) {
+	if ( ERS_Config(m_port, ERS_38400|ERS_NO|ERS_1|ERS_8|ERS_NO_FLOW_CONTROL) != 0 ) {
 		ERS_Close(m_port);
 		return false;
 	}
 
 	// setting receiving timeout
 	ERS_RecvTimeOut(m_port, RECV_TIMEOUT_COMM, RECV_TIMEOUT_INTERVAL);
+	ERS_SendTimeOut(m_port, SEND_TIMEOUT_COMM);
 
 	// software reset
 	Reboot(true);
@@ -65,7 +71,7 @@ bool Gainer::Init(int portNum, int mode)
 	wait_recv();
 
 	// ver.
-	m_version_string = command("?");
+	m_version_string = command_send("?*");
 	m_version_string.erase(0,1);
 	m_version_string.erase(m_version_string.size()-1,1);
 
@@ -75,6 +81,7 @@ bool Gainer::Init(int portNum, int mode)
 	}
 
 	m_inited = true;
+	g_gainer_open_ports.push_back(m_port);
 	return true;
 }
 
@@ -86,6 +93,9 @@ void Gainer::Exit()
 	if ( ! m_inited ) {
 		return;
 	}
+
+	g_gainer_open_ports.erase(
+		std::remove(g_gainer_open_ports.begin(), g_gainer_open_ports.end(), m_port), g_gainer_open_ports.end());
 
 	// software reset
 	m_endFlag = true;
@@ -118,10 +128,16 @@ std::string Gainer::Version(void)
 void Gainer::Search(std::vector<int> &v)
 {
 	for ( int i = 1 ; i <= 32 ; ++i ) {
+		std::vector<int>::iterator it = std::find(g_gainer_open_ports.begin(),g_gainer_open_ports.end(),i);
+		if ( it != g_gainer_open_ports.end() ) {
+			v.push_back(i);
+			continue;
+		}
+
 		if ( ERS_Open(i, RECV_BUFFER, RECV_BUFFER) != 0 ) {
 			continue;
 		}
-		if ( ERS_Config(i, ERS_38400 | ERS_NO | ERS_1 | ERS_8) != 0 ) {
+		if ( ERS_Config(i, ERS_38400|ERS_NO|ERS_1|ERS_8|ERS_NO_FLOW_CONTROL) != 0 ) {
 			ERS_Close(i);
 			continue;
 		}
@@ -163,8 +179,8 @@ bool Gainer::SetConfiguration(int mode)
 	m_config = mode;
 
 	char buf[64];
-	sprintf(buf,"KONFIGURATION_%d",mode);
-	command(buf);
+	sprintf(buf,"KONFIGURATION_%d*",mode);
+	command_send(buf);
 
 	::Sleep(100);
 	return true;
@@ -176,10 +192,10 @@ bool Gainer::SetConfiguration(int mode)
 bool Gainer::SetLED(bool isOn)
 {
 	if ( isOn ) {
-		return command("h").size() != 0;
+		return command_send("h*").size() != 0;
 	}
 	else {
-		return command("l").size() != 0;
+		return command_send("l*").size() != 0;
 	}
 }
 
@@ -188,7 +204,7 @@ bool Gainer::SetLED(bool isOn)
 *****************************************************************************/
 bool Gainer::GetDigitalAll(WORD &result,size_t &bits)
 {
-	std::string r = command("R");
+	std::string r = command_send("R*");
 	result = m_digitalInputs;
 	bits = CONFIG[m_config][DIN];
 	return r.size() != 0;
@@ -199,7 +215,7 @@ bool Gainer::GetDigitalAll(WORD &result,size_t &bits)
 *****************************************************************************/
 bool Gainer::GetAnalogAll(std::vector<BYTE> &result)
 {
-	std::string r = command("I");
+	std::string r = command_send("I*");
 	size_t n = CONFIG[m_config][AIN];
 	for ( size_t i = 0 ; i < n ; ++i ) {
 		result.push_back(m_analogInputs[i]);
@@ -208,23 +224,23 @@ bool Gainer::GetAnalogAll(std::vector<BYTE> &result)
 }
 
 /*****************************************************************************
-	Continuous系(うまく動かない?)
+	Continuous系
 *****************************************************************************/
 void Gainer::ExecuteContinuousDigital(DWORD period)
 {
 	m_digital_period = period;
-	command("r",true);
+	command_send("r*",true);
 }
 
 void Gainer::ExecuteContinuousAnalog(DWORD period)
 {
 	m_analog_period = period;
-	command("i",true);
+	command_send("i*",true);
 }
 
 void Gainer::ExecuteExitContinuous()
 {
-	command("E");
+	command_send("E*");
 }
 
 /*****************************************************************************
@@ -237,8 +253,8 @@ bool Gainer::SetDigitalAll(int value)
 	}
 
 	char c[32];
-	sprintf(c,"D%04X",value);
-	return command(c).size() != 0;
+	sprintf(c,"D%04X*",value);
+	return command_send(c).size() != 0;
 }
 
 /*****************************************************************************
@@ -269,8 +285,9 @@ bool Gainer::SetAnalogAll(const std::vector<WORD> &data)
 		c += "00";
 		--diff;
 	}
+	c += "*";
 
-	return command(c).size() != 0;
+	return command_send(c).size() != 0;
 }
 
 /*****************************************************************************
@@ -299,8 +316,9 @@ bool Gainer::SetServoAll(const std::vector<WORD> &data)
 		c += "00";
 		--diff;
 	}
+	c += "*";
 
-	return command(c).size() != 0;
+	return command_send(c).size() != 0;
 }
 
 /*****************************************************************************
@@ -310,12 +328,12 @@ bool Gainer::SetDigitalSingle(int port,bool high)
 {
 	char buf[32];
 	if ( high ) {
-		sprintf(buf,"H%d",port);
+		sprintf(buf,"H%d*",port);
 	}
 	else {
-		sprintf(buf,"L%d",port);
+		sprintf(buf,"L%d*",port);
 	}
-	return command(buf).size() != 0;
+	return command_send(buf).size() != 0;
 }
 
 /*****************************************************************************
@@ -324,8 +342,8 @@ bool Gainer::SetDigitalSingle(int port,bool high)
 bool Gainer::SetAnalogSingle(int port,BYTE value)
 {
 	char buf[64];
-	sprintf(buf,"a%d%02X",port,value);
-	return command(buf).size() != 0;
+	sprintf(buf,"a%d%02X*",port,value);
+	return command_send(buf).size() != 0;
 }
 
 /*****************************************************************************
@@ -337,8 +355,8 @@ bool Gainer::SetServoSingle(int port,BYTE value)
 	if ( m_config != 8 ) { return false; }
 
 	char buf[64];
-	sprintf(buf,"p%d%02X",port,value);
-	return command(buf).size() != 0;
+	sprintf(buf,"p%d%02X*",port,value);
+	return command_send(buf).size() != 0;
 }
 
 /*****************************************************************************
@@ -399,12 +417,12 @@ bool Gainer::SetPGA(double gain,bool isAGNDRef)
 	}
 
 	if ( isAGNDRef ) {
-		sprintf(buf,"G%01X1",gi);
+		sprintf(buf,"G%01X1*",gi);
 	}
 	else {
-		sprintf(buf,"G%01X0",gi);
+		sprintf(buf,"G%01X0*",gi);
 	}
-	return command(buf).size() != 0;
+	return command_send(buf).size() != 0;
 }
 
 /*****************************************************************************
@@ -412,7 +430,7 @@ bool Gainer::SetPGA(double gain,bool isAGNDRef)
 *****************************************************************************/
 void Gainer::Reboot(bool nowait)
 {
-	command("Q",nowait);
+	command_send("Q*",nowait);
 	if ( ! nowait ) {
 		Sleep(100);
 	}
@@ -421,10 +439,25 @@ void Gainer::Reboot(bool nowait)
 /*****************************************************************************
 	LEDアレイ用
 *****************************************************************************/
-bool Gainer::ScanLine(size_t row,BYTE data[8],bool isNoWait)
+static bool ScanLineCompare(BYTE *d1,BYTE *d2)
+{
+	for ( size_t i = 0 ; i < GAINER_LED_MATRIX ; ++i ) {
+		if ( d1[i] != d2[i] ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool Gainer::ScanLine(size_t row,BYTE data[GAINER_LED_MATRIX])
 {
 	if ( m_config != 7 ) { return false; }
-	if ( row > 7 ) { return false; }
+	if ( row > GAINER_LED_MATRIX-1 ) { return false; }
+
+	//最適化：前と同じなら実行しない
+	if ( ScanLineCompare(data,m_LEDMatrixOutputs[row]) ) {
+		return true;
+	}
 
 	std::string c = "a";
 	size_t i;
@@ -433,43 +466,36 @@ bool Gainer::ScanLine(size_t row,BYTE data[8],bool isNoWait)
 	sprintf(buf,"%u",row);
 	c += buf;
 
-	for ( i = 0 ; i < 8 ; ++i ) {
+	for ( i = 0 ; i < GAINER_LED_MATRIX ; ++i ) {
 		if ( data[i] > 15 ) {
 			data[i] = 15;
 		}
 		sprintf(buf,"%01X",data[i]);
 		c += buf;
 	}
+	c += "*";
 
-	return command(c,isNoWait).size() != 0;
+	command_send(c,true);
+
+	memcpy(m_LEDMatrixOutputs[row],data,sizeof(m_LEDMatrixOutputs[row]));
+
+	return true;
 }
 
-bool Gainer::ScanMatrix(BYTE data[8][8])
+bool Gainer::ScanMatrix(BYTE data[GAINER_LED_MATRIX][GAINER_LED_MATRIX])
 {
 	if ( m_config != 7 ) { return false; }
 
-	size_t i;
-	for ( i = 0 ; i < 8 ; ++i ) {
-		ScanLine(i,data[i],true);
+	for ( size_t row = 0 ; row < GAINER_LED_MATRIX ; ++row ) {
+		ScanLine(row,data[row]);
 	}
 
-	bool isSuccess = true;
-	for ( i = 0 ; i < 8 ; ++i ) {
-		if ( wait_recv().size() == 0 ) {
-			isSuccess = false;
-		}
-	}
-	return isSuccess;
+	return true;
 }
 
 /*****************************************************************************
 	コマンド送信
 *****************************************************************************/
-std::string Gainer::command(const std::string &cmd,bool nowait)
-{
-	return command_send(cmd + "*",nowait);
-}
-
 std::string Gainer::command_send(const std::string &cmd,bool nowait)
 {
 #ifdef _DEBUG
@@ -477,8 +503,7 @@ std::string Gainer::command_send(const std::string &cmd,bool nowait)
 #endif
 
 	ERS_Send(m_port, const_cast<char *>(cmd.c_str()),cmd.length());
-
-	//ERS_WaitSend(m_port);
+	ERS_WaitSend(m_port);
 
 	if ( nowait ) {
 		return _T("");
@@ -503,7 +528,7 @@ void Gainer::command_recv(void)
 
 		int r = ERS_CheckRecv(m_port);
 		if ( r == 0 ) {
-			r = 1; //1バイト読んで待機
+			r = 2; //2バイト読んで待機
 		}
 
 		if ( m_receive_buffer.size() < r+1 ) {
@@ -512,6 +537,10 @@ void Gainer::command_recv(void)
 
 		i += ERS_Recv(m_port,&m_receive_buffer[i],r);
 		m_receive_buffer[i] = 0;
+
+		if ( i == 0 ) {
+			::Sleep(0);
+		}
 
 #ifdef _DEBUG
 		std::cout << "*";
@@ -577,7 +606,7 @@ std::string Gainer::wait_recv(void)
 /*****************************************************************************
 	受信結果処理
 *****************************************************************************/
-void Gainer::processEvent(std::string &event)
+void Gainer::processEvent(const std::string &event)
 {
 	if ( event.length() == 0 ) {
 		return;
@@ -655,10 +684,12 @@ void Gainer::processEvent(std::string &event)
 	char c = event[0];
 
 	if ( c != 'r' && c != 'i' && c != 'N' && c != 'F' ) {
-		EnterCriticalSection(&m_receive_queue_lock);
-		m_receive_queue.push(event);
-		ReleaseSemaphore(m_receive_queue_semaphore,1,NULL);
-		LeaveCriticalSection(&m_receive_queue_lock);
+		if ( ! (m_config == 7 && c == 'a') ) {
+			EnterCriticalSection(&m_receive_queue_lock);
+			m_receive_queue.push(event);
+			ReleaseSemaphore(m_receive_queue_semaphore,1,NULL);
+			LeaveCriticalSection(&m_receive_queue_lock);
+		}
 	}
 }
 
@@ -668,8 +699,16 @@ void Gainer::processEvent(std::string &event)
 unsigned __stdcall Gainer::receiver(void *arg)
 {
 	Gainer *self = reinterpret_cast<Gainer *>(arg);
-	while (!self->m_endFlag) {
-		self->command_recv();
+	return self->receive();
+}
+
+unsigned Gainer::receive(void)
+{
+	while ( ! m_endFlag ) {
+		//DWORD wr = ERS_WaitEvent(m_port);
+		//if ( wr & EV_RXCHAR ) {
+		command_recv();
+		//}
 	}
 	_endthreadex(0);
 	return NULL;

@@ -66,21 +66,20 @@ public:
 	
 	void SetHWND(HWND h) { m_hwnd_sstp = h; }
 
-	bool ScanLine(size_t row,BYTE data[8],bool isNoWait = false);
-	bool ScanMatrix(BYTE data[8][8]);
+	bool ScanLine(size_t row,BYTE data[GAINER_LED_MATRIX]);
+	bool ScanMatrix(BYTE data[GAINER_LED_MATRIX][GAINER_LED_MATRIX]);
 
 private:
 	//--------------------ä÷êî--------------------
-
-	std::string command(const std::string &cmd,bool nowait = false);
 	std::string command_send(const std::string &cmd,bool nowait = false);
 	
-	void processEvent(std::string &event);
+	void processEvent(const std::string &event);
 	
 	void command_recv(void);
 	std::string wait_recv(void);
 
 	static unsigned __stdcall receiver(void *arg);
+	unsigned receive(void);
 
 	void execute_sstp_button(bool isPressed);
 	void execute_sstp_digital(void);
@@ -92,6 +91,7 @@ private:
 	bool  m_led;
 	BYTE  m_analogInputs[GAINER_MAX_INPUTS];
 	DWORD m_digitalInputs;
+	BYTE  m_LEDMatrixOutputs[GAINER_LED_MATRIX][GAINER_LED_MATRIX];
 	
 	int m_config;
 	

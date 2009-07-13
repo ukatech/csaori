@@ -286,12 +286,12 @@ bool CSaoriTesterDlg::LoadSAORI(const char *pPath)
 		}
 
 		unload = (SPM_unload)::GetProcAddress(m_hModule,"unload");
-		if ( ! load ) {
+		if ( ! unload ) {
 			unload = (SPM_unload)::GetProcAddress(m_hModule,"_unload");
 		}
 
 		request = (SPM_request)::GetProcAddress(m_hModule,"request");
-		if ( ! load ) {
+		if ( ! request ) {
 			request = (SPM_request)::GetProcAddress(m_hModule,"_request");
 		}
 
