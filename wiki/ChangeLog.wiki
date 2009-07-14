@@ -61,3 +61,7 @@
 
 == Version 1.1.0.0 2009/7/12 ==
  * disconnect と scan7segLED を追加
+
+== Version 1.1.1.0 2009/7/14 ==
+ * 通信パラメータの誤りを修正
+ * configureが一発しか打てない問題を修正
