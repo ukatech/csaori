@@ -175,7 +175,13 @@ bool Gainer::SetConfiguration(int mode)
 	if (1 > mode || mode > 8) {
 		return false;
 	}
+	if ( mode == m_config ) {
+		return true;
+	}
 
+	if ( m_config ) {
+		Reboot();
+	}
 	m_config = mode;
 
 	char buf[64];
@@ -431,6 +437,7 @@ bool Gainer::SetPGA(double gain,bool isAGNDRef)
 void Gainer::Reboot(bool nowait)
 {
 	command_send("Q*",nowait);
+	m_config = 0;
 	if ( ! nowait ) {
 		Sleep(100);
 	}
