@@ -370,6 +370,20 @@ license.txtを見てください。
 
 ■更新履歴
 
-・2009/7/10 Initial Release
-・2009/7/11 OnGainerDigitalInputの値が0/1じゃなかった問題を修正
+Version 1.0.0.0 2009/7/10
+
+    * 新規作成 (ponapalt) 
+
+Version 1.0.1.0 2009/7/11
+
+    * OnGainerDigitalInput? のRef1が0/1のはずがそれ以外の値も出していた問題を修正 
+
+Version 1.1.0.0 2009/7/12
+
+    * disconnect と scan7segLED を追加 
+
+Version 1.1.1.0 2009/7/14
+
+    * 通信パラメータの誤りを修正
+    * configureが一発しか打てない問題を修正
 
