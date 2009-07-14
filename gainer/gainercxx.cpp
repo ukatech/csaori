@@ -18,10 +18,10 @@ const int Gainer::MATRIX_LED_CONFIGURATION = 7;
 
 static std::vector<int> g_gainer_open_ports;
 
-#define RECV_TIMEOUT_COMM     5000
-#define RECV_TIMEOUT_INTERVAL 100
-#define SEND_TIMEOUT_COMM     1000
-#define RECV_BUFFER	          64
+#define RECV_TIMEOUT_COMM     0
+#define RECV_TIMEOUT_INTERVAL 50
+#define SEND_TIMEOUT_COMM     0
+#define RECV_BUFFER	          1000
 
 /*****************************************************************************
 	èâä˙âª
@@ -141,7 +141,10 @@ void Gainer::Search(std::vector<int> &v)
 			ERS_Close(i);
 			continue;
 		}
+		
 		ERS_RecvTimeOut(i, 100, 100);
+		ERS_SendTimeOut(i, 100);
+
 		if ( ! ERS_Send(i, "?*",2) ) {
 			ERS_Close(i);
 			continue;
@@ -509,7 +512,7 @@ std::string Gainer::command_send(const std::string &cmd,bool nowait)
 	std::cout << "command_send : " << cmd.c_str() << std::endl << std::flush;
 #endif
 
-	ERS_Send(m_port, const_cast<char *>(cmd.c_str()),cmd.length());
+	ERS_Send(m_port, cmd.c_str(),cmd.length());
 	ERS_WaitSend(m_port);
 
 	if ( nowait ) {

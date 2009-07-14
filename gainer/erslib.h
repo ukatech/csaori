@@ -175,7 +175,7 @@ int ERS_Config(int n, unsigned int data)
 
 	if (!SetCommState(ERSHCOMn, &dcb)) return 2;
 
-	SetCommMask(ERSHCOMn,EV_ERR | EV_RXCHAR | EV_BREAK);
+	SetCommMask(ERSHCOMn,EV_BREAK|EV_CTS|EV_DSR|EV_ERR|EV_RING|EV_RLSD|EV_RXCHAR);
 
 	return 0;
 }
@@ -188,15 +188,26 @@ int ERS_RecvTimeOut(int n, DWORD rto, DWORD interval)
 	if(ers_check(n)) return 1;
 	GetCommTimeouts(ERSHCOMn,&ct);
 
-	if ( rto == 0 ) {
+	if ( rto == 0 && interval == 0 ) { //blocking(timeout disabled)
+		ct.ReadIntervalTimeout=0;
+		ct.ReadTotalTimeoutMultiplier=0;
+		ct.ReadTotalTimeoutConstant=0;
+	}
+	else if ( rto == MAXDWORD && interval == 0 ) { //nonblocking
 		ct.ReadIntervalTimeout=MAXDWORD;
 		ct.ReadTotalTimeoutMultiplier=0;
 		ct.ReadTotalTimeoutConstant=0;
 	}
 	else {
 		ct.ReadIntervalTimeout=interval;
-		ct.ReadTotalTimeoutMultiplier=rto/interval;
-		ct.ReadTotalTimeoutConstant=interval;
+		if ( interval ) {
+			ct.ReadTotalTimeoutMultiplier=1;
+			ct.ReadTotalTimeoutConstant=interval;
+		}
+		else {
+			ct.ReadTotalTimeoutMultiplier=0;
+			ct.ReadTotalTimeoutConstant=0;
+		}
 	}
 	
 	if(!SetCommTimeouts(ERSHCOMn,&ct)) return 2;
@@ -335,7 +346,7 @@ int ERS_Gets(int n, char *s, int size)
 }
 
 //データ送信
-int ERS_Send(int n, void *buf, int size)
+int ERS_Send(int n, const char *buf, size_t size)
 {
 	DWORD m;
 	if(ers_check(n)) return 0;
@@ -386,13 +397,6 @@ DWORD ERS_WaitEvent(int n)
 	DWORD w;
 	WaitCommEvent(ERSHCOMn,&w,NULL);
 	return w;
-}
-
-int ERS_WaitRecv(int n)
-{
-	DWORD mask;
-	WaitCommEvent(ERSHCOMn,&mask,NULL);
-	return true;
 }
 
 //COMポートへのprintf() 1.7
