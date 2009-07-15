@@ -15,6 +15,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include "serial.h"
+
 class Gainer;
 
 #define GAINER_MAX_INPUTS 8
@@ -88,6 +90,8 @@ private:
 	void send_sstp(std::string &sstp);
 
 	//--------------------ïœêî--------------------
+	CSerialCOM m_serial;
+
 	bool  m_led;
 	BYTE  m_analogInputs[GAINER_MAX_INPUTS];
 	DWORD m_digitalInputs;

@@ -103,6 +103,10 @@ SOURCE=.\gainer.cpp
 
 SOURCE=.\gainercxx.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\serial.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -122,6 +126,10 @@ SOURCE=.\gainercxx.h
 # Begin Source File
 
 SOURCE=.\resource.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\serial.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
