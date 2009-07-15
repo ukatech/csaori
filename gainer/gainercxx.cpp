@@ -1,5 +1,5 @@
 /*============================================================================
-	Gainer制御クラス (cpp)
+	CGainer制御クラス (cpp)
 	以下のgainercxx (dandelionさん作) をたくさん参考にしました。
 	http://www.atinfinity.info/wiki/index.php?gainercxx
 ============================================================================*/
@@ -13,19 +13,20 @@
 
 #include <mmsystem.h>
 
-const int Gainer::MATRIX_LED_CONFIGURATION = 7;
+const int CGainer::MATRIX_LED_CONFIGURATION = 7;
 
 static std::vector<int> g_gainer_open_ports;
 
-#define RECV_TIMEOUT_COMM     0
-#define RECV_TIMEOUT_INTERVAL 50
+#define RECV_TIMEOUT_COMM     MAXDWORD
+#define RECV_TIMEOUT_INTERVAL 0
 #define SEND_TIMEOUT_COMM     0
-#define RECV_BUFFER	          1000
+#define RECV_BUFFER	          5000
+#define SEND_BUFFER	          100
 
 /*****************************************************************************
 	初期化
 *****************************************************************************/
-bool Gainer::Init(int portNum, int mode)
+bool CGainer::Init(int portNum, int mode)
 {
 	if ( m_inited ) {
 		return true;
@@ -51,7 +52,7 @@ bool Gainer::Init(int portNum, int mode)
 	m_receive_queue_semaphore = ::CreateSemaphore(NULL,0,9999,NULL);
 
 	// COM port open
-	if ( ! m_serial.Open(m_port, RECV_BUFFER, RECV_BUFFER) ) {
+	if ( ! m_serial.Open(m_port, RECV_BUFFER, SEND_BUFFER) ) {
 		return false;
 	}
 	// setting of COM port
@@ -86,7 +87,7 @@ bool Gainer::Init(int portNum, int mode)
 /*****************************************************************************
 	終了
 *****************************************************************************/
-void Gainer::Exit()
+void CGainer::Exit()
 {
 	if ( ! m_inited ) {
 		return;
@@ -115,7 +116,7 @@ void Gainer::Exit()
 /*****************************************************************************
 	バージョン
 *****************************************************************************/
-std::string Gainer::Version(void)
+std::string CGainer::Version(void)
 {
 	return m_version_string;
 }
@@ -123,7 +124,7 @@ std::string Gainer::Version(void)
 /*****************************************************************************
 	探索
 *****************************************************************************/
-void Gainer::Search(std::vector<int> &v)
+void CGainer::Search(std::vector<int> &v)
 {
 	for ( int i = 1 ; i <= 32 ; ++i ) {
 		std::vector<int>::iterator it = std::find(g_gainer_open_ports.begin(),g_gainer_open_ports.end(),i);
@@ -171,7 +172,7 @@ void Gainer::Search(std::vector<int> &v)
 /*****************************************************************************
 	KONFIGURATION_N
 *****************************************************************************/
-bool Gainer::SetConfiguration(int mode)
+bool CGainer::SetConfiguration(int mode)
 {
 	// Configulation Mode check
 	if (1 > mode || mode > 8) {
@@ -197,8 +198,10 @@ bool Gainer::SetConfiguration(int mode)
 /*****************************************************************************
 	LED(h/l)
 *****************************************************************************/
-bool Gainer::SetLED(bool isOn)
+bool CGainer::SetLED(bool isOn)
 {
+	check_config();
+
 	if ( isOn ) {
 		return command_send("h*").size() != 0;
 	}
@@ -210,8 +213,14 @@ bool Gainer::SetLED(bool isOn)
 /*****************************************************************************
 	全デジタル取得
 *****************************************************************************/
-bool Gainer::GetDigitalAll(WORD &result,size_t &bits)
+bool CGainer::GetDigitalAll(WORD &result,size_t &bits)
 {
+	check_config();
+
+	if ( ! CONFIG[m_config][DIN] ) {
+		return false;
+	}
+
 	std::string r = command_send("R*");
 	result = m_digitalInputs;
 	bits = CONFIG[m_config][DIN];
@@ -221,8 +230,14 @@ bool Gainer::GetDigitalAll(WORD &result,size_t &bits)
 /*****************************************************************************
 	全アナログ取得
 *****************************************************************************/
-bool Gainer::GetAnalogAll(std::vector<BYTE> &result)
+bool CGainer::GetAnalogAll(std::vector<BYTE> &result)
 {
+	check_config();
+
+	if ( ! CONFIG[m_config][AIN] ) {
+		return false;
+	}
+
 	std::string r = command_send("I*");
 	size_t n = CONFIG[m_config][AIN];
 	for ( size_t i = 0 ; i < n ; ++i ) {
@@ -234,31 +249,47 @@ bool Gainer::GetAnalogAll(std::vector<BYTE> &result)
 /*****************************************************************************
 	Continuous系
 *****************************************************************************/
-void Gainer::ExecuteContinuousDigital(DWORD period)
+void CGainer::ExecuteContinuousDigital(DWORD period)
 {
+	check_config();
+
+	if ( ! CONFIG[m_config][DIN] ) {
+		return;
+	}
+
 	m_digital_period = period;
 	command_send("r*",true);
 }
 
-void Gainer::ExecuteContinuousAnalog(DWORD period)
+void CGainer::ExecuteContinuousAnalog(DWORD period)
 {
+	check_config();
+
+	if ( ! CONFIG[m_config][AIN] ) {
+		return;
+	}
+
 	m_analog_period = period;
 	command_send("i*",true);
 }
 
-void Gainer::ExecuteExitContinuous()
+void CGainer::ExecuteExitContinuous()
 {
+	check_config();
+
 	command_send("E*");
 }
 
 /*****************************************************************************
 	全デジタル設定
 *****************************************************************************/
-bool Gainer::SetDigitalAll(int value)
+bool CGainer::SetDigitalAll(int value)
 {
 	if ( ! CONFIG[m_config][DOUT] ) {
 		return false;
 	}
+
+	check_config();
 
 	char c[32];
 	sprintf(c,"D%04X*",value);
@@ -268,12 +299,14 @@ bool Gainer::SetDigitalAll(int value)
 /*****************************************************************************
 	全アナログ設定
 *****************************************************************************/
-bool Gainer::SetAnalogAll(const std::vector<WORD> &data)
+bool CGainer::SetAnalogAll(const std::vector<WORD> &data)
 {
 	int limit = CONFIG[m_config][AOUT];
 	if ( ! limit ) {
 		return false;
 	}
+
+	check_config();
 
 	std::string c("A");
 	char buf[32];
@@ -301,8 +334,10 @@ bool Gainer::SetAnalogAll(const std::vector<WORD> &data)
 /*****************************************************************************
 	全サーボ設定
 *****************************************************************************/
-bool Gainer::SetServoAll(const std::vector<WORD> &data)
+bool CGainer::SetServoAll(const std::vector<WORD> &data)
 {
+	check_config();
+
 	int limit = 8;
 	if ( m_config != 8 ) { return false; }
 
@@ -332,8 +367,14 @@ bool Gainer::SetServoAll(const std::vector<WORD> &data)
 /*****************************************************************************
 	単独デジタル設定
 *****************************************************************************/
-bool Gainer::SetDigitalSingle(int port,bool high)
+bool CGainer::SetDigitalSingle(int port,bool high)
 {
+	if ( ! CONFIG[m_config][DOUT] ) {
+		return false;
+	}
+
+	check_config();
+
 	char buf[32];
 	if ( high ) {
 		sprintf(buf,"H%d*",port);
@@ -347,8 +388,14 @@ bool Gainer::SetDigitalSingle(int port,bool high)
 /*****************************************************************************
 	単独アナログ設定
 *****************************************************************************/
-bool Gainer::SetAnalogSingle(int port,BYTE value)
+bool CGainer::SetAnalogSingle(int port,BYTE value)
 {
+	if ( ! CONFIG[m_config][AOUT] ) {
+		return false;
+	}
+
+	check_config();
+
 	char buf[64];
 	sprintf(buf,"a%d%02X*",port,value);
 	return command_send(buf).size() != 0;
@@ -357,8 +404,10 @@ bool Gainer::SetAnalogSingle(int port,BYTE value)
 /*****************************************************************************
 	単独サーボ設定
 *****************************************************************************/
-bool Gainer::SetServoSingle(int port,BYTE value)
+bool CGainer::SetServoSingle(int port,BYTE value)
 {
+	check_config();
+
 	int limit = 8;
 	if ( m_config != 8 ) { return false; }
 
@@ -370,8 +419,10 @@ bool Gainer::SetServoSingle(int port,BYTE value)
 /*****************************************************************************
 	PGA / AGND(2.5v) . VSS(0v)
 *****************************************************************************/
-bool Gainer::SetPGA(double gain,bool isAGNDRef)
+bool CGainer::SetPGA(double gain,bool isAGNDRef)
 {
+	check_config();
+
 	char buf[64];
 	int gi;
 
@@ -436,7 +487,7 @@ bool Gainer::SetPGA(double gain,bool isAGNDRef)
 /*****************************************************************************
 	再起動
 *****************************************************************************/
-void Gainer::Reboot(bool nowait)
+void CGainer::Reboot(bool nowait)
 {
 	command_send("Q*",nowait);
 	m_config = 0;
@@ -458,8 +509,10 @@ static bool ScanLineCompare(BYTE *d1,BYTE *d2)
 	return true;
 }
 
-bool Gainer::ScanLine(size_t row,BYTE data[GAINER_LED_MATRIX])
+bool CGainer::ScanLine(size_t row,BYTE data[GAINER_LED_MATRIX])
 {
+	check_config();
+
 	if ( m_config != 7 ) { return false; }
 	if ( row > GAINER_LED_MATRIX-1 ) { return false; }
 
@@ -491,8 +544,10 @@ bool Gainer::ScanLine(size_t row,BYTE data[GAINER_LED_MATRIX])
 	return true;
 }
 
-bool Gainer::ScanMatrix(BYTE data[GAINER_LED_MATRIX][GAINER_LED_MATRIX])
+bool CGainer::ScanMatrix(BYTE data[GAINER_LED_MATRIX][GAINER_LED_MATRIX])
 {
+	check_config();
+
 	if ( m_config != 7 ) { return false; }
 
 	for ( size_t row = 0 ; row < GAINER_LED_MATRIX ; ++row ) {
@@ -505,7 +560,7 @@ bool Gainer::ScanMatrix(BYTE data[GAINER_LED_MATRIX][GAINER_LED_MATRIX])
 /*****************************************************************************
 	コマンド送信
 *****************************************************************************/
-std::string Gainer::command_send(const std::string &cmd,bool nowait)
+std::string CGainer::command_send(const std::string &cmd,bool nowait)
 {
 #ifdef _DEBUG
 	std::cout << "command_send : " << cmd.c_str() << std::endl << std::flush;
@@ -524,7 +579,7 @@ std::string Gainer::command_send(const std::string &cmd,bool nowait)
 /*****************************************************************************
 	コマンド受信
 *****************************************************************************/
-void Gainer::command_recv(void)
+void CGainer::command_recv(void)
 {
 	size_t i = 0;
 	m_receive_buffer[0] = 0;
@@ -547,7 +602,7 @@ void Gainer::command_recv(void)
 		m_receive_buffer[i] = 0;
 
 		if ( i == 0 ) {
-			::Sleep(0);
+			::SleepEx(25,TRUE);
 		}
 
 #ifdef _DEBUG
@@ -592,7 +647,7 @@ void Gainer::command_recv(void)
 /*****************************************************************************
 	受信待機
 *****************************************************************************/
-std::string Gainer::wait_recv(void)
+std::string CGainer::wait_recv(void)
 {
 	::WaitForSingleObject(m_receive_queue_semaphore,INFINITE);
 
@@ -614,7 +669,7 @@ std::string Gainer::wait_recv(void)
 /*****************************************************************************
 	受信結果処理
 *****************************************************************************/
-void Gainer::processEvent(const std::string &event)
+void CGainer::processEvent(const std::string &event)
 {
 	if ( event.length() == 0 ) {
 		return;
@@ -704,13 +759,13 @@ void Gainer::processEvent(const std::string &event)
 /*****************************************************************************
 	受信スレッド
 *****************************************************************************/
-unsigned __stdcall Gainer::receiver(void *arg)
+unsigned __stdcall CGainer::receiver(void *arg)
 {
-	Gainer *self = reinterpret_cast<Gainer *>(arg);
+	CGainer *self = reinterpret_cast<CGainer *>(arg);
 	return self->receive();
 }
 
-unsigned Gainer::receive(void)
+unsigned CGainer::receive(void)
 {
 	while ( ! m_endFlag ) {
 		//DWORD wr = COMLIBFLAG_WaitEvent(m_port);
@@ -725,7 +780,7 @@ unsigned Gainer::receive(void)
 /*****************************************************************************
 	SSTP
 *****************************************************************************/
-void Gainer::execute_sstp_button(bool isPressed)
+void CGainer::execute_sstp_button(bool isPressed)
 {
 	if ( ! m_hwnd_sstp ) {
 		return;
@@ -751,7 +806,7 @@ void Gainer::execute_sstp_button(bool isPressed)
 	send_sstp(sstp);
 }
 
-void Gainer::execute_sstp_digital(void)
+void CGainer::execute_sstp_digital(void)
 {
 	if ( ! m_hwnd_sstp ) {
 		return;
@@ -793,7 +848,7 @@ void Gainer::execute_sstp_digital(void)
 	send_sstp(sstp);
 }
 
-void Gainer::execute_sstp_analog(void)
+void CGainer::execute_sstp_analog(void)
 {
 	if ( ! m_hwnd_sstp ) {
 		return;
@@ -828,7 +883,7 @@ void Gainer::execute_sstp_analog(void)
 	send_sstp(sstp);
 }
 
-void Gainer::send_sstp(std::string &sstp)
+void CGainer::send_sstp(std::string &sstp)
 {
 	DWORD result;
 	
@@ -844,9 +899,19 @@ void Gainer::send_sstp(std::string &sstp)
 }
 
 /*****************************************************************************
+	実行前初期化チェック
+*****************************************************************************/
+void CGainer::check_config()
+{
+	if ( m_config == 0 ) {
+		SetConfiguration(1);
+	}
+}
+
+/*****************************************************************************
 	設定構造体
 *****************************************************************************/
-const int Gainer::CONFIG[][4] = 
+const int CGainer::CONFIG[][4] = 
 {
 	// N_AIN, N_DIN, N_AOUT, N_DOUT
 	{0, 0, 0, 0}, // 0
