@@ -10,7 +10,6 @@
 #include <string>
 
 #include "gainercxx.h"
-#include "erslib.h"
 
 #include <mmsystem.h>
 
@@ -52,18 +51,17 @@ bool Gainer::Init(int portNum, int mode)
 	m_receive_queue_semaphore = ::CreateSemaphore(NULL,0,9999,NULL);
 
 	// COM port open
-	if ( ERS_Open(m_port, RECV_BUFFER, RECV_BUFFER) != 0 ) {
+	if ( ! m_serial.Open(m_port, RECV_BUFFER, RECV_BUFFER) ) {
 		return false;
 	}
 	// setting of COM port
-	if ( ERS_Config(m_port, ERS_38400|ERS_NO|ERS_1|ERS_8|ERS_NO_FLOW_CONTROL) != 0 ) {
-		ERS_Close(m_port);
+	if ( ! m_serial.SetConfig(COMLIBFLAG_38400|COMLIBFLAG_NO|COMLIBFLAG_1|COMLIBFLAG_8|COMLIBFLAG_NO_FLOW_CONTROL) ) {
+		m_serial.Close();
 		return false;
 	}
 
 	// setting receiving timeout
-	ERS_RecvTimeOut(m_port, RECV_TIMEOUT_COMM, RECV_TIMEOUT_INTERVAL);
-	ERS_SendTimeOut(m_port, SEND_TIMEOUT_COMM);
+	m_serial.SetTimeout(RECV_TIMEOUT_COMM, RECV_TIMEOUT_INTERVAL, SEND_TIMEOUT_COMM);
 
 	// software reset
 	Reboot(true);
@@ -105,7 +103,7 @@ void Gainer::Exit()
 	CloseHandle(m_thread_handle);
 
 	// COM port close
-	ERS_Close(m_port);
+	m_serial.Close();
 
 	::CloseHandle(m_receive_queue_semaphore);
 
@@ -134,25 +132,26 @@ void Gainer::Search(std::vector<int> &v)
 			continue;
 		}
 
-		if ( ERS_Open(i, RECV_BUFFER, RECV_BUFFER) != 0 ) {
+		CSerialCOM serial;
+
+		if ( ! serial.Open(i, RECV_BUFFER, RECV_BUFFER) ) {
 			continue;
 		}
-		if ( ERS_Config(i, ERS_38400|ERS_NO|ERS_1|ERS_8|ERS_NO_FLOW_CONTROL) != 0 ) {
-			ERS_Close(i);
+		if ( ! serial.SetConfig(COMLIBFLAG_38400|COMLIBFLAG_NO|COMLIBFLAG_1|COMLIBFLAG_8|COMLIBFLAG_NO_FLOW_CONTROL) ) {
+			serial.Close();
 			continue;
 		}
 		
-		ERS_RecvTimeOut(i, 100, 100);
-		ERS_SendTimeOut(i, 100);
+		serial.SetTimeout(100, 100, 100);
 
-		if ( ! ERS_Send(i, "?*",2) ) {
-			ERS_Close(i);
+		if ( ! serial.Send("?*") ) {
+			serial.Close();
 			continue;
 		}
 
 		bool found = false;
 		while ( true ) {
-			int r = ERS_Getc(i);
+			int r = serial.Getc();
 			if ( r == EOF ) {
 				break;
 			}
@@ -162,7 +161,7 @@ void Gainer::Search(std::vector<int> &v)
 			}
 		}
 
-		ERS_Close(i);
+		serial.Close();
 		if ( found ) {
 			v.push_back(i);
 		}
@@ -512,11 +511,10 @@ std::string Gainer::command_send(const std::string &cmd,bool nowait)
 	std::cout << "command_send : " << cmd.c_str() << std::endl << std::flush;
 #endif
 
-	ERS_Send(m_port, cmd.c_str(),cmd.length());
-	ERS_WaitSend(m_port);
+	m_serial.Send(cmd.c_str());
 
 	if ( nowait ) {
-		return _T("");
+		return "";
 	}
 	else {
 		return wait_recv();
@@ -536,7 +534,7 @@ void Gainer::command_recv(void)
 			break;
 		}
 
-		int r = ERS_CheckRecv(m_port);
+		size_t r = m_serial.GetReceivedSize();
 		if ( r == 0 ) {
 			r = 2; //2バイト読んで待機
 		}
@@ -545,7 +543,7 @@ void Gainer::command_recv(void)
 			m_receive_buffer.assign(r+1,0);
 		}
 
-		i += ERS_Recv(m_port,&m_receive_buffer[i],r);
+		i += m_serial.Recv(&m_receive_buffer[i],r);
 		m_receive_buffer[i] = 0;
 
 		if ( i == 0 ) {
@@ -715,7 +713,7 @@ unsigned __stdcall Gainer::receiver(void *arg)
 unsigned Gainer::receive(void)
 {
 	while ( ! m_endFlag ) {
-		//DWORD wr = ERS_WaitEvent(m_port);
+		//DWORD wr = COMLIBFLAG_WaitEvent(m_port);
 		//if ( wr & EV_RXCHAR ) {
 		command_recv();
 		//}
