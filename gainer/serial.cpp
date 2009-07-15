@@ -10,6 +10,15 @@
 
 #include "serial.h"
 
+CSerialCOM::CSerialCOM(void)
+{
+	m_serial = NULL;
+}
+
+CSerialCOM::~CSerialCOM()
+{
+}
+
 bool CSerialCOM::Open(int n,int recv_size,int send_size)
 {
 	if ( m_serial ) { return true; }
@@ -20,7 +29,7 @@ bool CSerialCOM::Open(int n,int recv_size,int send_size)
 
 	_stprintf(comname,_T("\\\\.\\COM%d"),n);
 
-	m_serial = ::CreateFile(comname,GENERIC_READ|GENERIC_WRITE,0,NULL,OPEN_EXISTING | FILE_FLAG_OVERLAPPED,0,NULL);
+	m_serial = ::CreateFile(comname,GENERIC_READ|GENERIC_WRITE,0,NULL,OPEN_EXISTING,0,NULL);
 	
 	// ÉIÅ[ÉvÉìÇ…é∏îsÇµÇΩÇ∆Ç´
 	if(m_serial==INVALID_HANDLE_VALUE)	return false;
@@ -170,14 +179,14 @@ bool CSerialCOM::SetTimeout(int rto,int interval,int sto)
 
 size_t CSerialCOM::Send(const char *text)
 {
-	DWORD m;
+	DWORD m = 0;
 	::WriteFile(m_serial,text,strlen(text),&m,NULL);
 	return m;
 }
 
 size_t CSerialCOM::Recv(char *buf,size_t bufsize)
 {
-	DWORD m;
+	DWORD m = 0;
 	::ReadFile(m_serial,buf,bufsize,&m,NULL);
 	return m;
 }

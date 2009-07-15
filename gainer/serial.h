@@ -64,18 +64,9 @@ class CSerialCOM
 private:
 	HANDLE m_serial;
 
-	HANDLE m_read_evt;
-	HANDLE m_write_evt;
-	OVERLAPPED m_read_ovl;
-	OVERLAPPED m_write_ovl;
-
 public:
-	CSerialCOM(void) {
-		m_serial = NULL;
-	}
-	~CSerialCOM(void) {
-		Close();
-	}
+	CSerialCOM(void);
+	~CSerialCOM(void);
 
 	bool Open(int port,int recv_size,int send_size);
 	bool Close(void);
