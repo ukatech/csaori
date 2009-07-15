@@ -1,5 +1,5 @@
 /*============================================================================
-	Gainer制御クラス (h)
+	CGainer制御クラス (h)
 	以下のgainercxx (dandelionさん作) をたくさん参考にしました。
 	http://www.atinfinity.info/wiki/index.php?gainercxx
 ============================================================================*/
@@ -17,22 +17,22 @@
 
 #include "serial.h"
 
-class Gainer;
+class CGainer;
 
 #define GAINER_MAX_INPUTS 8
 #define GAINER_LED_MATRIX 8
 
-class Gainer
+class CGainer
 {
 public:
 	//--------------------関数--------------------
-	Gainer() {
+	CGainer() {
 		m_inited = false;
 	}
 	bool Init(int portNum=1, int mode=0);
 	
 	void Exit();
-	~Gainer() {
+	~CGainer() {
 		Exit();
 	}
 	
@@ -88,6 +88,8 @@ private:
 	void execute_sstp_analog(void);
 
 	void send_sstp(std::string &sstp);
+
+	void check_config(void);
 
 	//--------------------変数--------------------
 	CSerialCOM m_serial;

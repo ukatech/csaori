@@ -7,7 +7,7 @@
 #include "csaori.h"
 #include "gainercxx.h"
 
-static std::vector<Gainer*> g_gainer;
+static std::vector<CGainer*> g_gainer;
 static HWND g_hwnd;
 
 /*---------------------------------------------------------
@@ -48,7 +48,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 	if ( wcsicmp(subcommand.c_str(),L"search") == 0 ) {
 		std::vector<int> port_array;
-		Gainer::Search(port_array);
+		CGainer::Search(port_array);
 
 		char_t buf[32];
 
@@ -88,14 +88,14 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
-	//Gainerèâä˙âª
-	Gainer *pGainer = NULL;
+	//CGainerèâä˙âª
+	CGainer *pGainer = NULL;
 	int p_gainer_pos = 0;
 
 	if ( port == 0 ) {
 		if ( g_gainer.size() == 0 ) {
 			std::vector<int> port_array;
-			Gainer::Search(port_array);
+			CGainer::Search(port_array);
 
 			if ( port_array.size() == 0 ) {
 				out.result_code = SAORIRESULT_NO_CONTENT;
@@ -122,7 +122,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 
 	if ( ! pGainer ) {
-		pGainer = new Gainer;
+		pGainer = new CGainer;
 		if ( ! pGainer->Init(port) ) {
 			out.result_code = SAORIRESULT_NO_CONTENT;
 			out.result = L"NG:Gainer not found.";
