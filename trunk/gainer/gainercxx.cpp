@@ -13,6 +13,16 @@
 
 #include <mmsystem.h>
 
+//////////WINDOWS DEFINE///////////////////////////
+//includeÇÃÇ†Ç∆Ç…Ç®Ç¢ÇƒÇÀÅI
+#ifdef _WINDOWS
+#ifdef _DEBUG
+#include <crtdbg.h>
+#define new new( _NORMAL_BLOCK, __FILE__, __LINE__)
+#endif
+#endif
+///////////////////////////////////////////////////
+
 const int CGainer::MATRIX_LED_CONFIGURATION = 7;
 
 static std::vector<int> g_gainer_open_ports;
@@ -602,7 +612,7 @@ void CGainer::command_recv(void)
 		m_receive_buffer[i] = 0;
 
 		if ( i == 0 ) {
-			::SleepEx(25,TRUE);
+			::SleepEx(10,TRUE);
 		}
 
 #ifdef _DEBUG

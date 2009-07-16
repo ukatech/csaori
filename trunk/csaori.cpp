@@ -235,6 +235,17 @@ bool CSAORIInput::parseString(const string_t &src)
 			}
 			else {
 				if (ts > 0) {
+					//‚æ‚­‚ ‚éƒwƒbƒ_‚Ì‘å•¶š¬•¶š“ˆê
+					if ( wcsicmp(k.c_str(),L"securitylevel") == 0 ) {
+						k = L"SecurityLevel";
+					}
+					else if ( wcsicmp(k.c_str(),L"sender") == 0 ) {
+						k = L"Sender";
+					}
+					else if ( wcsicmp(k.c_str(),L"charset") == 0 ) {
+						k = L"Charset";
+					}
+
 					std::map<string_t,string_t>::iterator i;
 					i = _opt.find(k);
 					if (i == _opt.end()) {
@@ -258,8 +269,11 @@ bool CSAORIInput::parseString(const string_t &src)
 //------------------------------------------------------------------------------
 string_t CSAORIOutput::toString()
 {
+	if ( result_code == SAORIRESULT_FORCE_OK ) {
+		result_code = SAORIRESULT_OK;
+	}
 	//No Content‚É©“®•â³
-	if ( result.empty() && values.empty() && result_code == SAORIRESULT_OK ) {
+	else if ( result.empty() && values.empty() && result_code == SAORIRESULT_OK ) {
 		result_code = SAORIRESULT_NO_CONTENT;
 	}
 
@@ -350,10 +364,10 @@ std::string CSAORI::request(const std::string &rq_tmp)
 		pOut->result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
 	}else{
 		if (pIn->cmd == L"GET Version") {
-			pOut->result_code=SAORIRESULT_OK;
+			pOut->result_code=SAORIRESULT_FORCE_OK;
 		}else if (pIn->cmd == L"EXECUTE") {
 			string_t sec = pIn->opts[L"SecurityLevel"];
-			if (sec==L"Local" || sec==L"local") {
+			if (sec==L"Local" || sec==L"local" || sec.empty()) {
 				exec(*pIn,*pOut);
 			}
 			else {
