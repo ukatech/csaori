@@ -63,6 +63,7 @@ class CSerialCOM
 {
 private:
 	HANDLE m_serial;
+	COMMPROP m_prop;
 
 public:
 	CSerialCOM(void);
@@ -78,6 +79,9 @@ public:
 	size_t Send(const char *text);
 	size_t Recv(char *buf,size_t bufsize);
 	int  Getc(void);
+
+	int GetType(void) { return m_prop.dwProvSubType; }
+	bool IsSerialPort(void);
 
 	size_t GetReceivedSize(void);
 };
