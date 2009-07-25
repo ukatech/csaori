@@ -3,8 +3,6 @@
 #include <string>
 
 struct sqlite3;
-class CSAORIInput;
-typedef std::basic_string<wchar_t> string_t;
 
 class Sqlori {
 private:
@@ -13,14 +11,14 @@ private:
 
 public:
 	Sqlori(): _db(NULL) {}
+
 	const std::string &result() { return _result; }
 
-	static int callBack(void *argv, int size, char **values, char **fields);
+	static int callBack(void *callee, int size, char **values, char **fields);
 
-	//std::string tableToString(char **fields, char **values, int col, int row = 0);
 	void clear() { _result = ""; }
 
-	int open(const CSAORIInput& in, const string_t &path);
-	int exec(const CSAORIInput& in);
+	int open(const std::string &path);
+	int exec(const std::string &command);
 	int close();
 };
