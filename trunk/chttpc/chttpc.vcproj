@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="httpc"
+	Name="chttpc"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -21,7 +21,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;httpc_EXPORTS"
+				AdditionalIncludeDirectories=".."
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;chttpc_EXPORTS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
@@ -36,7 +37,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile=".\Debug/httpc.dll"
+				OutputFile=".\Debug/chttpc.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
@@ -85,7 +86,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories=".."
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;httpc_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;chttpc_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -101,7 +102,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="wininet.lib"
-				OutputFile=".\Release/httpc.dll"
+				OutputFile=".\Release/chttpc.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				ProgramDatabaseFile=".\Release/httpc.pdb"
@@ -144,24 +145,6 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\csaori.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;httpc_EXPORTS;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;httpc_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="chttpc.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -180,6 +163,30 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\CInetHelper.cpp">
+			</File>
+			<File
+				RelativePath="..\csaori.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;httpc_EXPORTS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;httpc_EXPORTS;$(NoInherit)"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\CSAORIDSSTP.cpp">
+			</File>
+			<File
 				RelativePath=".\mlang2unicode.cpp">
 			</File>
 		</Filter>
@@ -187,7 +194,13 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
+				RelativePath=".\CInetHelper.h">
+			</File>
+			<File
 				RelativePath="..\csaori.h">
+			</File>
+			<File
+				RelativePath=".\CSAORIDSSTP.h">
 			</File>
 			<File
 				RelativePath=".\mlang2unicode.h">

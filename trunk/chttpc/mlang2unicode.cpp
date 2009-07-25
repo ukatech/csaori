@@ -11,7 +11,7 @@
 
 using namespace std;
 
-#if 0
+#ifdef CHARSET_DEBUG
 # include <stdio.h>
 #endif
 
@@ -34,7 +34,7 @@ bool mlangToUnicode(UINT codepage, string &in, wstring &out)
 			in_cstr, &inlen,
 			&detectEnc, &detectEncCount);
 		codepage = detectEnc.nCodePage;
-#if 0
+#ifdef CHARSET_DEBUG
 		printf("Codepage: %d\n",detectEnc.nCodePage);
 #endif
 	}
