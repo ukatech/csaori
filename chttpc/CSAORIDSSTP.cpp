@@ -8,6 +8,7 @@
 string_t CSAORIDSSTP::toString()
 {
 	std::wstring dest;
+	wchar_t tmptxt[32];
 	dest += L"NOTIFY SSTP/1.1\r\n";
 
 	dest += L"Charset: " + SAORI_FUNC::CodePagetoString(codepage) + L"\r\n";
@@ -51,11 +52,12 @@ string_t CSAORIDSSTP::toString()
 void CSAORIDSSTP::send(string_t &sstp)
 {
 	DWORD result;
+	std::string ansiSSTP = SAORI_FUNC::UnicodeToMultiByte(sstp, codepage);
 	
 	COPYDATASTRUCT c;
 	c.dwData = 9801;
-	c.cbData = sstp.size();
-	c.lpData = const_cast<char*>(sstp.c_str());
+	c.cbData = ansiSSTP.size();
+	c.lpData = const_cast<char*>(ansiSSTP.c_str());
 
 	SendMessageTimeout(hwnd,WM_COPYDATA,
 		reinterpret_cast<WPARAM>(hwnd),

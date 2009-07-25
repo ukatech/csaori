@@ -1,3 +1,5 @@
+#include "csaori.h"
+
 class CSAORIDSSTP{
 public:
 	unsigned int codepage;
@@ -8,5 +10,6 @@ public:
 	std::map<string_t,string_t> opts;
 
 	string_t toString();
+	void send(string_t &sstp);
 };
 
