@@ -15,9 +15,10 @@ using namespace std;
 # include <stdio.h>
 #endif
 
-bool mlangToUnicode(UINT codepage, string &in, wstring &out)
+bool mlangToUnicode(const wchar_t *charset, string &in, wstring &out)
 {
 	INT inlen = in.size();
+	UINT codepage;
 	CHAR *in_cstr = const_cast<char *>(in.c_str());
 	//IMultiLanguage生成
 	CoInitialize( NULL );
@@ -25,19 +26,28 @@ bool mlangToUnicode(UINT codepage, string &in, wstring &out)
 	HRESULT hr = CoCreateInstance(CLSID_CMultiLanguage, NULL,
 		CLSCTX_ALL, IID_IMultiLanguage2, (LPVOID*)&lang);
 
+	//Charset情報取得
+	codepage = _wtoi(charset);
 	if(!codepage) {
-		//Charset情報取得
-		int detectEncCount = 1;
-		DetectEncodingInfo detectEnc;
-		lang->DetectInputCodepage(
-			MLDETECTCP_HTML, 0,
-			in_cstr, &inlen,
-			&detectEnc, &detectEncCount);
-		codepage = detectEnc.nCodePage;
-#ifdef CHARSET_DEBUG
-		printf("Codepage: %d\n",detectEnc.nCodePage);
-#endif
+		if(charset == NULL) {
+			int detectEncCount = 1;
+			DetectEncodingInfo detectEnc;
+			lang->DetectInputCodepage(
+				MLDETECTCP_HTML, 0,
+				in_cstr, &inlen,
+				&detectEnc, &detectEncCount);
+			codepage = detectEnc.nCodePage;
+		} else {
+			MIMECSETINFO csetinfo;
+			if (SUCCEEDED(hr))
+				hr = lang->GetCharsetInfo(const_cast<wchar_t*>(charset), &csetinfo);
+			codepage = csetinfo.uiInternetEncoding;
+		}
 	}
+
+#ifdef CHARSET_DEBUG
+	printf("Codepage: %d\n",codepage);
+#endif
 
 	//変換後の文字長を取得
 	DWORD pdwMode = 0;

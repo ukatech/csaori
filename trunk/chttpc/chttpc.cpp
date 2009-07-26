@@ -20,7 +20,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		string oResult;
 		string url = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
 		wstring nResult = L"";
-		int getResult = CInetHelper::getUrlContent(url.c_str(),nResult);
+		int getResult = CInetHelper::getUrlContent(url.c_str(),NULL,nResult);
 		if ( getResult == CIH_FAIL ) {
 			out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
 			out.result = nResult;

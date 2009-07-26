@@ -3,4 +3,4 @@
 
 using namespace std;
 
-bool mlangToUnicode(UINT codepage, string &in, wstring &out);
+bool mlangToUnicode(const wchar_t *charset, string &in, wstring &out);
