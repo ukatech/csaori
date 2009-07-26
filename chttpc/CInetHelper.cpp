@@ -4,7 +4,7 @@
 using namespace std;
 // *** Public ***
 
-int CInetHelper::getUrlContent(const char* url, wstring& out) {
+int CInetHelper::getUrlContent(const char* url, const wchar_t* charset, wstring& out) {
 	string oResult;
 
 	HINTERNET hInternet = CInetHelper::getInternet();
@@ -13,7 +13,7 @@ int CInetHelper::getUrlContent(const char* url, wstring& out) {
 		return CIH_FAIL;
 	}
 
-	/* remote_folderÇUÇ¦ÆãÇÓÇï */
+	/* remote_folderã®ã‚ªãƒ¼ãƒ—ãƒ³ */
 	HINTERNET hFile = InternetOpenUrl(
 		hInternet,
 		url,
@@ -27,7 +27,7 @@ int CInetHelper::getUrlContent(const char* url, wstring& out) {
 		return CIH_FAIL;
 	}
 
-		/* Ç¦ÆãÇÓÇïÆıÇFremote_folderÆñÇpÇÃÆãÇ»Çy(8192ÇÌÇ~ÇÄÇAÇK)“«Çf”DÇg */
+		/* ã‚ªãƒ¼ãƒ—ãƒ³ã—ãŸremote_folderã‹ã‚‰ãƒ‡ãƒ¼ã‚¿ã‚’(8192ãƒã‚¤ãƒˆãšã¤)èª­ã¿è¾¼ã‚€ */
 	vector<char>	theData;
 	for(;;) {
 		DWORD ReadSize=0;
@@ -38,7 +38,7 @@ int CInetHelper::getUrlContent(const char* url, wstring& out) {
 			8192,
 			&ReadSize);
 
-		/* ¥şÇM“«Çf”DÇzÇGÇpÇçÆãÇÓÇy“»Æ÷Çr */
+		/* å…¨ã¦èª­ã¿è¾¼ã‚“ã ã‚‰ãƒ«ãƒ¼ãƒ—ã‚’æŠœã‘ã‚‹ */
 		if(bResult && (ReadSize == 0))
 			break;
 
@@ -47,18 +47,18 @@ int CInetHelper::getUrlContent(const char* url, wstring& out) {
 		memcpy( &theData[0] + cur, Buf, ReadSize );
 	}
 
-	/* «á’á²z */
+	/* å¾Œå‡¦ç† */
 	InternetCloseHandle(hFile);
 	InternetCloseHandle(hInternet);
 
-	// ¤å¦r¦C²×ºİ¡CUnicodeÇU³õ¦XÇy¦ÒÆîÇM4byte¡C
+	// æ–‡å­—åˆ—çµ‚ç«¯ã€‚Unicodeã®å ´åˆã‚’è€ƒãˆã¦4byteã€‚
 	for (int i=0 ; i<4 ; ++i)
 		theData.push_back(0);
 
 	oResult.assign(&theData[0], theData.size());
 
 	wstring nResult;
-	mlangToUnicode(0, oResult, nResult);
+	mlangToUnicode(charset, oResult, nResult);
 
 	out = nResult;
 	return CIH_OK;

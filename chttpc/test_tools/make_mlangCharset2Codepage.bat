@@ -1,0 +1,1 @@
+cl mlangCharset2Codepage.cpp /EHsc /link ole32.lib

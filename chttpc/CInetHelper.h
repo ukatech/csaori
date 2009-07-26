@@ -13,7 +13,7 @@ using namespace std;
 
 class CInetHelper{
 public:
-	static int getUrlContent(const char* url, wstring& out);
+	static int getUrlContent(const char* url, const wchar_t* charset, wstring& out);
 	static bool checkInternet();
 private:
 	static HINTERNET getInternet();
