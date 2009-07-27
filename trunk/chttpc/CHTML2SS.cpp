@@ -67,6 +67,9 @@ std::wstring CHTML2SS::translate(std::wstring& in) {
 				} else if(tmp == "a") {
 					out.append("\\_a[" + pnode->attribute("href").second + "]" + stripHTMLTags(it->text()) + "\\_a");
 				} else {
+				} else if(tmp == "li") {
+					out.append(" - " + stripHTMLTags(it->text()) + "\\n");
+				} else {
 					out.append(stripHTMLTags(it->text()));
 				}
 			}
