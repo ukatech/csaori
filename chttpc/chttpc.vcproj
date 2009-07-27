@@ -85,7 +85,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories=".."
+				AdditionalIncludeDirectories="..;htmlcxx;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;chttpc_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -101,10 +101,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wininet.lib"
+				AdditionalDependencies="wininet.lib htmlcxx.lib"
 				OutputFile=".\Release/chttpc.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="htmlcxx/Release"
 				ProgramDatabaseFile=".\Release/httpc.pdb"
 				ImportLibrary=".\Release/httpc.lib"
 				TargetMachine="1"/>
@@ -144,6 +145,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath=".\CHTML2SS.cpp">
+			</File>
 			<File
 				RelativePath="chttpc.cpp">
 				<FileConfiguration
@@ -190,12 +194,21 @@
 				RelativePath=".\mlang2unicode.cpp">
 			</File>
 			<File
+				RelativePath=".\striphtml.cpp">
+			</File>
+			<File
 				RelativePath=".\Thread.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
+			<File
+				RelativePath=".\CHTML2SS.h">
+			</File>
+			<File
+				RelativePath=".\chttpc.h">
+			</File>
 			<File
 				RelativePath=".\CInetHelper.h">
 			</File>
@@ -207,6 +220,9 @@
 			</File>
 			<File
 				RelativePath=".\mlang2unicode.h">
+			</File>
+			<File
+				RelativePath=".\striphtml.h">
 			</File>
 			<File
 				RelativePath=".\Thread.h">
