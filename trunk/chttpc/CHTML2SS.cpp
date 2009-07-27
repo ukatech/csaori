@@ -10,31 +10,44 @@
 
 #include "CHTML2SS.h"
 
+#ifdef TRANSLATE_DEBUG
+#include <stdio.h>
+#endif
+
 using namespace htmlcxx;
 using namespace std;
 
-std::wstring CHTML2SS::translate(std::wstring& in) {
+wstring CHTML2SS::translate(std::wstring& in) {
+#ifdef TRANSLATE_DEBUG
+printf("CHTML2SS::translate UnicodeToMultiByte\n");
+#endif
 	std::string utf8in = SAORI_FUNC::UnicodeToMultiByte(in, CP_UTF8);
 	std::string out = "";
 
-	htmlcxx::HTML::ParserDom parser;
-	::tree<htmlcxx::HTML::Node> dom = parser.parseTree(utf8in);
+#ifdef TRANSLATE_DEBUG
+printf("CHTML2SS::translate parseTree\n");
+#endif
+
+	HTML::ParserDom parser;
+	tree<htmlcxx::HTML::Node> dom = parser.parseTree(utf8in);
   
-	::tree<htmlcxx::HTML::Node>::pre_order_iterator it = dom.begin();
-	::tree<htmlcxx::HTML::Node>::pre_order_iterator end = dom.end();
-	::tree<htmlcxx::HTML::Node>::pre_order_iterator pnode;
-	::tree<htmlcxx::HTML::Node>::pre_order_iterator prnode;
+	tree<HTML::Node>::pre_order_iterator it = dom.begin();
+	tree<HTML::Node>::pre_order_iterator end = dom.end();
+	tree<HTML::Node>::pre_order_iterator pnode;
+	tree<HTML::Node>::pre_order_iterator prnode;
 
 	
-	std::string tmp;
+	string tmp;
 	for (; it != end; ++it) {
 		if ((!it->isComment())) {
 			if(it->isTag()) {
 
 				prnode = dom.previous_sibling(it);
-				tmp = prnode->tagName();
-				if(tmp == "tr" || tmp == "table") {
-					out.append("\\n");
+				if(prnode != NULL) {
+					tmp = prnode->tagName();
+					if(tmp == "tr" || tmp == "table") {
+						out.append("\\n");
+					}
 				}
 
 				it->parseAttributes();
@@ -74,9 +87,14 @@ std::wstring CHTML2SS::translate(std::wstring& in) {
 			}
 		}
 	}
+#ifdef TRANSLATE_DEBUG
+printf("CHTML2SS::translate before return\n");
+#endif
+
+	out = replaceAll(out, "\r", "");
 	out = replaceAll(out, "\n", "");
 	out = replaceAll(out, "\\n\\n", "\\n");
-	std::wstring wout = SAORI_FUNC::MultiByteToUnicode(out, CP_UTF8);
+	wstring wout = SAORI_FUNC::MultiByteToUnicode(out, CP_UTF8);
 	
 	return wout;
 }

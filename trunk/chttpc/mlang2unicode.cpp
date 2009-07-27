@@ -18,7 +18,7 @@ using namespace std;
 bool mlangToUnicode(const wchar_t *charset, string &in, wstring &out)
 {
 	INT inlen = in.size();
-	UINT codepage;
+	UINT codepage = 0;
 	CHAR *in_cstr = const_cast<char *>(in.c_str());
 	//IMultiLanguage生成
 	CoInitialize( NULL );
@@ -26,8 +26,13 @@ bool mlangToUnicode(const wchar_t *charset, string &in, wstring &out)
 	HRESULT hr = CoCreateInstance(CLSID_CMultiLanguage, NULL,
 		CLSCTX_ALL, IID_IMultiLanguage2, (LPVOID*)&lang);
 
+#ifdef CHARSET_DEBUG
+	printf("mlangToUnicode : in =%s", in.c_str());
+#endif
+
 	//Charset情報取得
-	codepage = _wtoi(charset);
+	if(charset != NULL) 
+		codepage = _wtoi(charset);
 	if(!codepage) {
 		if(charset == NULL) {
 			int detectEncCount = 1;
@@ -73,6 +78,10 @@ bool mlangToUnicode(const wchar_t *charset, string &in, wstring &out)
 	if (lang)
 		lang->Release();
 	CoUninitialize();
+
+#ifdef CHARSET_DEBUG
+	wprintf(L"mlangToUnicode : out =%s", out.c_str());
+#endif
 
 	return (SUCCEEDED(hr) ? true : false);
 }

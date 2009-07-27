@@ -17,14 +17,30 @@ class chttpc_conf {
 	public:
 		unsigned int codepage;
 		string url;
+		wstring module_path;
 		wstring charset;
-		wstring saveTo;
+		wstring saveOrginal;
+		wstring saveParsed;
 		wstring searchStart;
 		wstring searchEnd;
 		wstring id;
 		HWND hwnd;
 		bool isStripTag;
 		bool isTranslateTag;
+		chttpc_conf() {
+			url = "";
+			codepage = 0;
+			module_path = L"";
+			charset = L"";
+			saveOrginal = L"";
+			saveParsed = L"";
+			searchStart = L"";
+			searchEnd = L"";
+			id = L"";
+			hwnd = 0;
+			isStripTag = false;
+			isTranslateTag = false;
+		}
 };
 
 #endif
