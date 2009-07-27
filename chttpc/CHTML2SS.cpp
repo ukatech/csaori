@@ -19,10 +19,13 @@ using namespace std;
 
 wstring CHTML2SS::translate(std::wstring& in) {
 #ifdef TRANSLATE_DEBUG
-printf("CHTML2SS::translate UnicodeToMultiByte\n");
+wprintf(L"CHTML2SS::translate in=%s\n",in.c_str());
 #endif
-	std::string utf8in = SAORI_FUNC::UnicodeToMultiByte(in, CP_UTF8);
-	std::string out = "";
+	string utf8in = SAORI_FUNC::UnicodeToMultiByte(in, CP_UTF8);
+	string out = "";
+#ifdef TRANSLATE_DEBUG
+printf("CHTML2SS::translate UnicodeToMultiByte, utf8in=%s\n",utf8in.c_str());
+#endif
 
 #ifdef TRANSLATE_DEBUG
 printf("CHTML2SS::translate parseTree\n");
@@ -38,18 +41,27 @@ printf("CHTML2SS::translate parseTree\n");
 
 	
 	string tmp;
+
+#ifdef TRANSLATE_DEBUG
+printf("CHTML2SS::node loop\n");
+#endif
 	for (; it != end; ++it) {
 		if ((!it->isComment())) {
 			if(it->isTag()) {
-
 				prnode = dom.previous_sibling(it);
-				if(prnode != NULL) {
+#ifdef TRANSLATE_DEBUG
+				printf("CHTML2SS::prnode = %d\n", prnode->tagName().size());
+#endif
+				if(prnode != NULL && prnode->tagName().size() < 100) {
 					tmp = prnode->tagName();
 					if(tmp == "tr" || tmp == "table") {
 						out.append("\\n");
 					}
 				}
 
+#ifdef TRANSLATE_DEBUG
+printf("CHTML2SS::node loop - parseAttributes\n");
+#endif
 				it->parseAttributes();
 				tmp = it->tagName();
 				if(tmp == "img") {
