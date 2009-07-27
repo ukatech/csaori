@@ -1,0 +1,23 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "htmlcxx", "htmlcxx.vcproj", "{63D82F56-4B5F-4616-A3D7-2E6A4A752316}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{63D82F56-4B5F-4616-A3D7-2E6A4A752316}.Debug.ActiveCfg = Debug|Win32
+		{63D82F56-4B5F-4616-A3D7-2E6A4A752316}.Debug.Build.0 = Debug|Win32
+		{63D82F56-4B5F-4616-A3D7-2E6A4A752316}.Release.ActiveCfg = Release|Win32
+		{63D82F56-4B5F-4616-A3D7-2E6A4A752316}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

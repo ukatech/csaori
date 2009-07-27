@@ -1,3 +1,6 @@
+#ifndef _CSAORIDSSTP_H
+#define _CSAORIDSSTP_H
+
 #include "csaori.h"
 
 class CSAORIDSSTP{
@@ -13,3 +16,4 @@ public:
 	void send(string_t &sstp);
 };
 
+#endif

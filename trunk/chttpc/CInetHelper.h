@@ -1,3 +1,6 @@
+#ifndef _CINETHELPER_H
+#define _CINETHELPER_H
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <wininet.h>
@@ -19,3 +22,4 @@ private:
 	static HINTERNET getInternet();
 };
 
+#endif
