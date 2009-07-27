@@ -1,18 +1,28 @@
 #include "CInetHelper.h"
 #include "mlang2unicode.h"
 
+#ifdef INET_DEBUG
+#include <stdio.h>
+#endif
+
 using namespace std;
 // *** Public ***
 
 int CInetHelper::getUrlContent(const char* url, const wchar_t* charset, wstring& out) {
 	string oResult;
 
+#ifdef INET_DEBUG
+printf("CInetHelper::getUrlContent - getInternet\n");
+#endif
 	HINTERNET hInternet = CInetHelper::getInternet();
 	if ( hInternet==NULL ) {
 		out = L"InternetOpen failed";
 		return CIH_FAIL;
 	}
 
+#ifdef INET_DEBUG
+printf("CInetHelper::getUrlContent - InternetOpenUrl\n");
+#endif
 	/* remote_folderのオープン */
 	HINTERNET hFile = InternetOpenUrl(
 		hInternet,
@@ -27,6 +37,9 @@ int CInetHelper::getUrlContent(const char* url, const wchar_t* charset, wstring&
 		return CIH_FAIL;
 	}
 
+#ifdef INET_DEBUG
+printf("CInetHelper::getUrlContent - readdata\n");
+#endif
 		/* オープンしたremote_folderからデータを(8192バイトずつ)読み込む */
 	vector<char>	theData;
 	for(;;) {
@@ -57,9 +70,15 @@ int CInetHelper::getUrlContent(const char* url, const wchar_t* charset, wstring&
 
 	oResult.assign(&theData[0], theData.size());
 
+#ifdef INET_DEBUG
+printf("CInetHelper::getUrlContent - mlangToUnicode\n");
+#endif
 	wstring nResult;
 	mlangToUnicode(charset, oResult, nResult);
 
+#ifdef INET_DEBUG
+printf("CInetHelper::getUrlContent - return\n");
+#endif
 	out = nResult;
 	return CIH_OK;
 }
