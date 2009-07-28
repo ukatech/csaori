@@ -70,7 +70,7 @@ printf("chttpc_runner::run - strip\n");
 #ifdef OPTION_DEBUG
 printf("chttpc_runner::run - translate\n");
 #endif
-		nResult = CHTML2SS::translate(nResult);
+		nResult = CHTML2SS::translate(nResult,cc->url);
 	}
 
 	if(!cc->saveParsed.empty()) {
@@ -85,6 +85,9 @@ printf("chttpc_runner::run - saveParsed\n");
 	}
 	if(!replaced)
 		out = nResult;
+
+	if(cc->isNoOutput)
+		out = L"";
 
 #ifdef OPTION_DEBUG
 printf("chttpc_runner::run - done\n");
@@ -204,6 +207,11 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		printf("in translate\n");
 #endif
 				cc->isTranslateTag = true;
+			} else if((idx = in.args[i].find(L"noOutput")) != string::npos) {
+#ifdef OPTION_DEBUG
+		printf("in noOutput\n");
+#endif
+				cc->isNoOutput = true;
 			}
 		}
 #ifdef OPTION_DEBUG
