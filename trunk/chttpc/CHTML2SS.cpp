@@ -14,33 +14,43 @@
 #include <stdio.h>
 #endif
 
+
 using namespace htmlcxx;
 using namespace std;
 
-wstring CHTML2SS::translate(std::wstring& in) {
+string CHTML2SS::_itoa(unsigned int num) {
+	char tmptxt[32];
+	sprintf(tmptxt,"%d",num);
+	return *(new string(tmptxt));
+}
+
+wstring CHTML2SS::translate(wstring& in, string& url) {
+
 #ifdef TRANSLATE_DEBUG
 wprintf(L"CHTML2SS::translate in=%s\n",in.c_str());
 #endif
+
 	string utf8in = SAORI_FUNC::UnicodeToMultiByte(in, CP_UTF8);
 	string out = "";
-#ifdef TRANSLATE_DEBUG
-printf("CHTML2SS::translate UnicodeToMultiByte, utf8in=%s\n",utf8in.c_str());
-#endif
 
 #ifdef TRANSLATE_DEBUG
+printf("CHTML2SS::translate UnicodeToMultiByte, utf8in=%s\n",utf8in.c_str());
 printf("CHTML2SS::translate parseTree\n");
 #endif
 
+	Curl *cu = new Curl(url);
+
 	HTML::ParserDom parser;
-	tree<htmlcxx::HTML::Node> dom = parser.parseTree(utf8in);
+	tree<HTML::Node> dom = parser.parseTree(utf8in);
   
 	tree<HTML::Node>::pre_order_iterator it = dom.begin();
 	tree<HTML::Node>::pre_order_iterator end = dom.end();
-	tree<HTML::Node>::pre_order_iterator pnode;
-	tree<HTML::Node>::pre_order_iterator prnode;
+	tree<HTML::Node>::pre_order_iterator pnode, gpnode;
+	tree<HTML::Node>::sibling_iterator prnode;
 
 	
-	string tmp;
+	string tmp, tmp2;
+	unsigned int liCount = 1;
 
 #ifdef TRANSLATE_DEBUG
 printf("CHTML2SS::node loop\n");
@@ -48,15 +58,23 @@ printf("CHTML2SS::node loop\n");
 	for (; it != end; ++it) {
 		if ((!it->isComment())) {
 			if(it->isTag()) {
+
 				prnode = dom.previous_sibling(it);
+				while(prnode != NULL && !prnode->isTag() && (prnode = dom.previous_sibling(prnode)) != NULL && !prnode->isTag()) {} // Get pervious valid sibling
+
 #ifdef TRANSLATE_DEBUG
-				printf("CHTML2SS::prnode = %d\n", prnode->tagName().size());
+				printf("CHTML2SS::it = %s\n", it->tagName().c_str());
+				if(prnode != NULL) printf("CHTML2SS::prnode = %s\n", prnode->tagName().c_str());
 #endif
-				if(prnode != NULL && prnode->tagName().size() < 100) {
+				if(prnode != NULL && prnode->tagName().size() > 0 && prnode->tagName().size() < 100) {
 					tmp = prnode->tagName();
-					if(tmp == "tr" || tmp == "table") {
+					if(tmp == "tr" || tmp == "table" || tmp == "ol" || tmp == "ul") {
 						out.append("\\n");
 					}
+					if(tmp == "ol") {
+						liCount = 1;
+					}
+
 				}
 
 #ifdef TRANSLATE_DEBUG
@@ -84,15 +102,44 @@ printf("CHTML2SS::node loop - parseAttributes\n");
 					}
 				}
 			} else {
+#ifdef TRANSLATE_DEBUG
+printf("CHTML2SS::node loop - text node\n");
+#endif
 				pnode = dom.parent(it);
 				pnode->parseAttributes();
 				tmp = pnode->tagName();
 
 				if(tmp == "style" || tmp == "script") {
 				} else if(tmp == "a") {
-					out.append("\\_a[" + pnode->attribute("href").second + "]" + stripHTMLTags(it->text()) + "\\_a");
+					string href = pnode->attribute("href").second;
+					href = href.substr(0, href.find("#"));
+					if(href.empty() || href.find("javascript:") == 0 ) {
+						out.append(stripHTMLTags(it->text()));
+					} else {
+						if(href.find("//") == 0) { // href="//domain.com/files/file.htm"
+							href= cu->scheme + ":" + pnode->attribute("href").second;
+						} else if(href.find("/") == 0) { // href="/files/file.htm"
+							href= cu->scheme + "://" + cu->domain + pnode->attribute("href").second;
+						} else if(href.find(":") != string::npos) {
+						} else { // href="files/file.htm"
+							href= cu->scheme + "://" + cu->domain + pnode->attribute("href").second;
+						}
+						out.append("\\_a[" + href + "]" + stripHTMLTags(it->text()) + "\\_a");
+					}
 				} else if(tmp == "li") {
-					out.append(" - " + stripHTMLTags(it->text()) + "\\n");
+					gpnode = dom.parent(pnode);
+					if(gpnode != NULL) {
+						gpnode->parseAttributes();
+						tmp2 = gpnode->tagName();
+
+						if(tmp2 == "ol") {
+							out.append(_itoa(liCount++) + ". " + stripHTMLTags(it->text()) + "\\n");
+						} else {
+							out.append("- " + stripHTMLTags(it->text()) + "\\n");
+						}
+					} else {
+						out.append("- " + stripHTMLTags(it->text()) + "\\n");
+					}
 				} else {
 					out.append(stripHTMLTags(it->text()));
 				}
@@ -105,7 +152,8 @@ printf("CHTML2SS::translate before return\n");
 
 	out = replaceAll(out, "\r", "");
 	out = replaceAll(out, "\n", "");
-	out = replaceAll(out, "\\n\\n", "\\n");
+	out = replaceAll(out, "  ", " ");
+	out = replaceAll(out, "\\n\\n\\n", "\\n");
 	wstring wout = SAORI_FUNC::MultiByteToUnicode(out, CP_UTF8);
 	
 	return wout;

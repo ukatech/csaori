@@ -27,6 +27,7 @@ class chttpc_conf {
 		HWND hwnd;
 		bool isStripTag;
 		bool isTranslateTag;
+		bool isNoOutput;
 		chttpc_conf() {
 			url = "";
 			codepage = 0;
@@ -40,6 +41,7 @@ class chttpc_conf {
 			hwnd = 0;
 			isStripTag = false;
 			isTranslateTag = false;
+			isNoOutput = false;
 		}
 };
 
