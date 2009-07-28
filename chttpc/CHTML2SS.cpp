@@ -82,7 +82,10 @@ printf("CHTML2SS::node loop - parseAttributes\n");
 #endif
 				it->parseAttributes();
 				tmp = it->tagName();
-				if(tmp == "img") {
+				if(tmp == "base") {
+					delete cu;
+					cu = new Curl(it->attribute("href").second);
+				} else if(tmp == "img") {
 					tmp = it->attribute("alt").second;
 					if(tmp == "")
 						tmp = it->attribute("src").second;
@@ -112,17 +115,17 @@ printf("CHTML2SS::node loop - text node\n");
 				if(tmp == "style" || tmp == "script") {
 				} else if(tmp == "a") {
 					string href = pnode->attribute("href").second;
-					href = href.substr(0, href.find("#"));
+					href = replaceAll(href.substr(0, href.find("#")),"&amp;","&");
 					if(href.empty() || href.find("javascript:") == 0 ) {
 						out.append(stripHTMLTags(it->text()));
 					} else {
 						if(href.find("//") == 0) { // href="//domain.com/files/file.htm"
-							href= cu->scheme + ":" + pnode->attribute("href").second;
+							href= cu->scheme + ":" + href;
 						} else if(href.find("/") == 0) { // href="/files/file.htm"
-							href= cu->scheme + "://" + cu->domain + pnode->attribute("href").second;
+							href= cu->scheme + "://" + cu->domain + cu->path + href;
 						} else if(href.find(":") != string::npos) {
 						} else { // href="files/file.htm"
-							href= cu->scheme + "://" + cu->domain + pnode->attribute("href").second;
+							href= cu->scheme + "://" + cu->domain + cu->path + href;
 						}
 						out.append("\\_a[" + href + "]" + stripHTMLTags(it->text()) + "\\_a");
 					}
