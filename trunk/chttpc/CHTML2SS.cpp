@@ -156,6 +156,7 @@ printf("CHTML2SS::translate before return\n");
 	out = replaceAll(out, "\r", "");
 	out = replaceAll(out, "\n", "");
 	out = replaceAll(out, "  ", " ");
+	out = replaceAll(out, "\\n ", "\\n");
 	out = replaceAll(out, "\\n\\n\\n", "\\n");
 	wstring wout = SAORI_FUNC::MultiByteToUnicode(out, CP_UTF8);
 	
