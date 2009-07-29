@@ -247,7 +247,7 @@ string CHTML2SS::translateSingleTag(tree<HTML::Node>& top, tree<HTML::Node>::ite
 				} else if(tagname == "input") {
 					tagname = it->attribute("type").second;
 					if(tagname == "button" || tagname == "submit" || tagname == "reset" || tagname == "text" || tagname == "") {
-						str.append("[" + it->attribute("value").second + "]");
+						str.append("\\[" + it->attribute("value").second + "\\]");
 					} else if(tagname == "checkbox") {
 						str.append(it->attribute("checked").first == 1 ? "\\[X\\]" : "\\[ \\]");
 					} else if(tagname == "radio") {
