@@ -22,7 +22,7 @@ Usage:
 
 
 known bug:
-* translate can't translate nested tags correctly (e.g. <li><a>)
+* translate can't translate nested tags correctly (e.g. <li><a>) (shoulde be fixed in beta 1)
 
 Changelog:
 (Please refer to svn log)
@@ -60,7 +60,7 @@ chttpc 是把 整備班的 satoriya project ( http://ms.shillest.net/satoriya.xh
 
 
 已知bug：
-* translate 未能正確處理巢狀標籤 (如 <li><a>)
+* translate 未能正確處理巢狀標籤 (如 <li><a>) (相信在beta 1中已修正)
 
 更新：
 (請參看svn log)
