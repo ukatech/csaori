@@ -1,4 +1,8 @@
 #include <cctype>
+#include <cstring>
+#ifndef _WIN32
+#include <strings.h>
+#endif
 
 //#define DEBUG
 //#include "debug.h"
@@ -6,7 +10,7 @@
 static
 struct literal_tag {
 	int len;
-	char* str;
+	const char* str;
 	int is_cdata;
 }   
 literal_mode_elem[] =
@@ -347,7 +351,7 @@ _Iterator find_next_quote(_Iterator c, _Iterator end, char quote)
 }
 
 template <>
-static inline
+inline
 const char *find_next_quote(const char *c, const char *end, char quote)
 {
 //	std::cerr << "fast find" << std::endl;

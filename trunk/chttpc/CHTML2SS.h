@@ -1,16 +1,25 @@
 #ifndef _CHTML2SS_H
 #define _CHTML2SS_H
 
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 #include <string>
+#include <vector>
+#include <map>
 
+// htmlcxx
+#include "html/ParserDom.h"
+#include "html/utils.h"
+
+// striphtml
+#include "striphtml.h"
+
+#define CHSS_HEAD 1
+#define CHSS_TAIL 2
+
+using namespace htmlcxx;
 using namespace std;
-
-class CHTML2SS {
-public:
-	static wstring translate(wstring& in, string& url);
-private:
-	static string _itoa(unsigned int num);
-};
 
 class Curl {
 public:
@@ -40,6 +49,15 @@ public:
 	string toString() {
 		return scheme + "://" + domain + path + filename + querystring + hash;
 	}
+};
+
+class CHTML2SS {
+public:
+	static wstring translate(wstring& in, string& url);
+private:
+	static string translateSubTree(tree<HTML::Node>& top, tree<HTML::Node>::iterator it, Curl* cu, unsigned int& liCount);
+	static string translateSingleTag(tree<HTML::Node>& top, tree<HTML::Node>::iterator it, Curl* cu, unsigned int& liCount, int translateType);
+	static string _itoa(unsigned int num);
 };
 
 #endif
