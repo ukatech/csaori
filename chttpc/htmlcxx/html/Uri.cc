@@ -2,6 +2,7 @@
 
 #include "wincstring.h"
 #include <strstream>
+#include <cstdlib>
 #include <cassert>
 #include "tld.h"
 

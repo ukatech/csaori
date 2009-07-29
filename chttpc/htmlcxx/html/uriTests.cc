@@ -1,4 +1,5 @@
 #include "Uri.h"
+#include <cstdlib>
 #include <getopt.h>
 #include <string>
 #include <iostream>

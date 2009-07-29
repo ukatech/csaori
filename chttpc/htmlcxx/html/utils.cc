@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 #include <strstream>
 #include "Uri.h"
 
@@ -124,7 +125,7 @@ namespace htmlcxx {
 		}
 
 		static struct {
-			char *str;
+			const char *str;
 			unsigned char chr;
 		} entities[] = {
 			/* 00 */
