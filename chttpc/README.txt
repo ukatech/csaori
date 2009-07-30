@@ -14,6 +14,7 @@ Usage:
   + strip - remove all html tags
   + codepage=<codepage name> - specfiy code page (e.g. big5, x-sjis)
   + save=<filename> - save downloaded content as "filename" (same place as chttpc.dll)
+  + saveUtf8=<filename> - save downloaded content in UTF-8 encoding as "filename" (same place as chttpc.dll)
   + saveParsed=<filename> - save parsed content as "filename"(same place as chttpc.dll)
   + start=<string> and end=<string> - return string between start and end
   + hwnd=<hwnd> and id=<string> - Run the job in background. It will notify through DirectSSTP to hwnd 
@@ -53,6 +54,7 @@ chttpc 是把 整備班的 satoriya project ( http://ms.shillest.net/satoriya.xh
   + strip - 去除html tag
   + codepage=<編碼名稱> - 指定來源編碼 (如: big5、x-sjis)
   + save=<檔名> - 把剛下載的檔案存為「檔名」(與chttpc.dll同位置)
+  + saveUtf8=<檔名> - 把剛下載的檔案以UTF-8編碼存為「檔名」(與chttpc.dll同位置)
   + saveParsed=<檔名> - 把處理好的數據存為「檔名」(與chttpc.dll同位置)
   + start=<字串> 及 end=<字串> - 回傳在 start 和 end 之間字串
   + hwnd=<hwnd> 及 id=<字串> - 背景執行。會經 DirectSSTP 向 hwnd 回傳 OnchttpcNotify (ref0: id, ref1: 回傳值)
