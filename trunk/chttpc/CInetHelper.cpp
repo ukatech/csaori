@@ -8,7 +8,7 @@
 using namespace std;
 // *** Public ***
 
-int CInetHelper::getUrlContent(const char* url, const wchar_t* charset, wstring& out) {
+int CInetHelper::getUrlContent(const char* url, const wchar_t* charset, wstring& out, const wchar_t* saveTo) {
 	string oResult;
 
 #ifdef INET_DEBUG
@@ -63,6 +63,12 @@ printf("CInetHelper::getUrlContent - readdata\n");
 	/* 後処理 */
 	InternetCloseHandle(hFile);
 	InternetCloseHandle(hInternet);
+
+	if(saveTo != NULL) {
+		FILE *fp = _wfopen(saveTo, L"wb");
+		int sz = fwrite(&theData[0], 1, theData.size(), fp);
+		fclose(fp);
+	}
 
 	// 文字列終端。Unicodeの場合を考えて4byte。
 	for (int i=0 ; i<4 ; ++i)

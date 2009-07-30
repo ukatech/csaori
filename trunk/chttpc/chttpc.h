@@ -20,6 +20,7 @@ class chttpc_conf {
 		wstring module_path;
 		wstring charset;
 		wstring saveOrginal;
+		wstring saveUtf8;
 		wstring saveParsed;
 		wstring searchStart;
 		wstring searchEnd;
@@ -34,6 +35,7 @@ class chttpc_conf {
 			module_path = L"";
 			charset = L"";
 			saveOrginal = L"";
+			saveUtf8 = L"";
 			saveParsed = L"";
 			searchStart = L"";
 			searchEnd = L"";

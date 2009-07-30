@@ -20,6 +20,7 @@
 class chttpc_runner {
 	public:
 		static int run(chttpc_conf* cc, wstring& out);
+		static void save(string& str, wstring& filename);
 };
 
 int chttpc_runner::run(chttpc_conf* cc, wstring& out) {
@@ -28,21 +29,21 @@ int chttpc_runner::run(chttpc_conf* cc, wstring& out) {
 #ifdef OPTION_DEBUG
 printf("chttpc_runner::run - start\n");
 #endif
-	int getResult = CInetHelper::getUrlContent(cc->url.c_str(), (!cc->charset.empty() ? cc->charset.c_str() : NULL), nResult);
+	wstring fullpath = cc->module_path + cc->saveOrginal;
+
+	int getResult = CInetHelper::getUrlContent(cc->url.c_str(), (!cc->charset.empty() ? cc->charset.c_str() : NULL), nResult, (!cc->saveOrginal.empty() ? fullpath.c_str() : NULL));
 	if ( getResult == CIH_FAIL ) {
 		out = nResult;
 		return CR_FAIL;
 	}
 
-	if(!cc->saveOrginal.empty()) {
+	if(!cc->saveUtf8.empty()) {
 #ifdef OPTION_DEBUG
-printf("chttpc_runner::run - save\n");
+printf("chttpc_runner::run - saveUtf8\n");
 #endif
 		string aResult = SAORI_FUNC::UnicodeToMultiByte(nResult, CP_UTF8);
-		wstring fullpath = cc->module_path + cc->saveOrginal;
-		FILE *fp = _wfopen(fullpath.c_str(), L"wb");
-		fwrite(aResult.c_str(), 1, strlen(aResult.c_str()), fp);
-		fclose(fp);
+		wstring fullpath = cc->module_path + cc->saveUtf8;
+		save(aResult,fullpath);
 	}
 
 #ifdef OPTION_DEBUG
@@ -77,11 +78,9 @@ printf("chttpc_runner::run - translate\n");
 #ifdef OPTION_DEBUG
 printf("chttpc_runner::run - saveParsed\n");
 #endif
-		string aResult = SAORI_FUNC::UnicodeToMultiByte(nResult, CP_UTF8);
+		string aResult = SAORI_FUNC::UnicodeToMultiByte(nResult, cc->codepage);
 		wstring fullpath = cc->module_path + cc->saveParsed;
-		FILE *fp = _wfopen(fullpath.c_str(), L"wb");
-		fwrite(aResult.c_str(), 1, strlen(aResult.c_str()), fp);
-		fclose(fp);
+		save(aResult,fullpath);
 	}
 	if(!replaced)
 		out = nResult;
@@ -95,6 +94,13 @@ wprintf(L"chttpc_runner result = %s\n", nResult.c_str());
 #endif
 	return CR_OK;
 }
+
+void chttpc_runner::save(string& str, wstring& filename) {
+	FILE *fp = _wfopen(filename.c_str(), L"wb");
+	fwrite(str.c_str(), 1, strlen(str.c_str()), fp);
+	fclose(fp);
+}
+
 
 class chttpcThread : public Thread {
 	chttpc_conf	*m_cc;
@@ -132,33 +138,13 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	if (in.args.size() == 0) {
 		out.result_code = SAORIRESULT_OK;
 		out.result = (CInetHelper::checkInternet()) ? L"1" : L"0";
-	} else if (in.args.size() == 1) {
-		string url = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
-		wstring nResult = L"";
-		int getResult = CInetHelper::getUrlContent(url.c_str(),NULL,nResult);
-		if ( getResult == CIH_FAIL ) {
-			out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
-			out.result = nResult;
-			return;
-		} else {
-			out.result_code = SAORIRESULT_OK;
-			out.result = nResult;
-		}
-	} else if (in.args.size() > 1) {
+	} else {
 		chttpc_conf *cc = new chttpc_conf;
 
 		cc->url = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
 		cc->codepage = in.codepage;
 		cc->module_path = module_path;
-/*		cc->charset = L"";
-		cc->saveTo = L"";
-		cc->searchStart = L"";
-		cc->searchEnd = L"";
-		cc->id = L"";
-		cc->hwnd = 0;
-		cc->isStripTag = false;
-		cc->isTranslateTag = false;
-*/
+
 		UINT idx;
 
 		for(UINT i = 1; i < in.args.size(); i++) {
@@ -172,6 +158,11 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		printf("in save\n");
 #endif
 				cc->saveOrginal = in.args[i].substr(idx + const_strlen(L"save="));
+			} else if((idx = in.args[i].find(L"saveUtf8=")) != string::npos) {
+#ifdef OPTION_DEBUG
+		printf("in saveUtf8\n");
+#endif
+				cc->saveUtf8 = in.args[i].substr(idx + const_strlen(L"saveUtf8="));
 			} else if((idx = in.args[i].find(L"saveParsed=")) != string::npos) {
 #ifdef OPTION_DEBUG
 		printf("in saveParsed\n");
