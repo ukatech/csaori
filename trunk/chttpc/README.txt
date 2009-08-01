@@ -12,13 +12,14 @@ Usage:
  o options afterwards:
   + translate - try to tranlate html to sakura script
   + strip - remove all html tags
-  + codepage=<codepage name> - specfiy code page (e.g. big5, x-sjis)
+  + codepage=<codepage name> - specfiy code page (e.g. big5, x-sjis. 
+              chttpc will detect HTML meta charset by default. 50001 for auto detection.)
   + save=<filename> - save downloaded content as "filename" (same place as chttpc.dll)
-  + saveUtf8=<filename> - save downloaded content in UTF-8 encoding as "filename" (same place as chttpc.dll)
+  + saveUtf8=<filename> - save downloaded content in UTF-8 encoding as "filename" (same place as chttpc.dll, start from b1)
   + saveParsed=<filename> - save parsed content as "filename"(same place as chttpc.dll)
   + start=<string> and end=<string> - return string between start and end
   + hwnd=<hwnd> and id=<string> - Run the job in background. It will notify through DirectSSTP to hwnd 
-                                  using OnchttpcNotify event (ref0: id, ref1: content)
+                                  using OnchttpcNotify event (ref0: id, ref1: content, ref2: url)
   + noOutput - return nothing (start from a2)
 
 
@@ -52,12 +53,12 @@ chttpc 是把 整備班的 satoriya project ( http://ms.shillest.net/satoriya.xh
  o 之後的選項：
   + translate - 嘗試轉換html為sakura script
   + strip - 去除html tag
-  + codepage=<編碼名稱> - 指定來源編碼 (如: big5、x-sjis)
+  + codepage=<編碼名稱> - 指定來源編碼 (如: big5、x-sjis。預設chttpc會偵測HTML編碼。指定50001會自動偵測。)
   + save=<檔名> - 把剛下載的檔案存為「檔名」(與chttpc.dll同位置)
-  + saveUtf8=<檔名> - 把剛下載的檔案以UTF-8編碼存為「檔名」(與chttpc.dll同位置)
+  + saveUtf8=<檔名> - 把剛下載的檔案以UTF-8編碼存為「檔名」(與chttpc.dll同位置，b1新增)
   + saveParsed=<檔名> - 把處理好的數據存為「檔名」(與chttpc.dll同位置)
   + start=<字串> 及 end=<字串> - 回傳在 start 和 end 之間字串
-  + hwnd=<hwnd> 及 id=<字串> - 背景執行。會經 DirectSSTP 向 hwnd 回傳 OnchttpcNotify (ref0: id, ref1: 回傳值)
+  + hwnd=<hwnd> 及 id=<字串> - 背景執行。會經 DirectSSTP 向 hwnd 回傳 OnchttpcNotify (ref0: id, ref1: 回傳值, ref2: 網址)
   + noOutput - 不回傳 (a2新增)
 
 

@@ -72,6 +72,11 @@ namespace htmlcxx {
 						first_space = false;
 						ret[count++] = ' ';
 					}
+					else
+					{
+						ret.resize(ret.size()-1);
+					}
+
 				}
 				else
 				{
