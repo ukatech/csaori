@@ -49,12 +49,19 @@ namespace htmlcxx {
 
 			unsigned int count = 0;
 			bool first_space = true;
+			bool begin_space = false;
+			bool middle_not_space = false;
+			bool end_space = false;
 			const char *ptr = str.c_str();
 
 			string ret(str.length(), ' ');
 			
 			// Skip space at beginning
-			while (isspace(*ptr)) ++ptr;
+			while (isspace(*ptr)) {
+				begin_space = true;
+				ret.resize(ret.size()-1);
+				++ptr;
+			}
 			
 			while (*ptr)
 			{
@@ -68,6 +75,7 @@ namespace htmlcxx {
 				}
 				else
 				{
+					middle_not_space = true;
 					first_space = true;
 					ret[count++] = *ptr;
 				}
@@ -79,11 +87,22 @@ namespace htmlcxx {
 			string::size_type a;
 			a = ret.find_last_not_of(' ', count);
 			if (a != string::npos)
+			{
+				end_space = true;
 				ret.erase(a+1);
+			}
 			else
 			{
-				a = 1;
+				a = 0;
 				ret.erase(a);
+			}
+
+			if (middle_not_space)
+			{
+				if (begin_space)
+					ret = " " + ret;
+				if (end_space)
+					ret.append(" ");
 			}
 
 			return ret;
