@@ -291,10 +291,18 @@ string CHTML2SS::translateSingleTag(tree<HTML::Node>& top, tree<HTML::Node>::ite
 					} else {
 						str.append("- ");
 					}
+				} else if(tagname == "option" ) {
+					str.append(it->attribute("selected").first == 1 ? "** " : "* ");
 				} else if(tagname == "b" || tagname == "strong") {
 					str.append("\\f[bold,1]");
 				} else if(tagname == "i" ) {
 					str.append("\\f[italic,1]");
+				} else if(tagname == "s" || tagname == "strike" || tagname == "del") {
+					str.append("\\f[strike,1]");
+				} else if(tagname == "sub" ) {
+					str.append("\\f[sub,true]");
+				} else if(tagname == "sup" ) {
+					str.append("\\f[sup,true]");
 				}
 
 			} else {
@@ -314,8 +322,8 @@ string CHTML2SS::translateSingleTag(tree<HTML::Node>& top, tree<HTML::Node>::ite
 			if(it->isTag()) {
 				tagname = it->tagName();
 
-				if(tagname == "tr" || tagname == "table" || tagname == "ol" || tagname == "ul" || tagname == "li" || tagname == "h1" || 
-					tagname == "h2" || tagname == "h3" || tagname == "h4" || tagname == "h5" || tagname == "h6" || tagname == "div") {
+				if(tagname == "tr" || tagname == "table" || tagname == "ol" || tagname == "ul" || tagname == "li" || tagname == "h1" || tagname == "h2" || 
+					tagname == "h3" || tagname == "h4" || tagname == "h5" || tagname == "h6" || tagname == "div" || tagname == "option" || tagname == "blockquote" || tagname == "textarea") {
 					str.append("\\n");
 				} else if(tagname == "a") {
 					string href = it->attribute("href").second;
@@ -326,6 +334,12 @@ string CHTML2SS::translateSingleTag(tree<HTML::Node>& top, tree<HTML::Node>::ite
 					str.append("\\f[bold,0]");
 				} else if(tagname == "i" ) {
 					str.append("\\f[italic,0]");
+				} else if(tagname == "s" || tagname == "strike" || tagname == "del") {
+					str.append("\\f[strike,0]");
+				} else if(tagname == "sub" ) {
+					str.append("\\f[sub,false]");
+				} else if(tagname == "sup" ) {
+					str.append("\\f[sup,false]");
 				}
 				if(tagname == "ol") {
 					liCount = 1;

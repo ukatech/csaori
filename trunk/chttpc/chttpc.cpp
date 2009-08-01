@@ -114,6 +114,7 @@ class chttpcThread : public Thread {
 		cd.event = L"OnchttpcNotify";
 		cd.refs.push_back(m_cc->id);	// ref0
 		cd.refs.push_back(result);	// ref1
+		cd.refs.push_back(SAORI_FUNC::MultiByteToUnicode(m_cc->url,CP_UTF8));	// ref2
 		cd.send(cd.toString());
 		delete this;
 		return	0;

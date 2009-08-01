@@ -82,7 +82,7 @@ namespace htmlcxx {
 				ret.erase(a+1);
 			else
 			{
-				a = 0;
+				a = 1;
 				ret.erase(a);
 			}
 
