@@ -4,10 +4,10 @@
 using namespace std;
 
 wstring replaceAll(wstring s, wstring f, wstring r) {
-	unsigned int found = s.find(f);
-	while(found != string::npos) {
+	unsigned int found = 0;
+	while((found = s.find(f, found)) != string::npos) {
 		s.replace(found, f.length(), r);
-		found = s.find(f);
+		found += r.size();
 	}
 	return s;
 }
@@ -32,10 +32,10 @@ wstring stripHTMLTags(wstring s) {
 }
 
 string replaceAll(string s, string f, string r) {
-	unsigned int found = s.find(f);
-	while(found != string::npos) {
+	unsigned int found = 0;
+	while((found = s.find(f, found)) != string::npos) {
 		s.replace(found, f.length(), r);
-		found = s.find(f);
+		found += r.size();
 	}
 	return s;
 }

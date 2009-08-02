@@ -169,6 +169,8 @@ wstring CHTML2SS::translate(wstring& in, string& url) {
 
 	Curl *cu = new Curl(url);
 
+	utf8in = replaceAll(utf8in, "\\", "\\\\");
+
 	HTML::ParserDom parser;
 	tree<HTML::Node> dom = parser.parseTree(utf8in);
   
@@ -257,11 +259,11 @@ string CHTML2SS::translateSingleTag(tree<HTML::Node>& top, tree<HTML::Node>::ite
 				} else if(tagname == "a") {
 					string href = it->attribute("href").second;
 					href = replaceAll(href.substr(0, href.find("#")),"&amp;","&");
-					if(!href.empty() && href.find("javascript:") != 0 ) {
+					if(!href.empty() && href.find("javascript:") == string::npos ) {
 						if(href.find("//") == 0) { // href="//domain.com/files/file.htm"
 							href= cu->scheme + ":" + href;
 						} else if(href.find("/") == 0) { // href="/files/file.htm"
-							href= cu->scheme + "://" + cu->domain + cu->path + href;
+							href= cu->scheme + "://" + cu->domain + href;
 						} else if(href.find(":") != string::npos) {
 						} else { // href="files/file.htm"
 							href= cu->scheme + "://" + cu->domain + cu->path + href;
