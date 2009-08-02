@@ -11,10 +11,6 @@
 
 using namespace std;
 
-#ifdef CHARSET_DEBUG
-# include <stdio.h>
-#endif
-
 bool mlangToUnicode(const wchar_t *charset, string &in, wstring &out)
 {
 	INT inlen = in.size();
@@ -25,10 +21,6 @@ bool mlangToUnicode(const wchar_t *charset, string &in, wstring &out)
 	IMultiLanguage2 *lang = NULL;
 	HRESULT hr = CoCreateInstance(CLSID_CMultiLanguage, NULL,
 		CLSCTX_ALL, IID_IMultiLanguage2, (LPVOID*)&lang);
-
-#ifdef CHARSET_DEBUG
-	printf("mlangToUnicode : in =%s", in.c_str());
-#endif
 
 	//Charset情報取得
 	if(charset != NULL) 
@@ -49,10 +41,6 @@ bool mlangToUnicode(const wchar_t *charset, string &in, wstring &out)
 			codepage = csetinfo.uiInternetEncoding;
 		}
 	}
-
-#ifdef CHARSET_DEBUG
-	printf("Codepage: %d\n",codepage);
-#endif
 
 	//変換後の文字長を取得
 	DWORD pdwMode = 0;
@@ -78,10 +66,6 @@ bool mlangToUnicode(const wchar_t *charset, string &in, wstring &out)
 	if (lang)
 		lang->Release();
 	CoUninitialize();
-
-#ifdef CHARSET_DEBUG
-	wprintf(L"mlangToUnicode : out =%s", out.c_str());
-#endif
 
 	return (SUCCEEDED(hr) ? true : false);
 }

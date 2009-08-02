@@ -86,7 +86,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..;htmlcxx;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;chttpc_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;chttpc_EXPORTS;TRANSLATE=1;"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -108,6 +108,71 @@
 				AdditionalLibraryDirectories="htmlcxx/Release"
 				ProgramDatabaseFile=".\Release/httpc.pdb"
 				ImportLibrary=".\Release/httpc.lib"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release/httpc.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1041"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Lite-Release|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..;htmlcxx;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;chttpc_EXPORTS;TRANSLATE=0;"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile=".\Lite-Release/httpc.pch"
+				AssemblerListingLocation=".\Lite-Release/"
+				ObjectFile=".\Lite-Release/"
+				ProgramDataBaseFileName=".\Lite-Release/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="wininet.lib htmlcxx.lib"
+				OutputFile=".\Lite-Release/chttpc.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="htmlcxx/Release"
+				ProgramDatabaseFile=".\Lite-Release/httpc.pdb"
+				ImportLibrary=".\Lite-Release/httpc.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -163,6 +228,13 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;httpc_EXPORTS"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Lite-Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
 						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;httpc_EXPORTS;$(NoInherit)"/>
 				</FileConfiguration>
 			</File>
@@ -181,6 +253,13 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;httpc_EXPORTS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Lite-Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"

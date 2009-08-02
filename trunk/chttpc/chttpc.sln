@@ -6,6 +6,7 @@ EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
+		Lite-Release = Lite-Release
 		Release = Release
 	EndGlobalSection
 	GlobalSection(ProjectDependencies) = postSolution
@@ -13,6 +14,8 @@ Global
 	GlobalSection(ProjectConfiguration) = postSolution
 		{70AF9D7D-E37D-4880-B738-893495387F33}.Debug.ActiveCfg = Debug|Win32
 		{70AF9D7D-E37D-4880-B738-893495387F33}.Debug.Build.0 = Debug|Win32
+		{70AF9D7D-E37D-4880-B738-893495387F33}.Lite-Release.ActiveCfg = Lite-Release|Win32
+		{70AF9D7D-E37D-4880-B738-893495387F33}.Lite-Release.Build.0 = Lite-Release|Win32
 		{70AF9D7D-E37D-4880-B738-893495387F33}.Release.ActiveCfg = Release|Win32
 		{70AF9D7D-E37D-4880-B738-893495387F33}.Release.Build.0 = Release|Win32
 	EndGlobalSection
