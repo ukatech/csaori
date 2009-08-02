@@ -323,13 +323,15 @@ string CHTML2SS::translateSingleTag(tree<HTML::Node>& top, tree<HTML::Node>::ite
 		if ((!it->isComment())) {
 			if(it->isTag()) {
 				tagname = it->tagName();
+				it->parseAttributes();
 
 				if(tagname == "tr" || tagname == "table" || tagname == "ol" || tagname == "ul" || tagname == "li" || tagname == "h1" || tagname == "h2" || 
 					tagname == "h3" || tagname == "h4" || tagname == "h5" || tagname == "h6" || tagname == "div" || tagname == "option" || tagname == "blockquote" || tagname == "textarea") {
 					str.append("\\n");
 				} else if(tagname == "a") {
 					string href = it->attribute("href").second;
-					if(!href.empty() && href.find("javascript:") != 0 ) {
+					href = href.substr(0, href.find("#"));
+					if(!href.empty() && href.find("javascript:") == string::npos ) {
 						str.append("\\_a");
 					}
 				} else if(tagname == "b" || tagname == "strong") {
