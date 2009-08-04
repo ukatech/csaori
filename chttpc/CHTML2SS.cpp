@@ -35,9 +35,9 @@ wstring CHTML2SS::translate(wstring& in, string& url) {
 
 	out = replaceAll(out, "\r", "");
 	out = replaceAll(out, "\n", "");
-	out = replaceAll(out, "  ", " ");
+	out = overReplaceAll(out, "  ", " ");
 	out = replaceAll(out, "\\n ", "\\n");
-	out = replaceAll(out, "\\n\\n\\n", "\\n");
+	out = overReplaceAll(out, "\\n\\n\\n", "\\n");
 	wstring wout = SAORI_FUNC::MultiByteToUnicode(out, CP_UTF8);
 	
 	return wout;

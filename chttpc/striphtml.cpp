@@ -11,6 +11,16 @@ wstring replaceAll(wstring s, wstring f, wstring r) {
 	}
 	return s;
 }
+
+wstring overReplaceAll(wstring s, wstring f, wstring r) {
+	unsigned int found = s.find(f);
+	while(found != string::npos) {
+		s.replace(found, f.length(), r);
+		found = s.find(f);
+	}
+	return s;
+}
+
 wstring stripHTMLTags(wstring s) {
 	while(true) {
 		unsigned int left = s.find(L"<");
@@ -39,6 +49,16 @@ string replaceAll(string s, string f, string r) {
 	}
 	return s;
 }
+
+string overReplaceAll(string s, string f, string r) {
+	unsigned int found = s.find(f);
+	while(found != string::npos) {
+		s.replace(found, f.length(), r);
+		found = s.find(f);
+	}
+	return s;
+}
+
 string stripHTMLTags(string s) {
 	while(true) {
 		unsigned int left = s.find("<");

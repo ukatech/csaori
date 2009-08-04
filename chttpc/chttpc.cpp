@@ -39,8 +39,7 @@ int chttpc_runner::run(chttpc_conf* cc, wstring& out) {
 	if(!cc->searchStart.empty() && !cc->searchEnd.empty()) {
 		UINT start, end;
 		if((start = nResult.find(cc->searchStart, 0)) != string::npos && (end = nResult.find(cc->searchEnd, start + cc->searchStart.size())) != string::npos) {
-			out = nResult.substr(start + cc->searchStart.size(), end - start - cc->searchStart.size());
-			replaced = true;
+			nResult = nResult.substr(start + cc->searchStart.size(), end - start - cc->searchStart.size());
 		}
 	}
 
@@ -59,11 +58,16 @@ int chttpc_runner::run(chttpc_conf* cc, wstring& out) {
 		wstring fullpath = cc->module_path + cc->saveParsed;
 		save(aResult,fullpath);
 	}
-	if(!replaced)
-		out = nResult;
 
-	if(cc->isNoOutput)
+	if(cc->isNoOutput) {
 		out = L"";
+	} else {
+		nResult = replaceAll(nResult,L"\r\n",L"\\n");
+		nResult = replaceAll(nResult,L"\n",L"\\n");
+		nResult = overReplaceAll(nResult,L"\\n\\n\\n",L"\\n");
+		nResult = overReplaceAll(nResult, L"  ", L" ");
+		out = nResult;
+	}
 
 	return CR_OK;
 }
