@@ -27,7 +27,11 @@ known bug:
 * translate can't translate nested tags correctly (e.g. <li><a>) (shoulde be fixed in beta 1)
 
 Changelog:
-(Please refer to svn log)
+20090804 - Release 2
+           make strip and translate work with start= and end=
+           convert non translated output to one line string
+20090802 - Release 1
+(for logs before Release 1 Please refer to svn log)
 
 Make balloon as a browser! (Make links useful inside balloon)
 code (AYA):
@@ -66,7 +70,11 @@ chttpc 是把 整備班的 satoriya project ( http://ms.shillest.net/satoriya.xh
 * translate 未能正確處理巢狀標籤 (如 <li><a>) (相信在beta 1中已修正)
 
 更新：
-(請參看svn log)
+20090804 - Release 2
+           讓 strip 和 translate 可以跟 start= 和 end= 同時使用
+           轉換不翻譯的輸出為一行字串
+20090802 - Release 1
+(Release 1 前的記錄請參看 svn log)
 
 讓balloon變成瀏覽器! (讓balloon中的連結有效)
 代碼 (文):
