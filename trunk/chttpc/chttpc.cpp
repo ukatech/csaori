@@ -49,7 +49,7 @@ int chttpc_runner::run(chttpc_conf* cc, wstring& out) {
 
 #if TRANSLATE
 	if(cc->isTranslateTag) {
-		nResult = CHTML2SS::translate(nResult,cc->url);
+		nResult = CHTML2SS::translate(nResult,cc->url,cc->stripTags);
 	}
 #endif
 
@@ -148,6 +148,18 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 				cc->isTranslateTag = true;
 			} else if((idx = in.args[i].find(L"noOutput")) != string::npos) {
 				cc->isNoOutput = true;
+			} else if((idx = in.args[i].find(L"removeTags=")) != string::npos) {
+				string tags = SAORI_FUNC::UnicodeToMultiByte(in.args[i].substr(idx + const_strlen(L"removeTags=")));
+				int cutAt;
+				while( (cutAt = tags.find_first_of(",")) != string::npos ) {
+					if(cutAt > 0) {
+						cc->stripTags[tags.substr(0,cutAt)] = true;
+					}
+					tags = tags.substr(cutAt+1);
+				}
+				if(tags.length() > 0) {
+					cc->stripTags[tags] = true;
+				}
 			}
 		}
 

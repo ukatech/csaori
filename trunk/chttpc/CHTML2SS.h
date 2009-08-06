@@ -53,10 +53,10 @@ public:
 
 class CHTML2SS {
 public:
-	static wstring translate(wstring& in, string& url);
+	static wstring translate(wstring& in, string& url, map<string,bool>& stripTags);
 private:
-	static string translateSubTree(tree<HTML::Node>& top, tree<HTML::Node>::iterator it, Curl* cu, unsigned int& liCount);
-	static string translateSingleTag(tree<HTML::Node>& top, tree<HTML::Node>::iterator it, Curl* cu, unsigned int& liCount, int translateType);
+	static string translateSubTree(tree<HTML::Node>& top, tree<HTML::Node>::iterator it, Curl* cu, unsigned int& liCount, map<string,bool>& stripTags);
+	static string translateSingleTag(tree<HTML::Node>& top, tree<HTML::Node>::iterator it, Curl* cu, unsigned int& liCount, map<string,bool>& stripTags, int translateType);
 	static string _itoa(unsigned int num);
 };
 

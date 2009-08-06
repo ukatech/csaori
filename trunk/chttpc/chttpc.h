@@ -29,6 +29,7 @@ class chttpc_conf {
 		bool isStripTag;
 		bool isTranslateTag;
 		bool isNoOutput;
+		map<string,bool> stripTags;
 		chttpc_conf() {
 			url = "";
 			codepage = 0;
