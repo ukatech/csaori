@@ -6,6 +6,8 @@ License: This SAORI is for testing and teaching, anyone can use and modify it fr
 
 1. Update
 Date     Version  Log
+svn               ! change return format to "return code(0x2)[column name[(0x3)column name...]](0x2)[data field[(0x3)data field...]]"
+                    to avoid (0x1) translation
 20090723 1.1.10+  + add back SQLite 3.6.16 source code as SQLite is Public Domain
                   ! Fix: when no filepath is specified, default file name is be "sqlori.db" but not "sqlori._db"
                   ! Fix missing SAORI return status
@@ -64,7 +66,7 @@ SQLori
    
     _ret =  FUNCTIONEX(SQLORI_PATH, _argv[0], _argv[1]);
 
-    _data = SPLIT(_ret[0], CHR(0x1));
+    _data = SPLIT(_ret, CHR(0x2));
     SQLori_result = TOINT(_data[0]);
    
     if SQLori_result != SQLITE_OK {
@@ -75,8 +77,8 @@ SQLori
     }
     else {
         if (ARRAYSIZE(_data) >= 3) {
-            SQLori_fields = SPLIT(_data[1], CHR(0x2));
-            SQLori_values = SPLIT(_data[2], CHR(0x2));
+            SQLori_fields = SPLIT(_data[1], CHR(0x3));
+            SQLori_values = SPLIT(_data[2], CHR(0x3));
             SQLori_col = ARRAYSIZE(SQLori_fields);
             if SQLori_col != 0
                 SQLori_row = ARRAYSIZE(SQLori_values) / SQLori_col;
@@ -148,6 +150,7 @@ SQLori v1.1.10+
 
 1. 更新
 Date     Version  Log
+svn               ! 改變回傳格成為「回傳嗎(0x2)[欄位名稱[(0x3)欄位名稱...]](0x2)[數值[(0x3)數值]]」以避免 (0x1) 轉碼問題
 20090723 1.1.10+  + 補回SQLite 3.6.16的源碼，SQLite是Public Domain的關係一起包進來也沒關係。
                   ! 修正：不指定filepath時，預設資料庫檔名為sqlori.db
                   ! 修正沒有設定 SAORI return status的問題
@@ -208,7 +211,7 @@ SQLori
    
     _ret =  FUNCTIONEX(SQLORI_PATH, _argv[0], _argv[1]);
 
-    _data = SPLIT(_ret[0], CHR(0x1));
+    _data = SPLIT(_ret, CHR(0x2));
     SQLori_result = TOINT(_data[0]);
    
     if SQLori_result != SQLITE_OK {
@@ -219,8 +222,8 @@ SQLori
     }
     else {
         if (ARRAYSIZE(_data) >= 3) {
-            SQLori_fields = SPLIT(_data[1], CHR(0x2));
-            SQLori_values = SPLIT(_data[2], CHR(0x2));
+            SQLori_fields = SPLIT(_data[1], CHR(0x3));
+            SQLori_values = SPLIT(_data[2], CHR(0x3));
             SQLori_col = ARRAYSIZE(SQLori_fields);
             if SQLori_col != 0
                 SQLori_row = ARRAYSIZE(SQLori_values) / SQLori_col;

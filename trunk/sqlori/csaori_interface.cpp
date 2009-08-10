@@ -35,7 +35,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 
 	out.result_code = SAORIRESULT_OK;
-	out.result = SAORI_FUNC::intToString(res) + L"\1" + SAORI_FUNC::MultiByteToUnicode(sql->result(), CP_UTF8);
+	out.result = SAORI_FUNC::intToString(res) + L"\2" + SAORI_FUNC::MultiByteToUnicode(sql->result(), CP_UTF8);
 	
 //	out.result = L"Charset = " + SAORI_FUNC::CHARSETtoString(in.charset);
 //	out.charset = CHARSET_UTF_8;

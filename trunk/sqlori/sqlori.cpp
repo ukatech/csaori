@@ -60,20 +60,20 @@ int Sqlori::callBack(void *callee, int size, char **values, char **fields)
 	if (result.empty()) {
 		result += fields[0];
 		for (int i = 1; i < size; i++) {
-			result += "\2";
+			result += "\3";
 			result += fields[i];
 		}
-		result += "\1";
+		result += "\2";
 
 		result += values[0];
 		for (int i = 1; i < size; i++) {
-			result += "\2";
+			result += "\3";
 			result += values[i];
 		}
 	}
 	else {
 		for (int i = 0; i < size; i++) {
-			result += "\2";
+			result += "\3";
 			result += values[i];
 		}
 	}
