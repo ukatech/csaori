@@ -6,7 +6,7 @@ License: This SAORI is for testing and teaching, anyone can use and modify it fr
 
 1. Update
 Date     Version  Log
-svn               ! change return format to "return code(0x2)[column name[(0x3)column name...]](0x2)[data field[(0x3)data field...]]"
+20090810 1.2.13   ! change return format to "return code(0x2)[column name[(0x3)column name...]](0x2)[data field[(0x3)data field...]]"
                     to avoid (0x1) translation
 20090723 1.1.10+  + add back SQLite 3.6.16 source code as SQLite is Public Domain
                   ! Fix: when no filepath is specified, default file name is be "sqlori.db" but not "sqlori._db"
@@ -150,7 +150,7 @@ SQLori v1.1.10+
 
 1. 更新
 Date     Version  Log
-svn               ! 改變回傳格成為「回傳嗎(0x2)[欄位名稱[(0x3)欄位名稱...]](0x2)[數值[(0x3)數值]]」以避免 (0x1) 轉碼問題
+20090810 1.2.13   ! 改變回傳格成為「回傳嗎(0x2)[欄位名稱[(0x3)欄位名稱…]](0x2)[數值[(0x3)數值…]]」以避免 (0x1) 轉碼問題
 20090723 1.1.10+  + 補回SQLite 3.6.16的源碼，SQLite是Public Domain的關係一起包進來也沒關係。
                   ! 修正：不指定filepath時，預設資料庫檔名為sqlori.db
                   ! 修正沒有設定 SAORI return status的問題
