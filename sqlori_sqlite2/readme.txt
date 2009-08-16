@@ -1,31 +1,18 @@
 ﻿[en.US_UTF-8 (English)]
-Simple SQLite3 database SAORI - sqlori
+Simple SQLite2 database SAORI - sqlori-sqlite2 (debeso.dll db compatible ported from sqlori 1.2.13)
 SQLori v1.2.13
 Author: 時原砂, Roy
 License: This SAORI is for testing and teaching, anyone can use and modify it freely.
 
 1. Update
 Date     Version  Log
-svn               + Add SQLITE_VERSION command
-                  ! update SQLite to 3.6.17
-20090810 1.2.13   ! change return format to "return code(0x2)[column name[(0x3)column name...]](0x2)[data field[(0x3)data field...]]"
-                    to avoid (0x1) translation
-20090723 1.1.10+  + add back SQLite 3.6.16 source code as SQLite is Public Domain
-                  ! Fix: when no filepath is specified, default file name is be "sqlori.db" but not "sqlori._db"
-                  ! Fix missing SAORI return status
-                  ! move real CSAORI implementation from csaori.cpp/caori.h to csaori_interface.cpp for easier update of CSAORI
-                  ! update CSAORI to svn rev 88
-20090723 1.1.10   ! remove GET_TABLE command, integrated into EXEC command
-                  ! add OPEN and CLOSE command for opening database from other file name
-                  * Fix demo code
-                  * Support UTF-8
-20090720 1.0.0    # Initial release
+20090816 1.2.13   # Initial release, ported from sqlori 1.2.13 with SQLite 2.8.17
 
 2. Introduction
 In simple words, SQLite + CSAORI = SQLori.
 
 SQLori is a very simple, but it is far better than the old SAORI debeso.dll.
-Using SQLite 3.6.17
+Using SQLite 2.8.17
 For simple coding, SQLori doesn't use Value[n].
 
 3. Commands
@@ -44,8 +31,6 @@ Execute SQLite statements.
 
 (3) CLOSE
 argument[0]: CLOSE
-
-Close database file.
 
 (4) SQLITE_VERSION
 argument[0]: SQLITE_VERSION
@@ -152,26 +137,14 @@ UnitTest
 (End of en.US_UTF-8 Readme)
 
 [zh.TW_UTF-8 (正體中文)]
-簡易資料庫SAORI - sqlori
+簡易SQLite 2資料庫SAORI - sqlori-sqlite2 (兼容debeso.dll資料庫)
 SQLori v1.2.13
 作者：時原砂、Roy
 授權：這個SAORI純為測試與教學之用，其他人可隨意使用或修改此原始碼
 
 1. 更新
 Date     Version  Log
-svn               + 加入 SQLITE_VERSION 指令
-                  ! 更新 SQLite 至 3.6.17
-20090810 1.2.13   ! 改變回傳格成為「回傳嗎(0x2)[欄位名稱[(0x3)欄位名稱…]](0x2)[數值[(0x3)數值…]]」以避免 (0x1) 轉碼問題
-20090723 1.1.10+  + 補回SQLite 3.6.16的源碼，SQLite是Public Domain的關係一起包進來也沒關係。
-                  ! 修正：不指定filepath時，預設資料庫檔名為sqlori.db
-                  ! 修正沒有設定 SAORI return status的問題
-                  ! 有關 CSAORI 執行實體自csaori.cpp/caori.h中抽出成csaori_interface.cpp，使 CSAORI 可以獨立更新
-                  ! 更新 CSAORI 至 svn rev 88
-20090723 1.1.10   ! 刪除GET_TABLE指令，其功能整合至EXEC之中
-                  ! 追加OPEN、CLOSE指令，允許讀取指定的資料庫檔案
-                  * 修正範例程式碼
-                  * 支援UTF-8
-20090720 1.0.0    # 初版發佈
+20090816 1.2.13   # 初版發佈，修改自 sqlori 1.2.13，使用SQLite 2.8.17
 
 2. 說明
 
@@ -179,7 +152,7 @@ svn               + 加入 SQLITE_VERSION 指令
 
 SQLori在功能上極為陽春
 不過絕對比debeso.dll這個N年前的SAORI好的多...XD
-使用sqlite版本為3.6.16
+使用sqlite版本為2.8.17
 為求簡便，只返回單一返值而不使用Value[n]格式
 
 3. 指令

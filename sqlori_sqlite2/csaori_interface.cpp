@@ -1,5 +1,5 @@
 #include "csaori.h"
-#include "sqlite3.h"
+#include "sqlite.h"
 #include "sqlori.h"
 
 static Sqlori *sql;
@@ -19,10 +19,10 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 	if (in.args[0] == L"OPEN") {
 		if (in.args.size() == 1) {
-			res = sql->open(SAORI_FUNC::UnicodeToMultiByte(module_path + L"sqlori.db", CP_UTF8));
+			res = sql->open(SAORI_FUNC::UnicodeToMultiByte(module_path + L"sqlori.db", CP_ACP));
 		}
 		else {
-			res = sql->open(SAORI_FUNC::UnicodeToMultiByte(module_path + in.args[1], CP_UTF8));
+			res = sql->open(SAORI_FUNC::UnicodeToMultiByte(module_path + in.args[1], CP_ACP));
 		}
 	}
 	else if (in.args[0] == L"EXEC") {
@@ -35,7 +35,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 	else if (in.args[0] == L"SQLITE_VERSION") {
 		out.result_code = SAORIRESULT_OK;
-		out.result = SAORI_FUNC::intToString(SQLITE_OK) + L"\2Version\2" + SAORI_FUNC::MultiByteToUnicode(sqlite3_libversion(), CP_UTF8);
+		out.result = SAORI_FUNC::intToString(SQLITE_OK) + L"\2Version\2" + SAORI_FUNC::MultiByteToUnicode(sqlite_libversion(), CP_UTF8);
 		return;
 	}
 
