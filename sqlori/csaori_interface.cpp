@@ -53,6 +53,7 @@ bool CSAORI::load()
 bool CSAORI::unload()
 {
 	sql->close();
+	delete sql;
 	return true;
 }
 

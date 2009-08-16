@@ -93,6 +93,7 @@ class chttpcThread : public Thread {
 		cd.refs.push_back(result);	// ref1
 		cd.refs.push_back(SAORI_FUNC::MultiByteToUnicode(m_cc->url,CP_UTF8));	// ref2
 		cd.send(cd.toString());
+		delete m_cc;
 		delete this;
 		return	0;
 	}
@@ -169,6 +170,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		} else {
 			wstring result;
 			int crresult = chttpc_runner::run(cc, result);
+			delete cc;
 			out.result_code = crresult ? SAORIRESULT_INTERNAL_SERVER_ERROR : SAORIRESULT_OK;
 			out.result = result;
 		}

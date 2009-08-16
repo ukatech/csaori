@@ -6,9 +6,11 @@ using namespace htmlcxx;
 using namespace std;
 
 string CHTML2SS::_itoa(unsigned int num) {
+	string aStr;
 	char tmptxt[32];
 	sprintf(tmptxt,"%d",num);
-	return *(new string(tmptxt));
+	aStr = tmptxt;
+	return aStr;
 }
 
 wstring CHTML2SS::translate(wstring& in, string& url, map<string,bool>& stripTags) {
@@ -39,6 +41,8 @@ wstring CHTML2SS::translate(wstring& in, string& url, map<string,bool>& stripTag
 	out = replaceAll(out, "\\n ", "\\n");
 	out = overReplaceAll(out, "\\n\\n\\n", "\\n");
 	wstring wout = SAORI_FUNC::MultiByteToUnicode(out, CP_UTF8);
+
+	delete cu;
 	
 	return wout;
 }
