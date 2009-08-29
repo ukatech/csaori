@@ -1,4 +1,4 @@
-[en.US_UTF-8 (English)]
+﻿[en.US_UTF-8 (English)]
 
 chttpc is a rewrite of httpc SAORI of The Maintenance Shop's satoriya project ( http://ms.shillest.net/satoriya.xhtml )
 by using CSAORI framework. There is part of httpc source code(e.g. Thread class), and htmlcxx ( http://htmlcxx.sf.net/ )
@@ -20,14 +20,17 @@ Usage:
   + start=<string> and end=<string> - return string between start and end
   + hwnd=<hwnd> and id=<string> - Run the job in background. It will notify through DirectSSTP to hwnd 
                                   using OnchttpcNotify event (ref0: id, ref1: content, ref2: url)
-  + noOutput - return nothing (start from a2)
-  + removeTags=<tag>[,<tag>]  - remove listed html tags from translation (< and > are not needed, e.g. removeTags=a,img)
+  + noOutput - return nothing (since a2)
+  + removeTags=<tag>[,<tag>]  - remove listed html tags from translation (< and > are not needed, e.g. removeTags=a,img) (since r3)
+  + multiSearch - make multiple start/end search, results separated with 0x2 (since r4)
 
 
 known bug:
 * translate can't translate nested tags correctly (e.g. <li><a>) (shoulde be fixed in beta 1)
 
 Changelog:
+20090829 - Release 4
+           add multiSearch option
 20090806 - Release 3
            add removeTags option
 20090804 - Release 2
@@ -67,13 +70,16 @@ chttpc 是把 整備班的 satoriya project ( http://ms.shillest.net/satoriya.xh
   + start=<字串> 及 end=<字串> - 回傳在 start 和 end 之間字串
   + hwnd=<hwnd> 及 id=<字串> - 背景執行。會經 DirectSSTP 向 hwnd 回傳 OnchttpcNotify (ref0: id, ref1: 回傳值, ref2: 網址)
   + noOutput - 不回傳 (a2新增)
-  + removeTags=<標籤>[,<標籤>]  - 不轉換列出的html標籤(不需要填 < 和 > ，例如 removeTags=a,img)
+  + removeTags=<標籤>[,<標籤>]  - 不轉換列出的html標籤(不需要填 < 和 > ，例如 removeTags=a,img) (r3新增)
+  + multiSearch - 進行多次 start/end 搜尋, 回傳結果以 0x2 分隔 (r4新增)
 
 
 已知bug：
 * translate 未能正確處理巢狀標籤 (如 <li><a>) (相信在beta 1中已修正)
 
 更新：
+20090829 - Release 4
+           增加 multiSearch 選項
 20090806 - Release 3
            增加 removeTags 選項
 20090804 - Release 2
