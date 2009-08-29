@@ -136,6 +136,9 @@
 == Release 3 20090806 ==
  * add removeTags option
 
+== Release 4 20090829 ==
+ * add multiSearch option
+
 ----
 = SQLori-SQLite2 =
 
