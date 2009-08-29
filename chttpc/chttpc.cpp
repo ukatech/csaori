@@ -38,8 +38,18 @@ int chttpc_runner::run(chttpc_conf* cc, wstring& out) {
 
 	if(!cc->searchStart.empty() && !cc->searchEnd.empty()) {
 		UINT start, end;
-		if((start = nResult.find(cc->searchStart, 0)) != string::npos && (end = nResult.find(cc->searchEnd, start + cc->searchStart.size())) != string::npos) {
-			nResult = nResult.substr(start + cc->searchStart.size(), end - start - cc->searchStart.size());
+		if(!cc->isMultiSearch) {
+			if((start = nResult.find(cc->searchStart, 0)) != string::npos && (end = nResult.find(cc->searchEnd, start + cc->searchStart.size())) != string::npos) {
+				nResult = nResult.substr(start + cc->searchStart.size(), end - start - cc->searchStart.size());
+			}
+		} else {
+			wstring mResult = L"";
+			start = 0;
+			while((start = nResult.find(cc->searchStart, start)) != string::npos && (end = nResult.find(cc->searchEnd, start + cc->searchStart.size())) != string::npos) {
+				mResult += nResult.substr(start + cc->searchStart.size(), end - start - cc->searchStart.size()) + L"\2";
+				start++;
+			}
+			nResult = mResult;
 		}
 	}
 
@@ -145,6 +155,8 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 				cc->hwnd = reinterpret_cast<HWND>(_wtol(in.args[i].substr(idx + const_strlen(L"hwnd=")).c_str()));
 			} else if((idx = in.args[i].find(L"strip")) != string::npos) {
 				cc->isStripTag = true;
+			} else if((idx = in.args[i].find(L"multiSearch")) != string::npos) {
+				cc->isMultiSearch = true;
 			} else if((idx = in.args[i].find(L"translate")) != string::npos) {
 				cc->isTranslateTag = true;
 			} else if((idx = in.args[i].find(L"noOutput")) != string::npos) {
