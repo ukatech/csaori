@@ -97,9 +97,12 @@ typedef struct CPUID_80000001_ValuesInECX
 	unsigned int	iSSE4A : 1;
 	unsigned int	imSSE : 1;
 	unsigned int	iPREFETCH : 1;
-	unsigned int	Reserved_9 : 3;
+	unsigned int	iOSVW : 1;
+	unsigned int	iIBS : 1;
+	unsigned int	iSSE5 : 1;
 	unsigned int	iSKINIT : 1;
-	unsigned int	Reserved_13 : 19;
+	unsigned int	iWDT : 1;
+	unsigned int	Reserved_14 : 18;
 } CPUID_80000001_ECX_t;
 
 typedef struct CPUID_80000001_ValuesInEDX
@@ -130,7 +133,7 @@ typedef struct CPUID_80000001_ValuesInEDX
 	unsigned int	iMMX : 1;
 	unsigned int	iFXSR: 1;
 	unsigned int	iFFXSR : 1;
-	unsigned int	Reserved_26: 1;
+	unsigned int	iPg1GB: 1;
 	unsigned int	iRDTSCP  : 1;
 	unsigned int	Reserved_28 : 1;
 	unsigned int	iLM  : 1;
@@ -138,17 +141,45 @@ typedef struct CPUID_80000001_ValuesInEDX
 	unsigned int	i3DN : 1;
 } CPUID_80000001_EDX_t;
 
+typedef struct CPUID_80000005_ValuesInECX
+{
+	unsigned int	Reserved_0 : 24;
+	unsigned int	iL1ICSize : 8;
+} CPUID_80000005_ECX_t;
+
+typedef struct CPUID_80000005_ValuesInEDX
+{
+	unsigned int	Reserved_0 : 24;
+	unsigned int	iL1DCSize : 8;
+} CPUID_80000005_EDX_t;
+
+typedef struct CPUID_80000006_ValuesInECX
+{
+	unsigned int	Reserved_0 : 16;
+	unsigned int	iL2Size : 16;
+} CPUID_80000006_ECX_t;
+
+typedef struct CPUID_80000006_ValuesInEDX
+{
+	unsigned int	Reserved_0 : 18;
+	unsigned int	iL3Size : 14;
+} CPUID_80000006_EDX_t;
+
 extern	int		iCPUFlagsLoaded;
 extern	CPUID_01_EAX_t	uBasicFlags;
 extern	CPUID_01_ECX_t	uExtFlags;
 extern	CPUID_01_EDX_t	uExt2Flags;
 extern	CPUID_80000001_ECX_t	u8ExtFlags;
 extern	CPUID_80000001_EDX_t	u8Ext2Flags;
+extern	CPUID_80000005_ECX_t	uL1ICSize;
+extern	CPUID_80000005_EDX_t	uL1DCSize;
+extern	CPUID_80000006_ECX_t	uL2Size;
+extern	CPUID_80000006_EDX_t	uL3Size;
 extern	char		sCPUBranding[65];
 extern	char		sCPUVendor[16];
 
 int identifyCPU();
 ULONGLONG GetCycleCount();
-DWORD GetCPUSpeed(int interval);
+float GetCPUSpeed(int interval);
 
 #endif /* __CPUINFO_H */
