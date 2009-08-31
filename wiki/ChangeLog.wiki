@@ -144,3 +144,13 @@
 
 == Version 1.2.13 20090816 ==
  * Initial release, ported from sqlori 1.2.13 with SQLite 2.8.17 (roytam)
+
+----
+= CCPUID =
+
+== Release 1 20090830 ==
+ * Initial Version (roytam)
+
+== Release 2 20090831 ==
+ * add "cpu.cache" function
+ * fix cpu.clockex always return with ".000" ending problem
