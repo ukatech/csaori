@@ -194,7 +194,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			if( uExtFlags.iSSE41  ) out.result.append(L"SSE4.1 ");	// Streaming SIMD Extensions 4.1 present
 			if( uExtFlags.iSSE42  ) out.result.append(L"SSE4.2 ");	// Streaming SIMD Extensions 4.2 present
 			if( u8ExtFlags.iSSE4A ) out.result.append(L"SSE4A ");	// Streaming SIMD Extensions 4A present
-			if( u8ExtFlags.imSSE ) out.result.append(L"M-SSE ");	// Misaligned SSE
+			if( u8ExtFlags.imSSE ) out.result.append(L"maSSE ");	// Misaligned SSE
 			if( u8Ext2Flags.i3DN ) out.result.append(L"3DNow! ");	// 3DNow!
 			if( u8Ext2Flags.i3DNEx ) out.result.append(L"3DNow!+ ");	// 3DNow!+
 			if( u8Ext2Flags.iMMXEx ) out.result.append(L"MMX+ ");	// MMX+
@@ -208,15 +208,24 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			if( uExtFlags.iEST ) out.result.append(L"EST ");	// Enhanced SpeedStep
 			if( uExtFlags.iCID ) out.result.append(L"CID ");	// Context-ID
 			if( uExtFlags.iVMX ) out.result.append(L"VMX ");	// Virtual Machine Extensions
-			if( u8Ext2Flags.iLM ) out.result.append(L"EMT64 ");	// 64-bit technology
+			if( u8ExtFlags.iSVM ) out.result.append(L"SVM ");	// LAHF
+			if( u8Ext2Flags.iLM ) out.result.append(L"x86-64 ");	// 64-bit technology
 			if( u8Ext2Flags.iNX ) out.result.append(L"NX ");	// No Execute
 			if( u8ExtFlags.iLAHF ) out.result.append(L"LAHF ");	// LAHF
+		}
+		else if (in.args[0] == L"cpu.cache") {
+			char tmptxt[30];
+			string outtxt;
+			sprintf(tmptxt,"%d %d %d %d",uL1DCSize.iL1DCSize,uL1ICSize.iL1ICSize,uL2Size.iL2Size,uL3Size.iL3Size);
+			outtxt = tmptxt;
+			out.result_code = SAORIRESULT_OK;
+			out.result = SAORI_FUNC::MultiByteToUnicode(outtxt);
 		}
 		// CPU Speed
 		else if (in.args[0] == L"cpu.clock") {
 			char tmptxt[10];
 			string outtxt;
-			sprintf(tmptxt,"%d",GetCPUSpeed(100));
+			sprintf(tmptxt,"%d",(int)GetCPUSpeed(100));
 			outtxt = tmptxt;
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(outtxt);
@@ -224,7 +233,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		else if (in.args[0] == L"cpu.clockex") {
 			char tmptxt[10];
 			string outtxt;
-			sprintf(tmptxt,"%.3f",(float)GetCPUSpeed(1000));
+			sprintf(tmptxt,"%.3f",GetCPUSpeed(250));
 			outtxt = tmptxt;
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(outtxt);

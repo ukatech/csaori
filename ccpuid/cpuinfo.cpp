@@ -28,13 +28,16 @@ CPUID_01_ECX_t	uExtFlags;
 CPUID_01_EDX_t	uExt2Flags;
 CPUID_80000001_ECX_t	u8ExtFlags;
 CPUID_80000001_EDX_t	u8Ext2Flags;
+CPUID_80000005_ECX_t	uL1ICSize;
+CPUID_80000005_EDX_t	uL1DCSize;
+CPUID_80000006_ECX_t	uL2Size;
+CPUID_80000006_EDX_t	uL3Size;
 char		sCPUBranding[65];
 char		sCPUVendor[16];
 
 int identifyCPU()
 {
-	unsigned long *uBrand = (unsigned long *)sCPUBranding;
-	unsigned long u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11;
+	unsigned long uHighestCPUID;
 
 	iCPUFlagsLoaded = 1;
 	memset(sCPUBranding,0,65);
@@ -46,6 +49,9 @@ int identifyCPU()
 		mov     DWORD PTR [sCPUVendor+0],ebx  // Stash the manufacturer string for later
 		mov     DWORD PTR [sCPUVendor+4],edx
 		mov     DWORD PTR [sCPUVendor+8],ecx
+		mov      eax, 80000000h
+		cpuid
+		mov     uHighestCPUID,eax             // Get highest extended CPUID number
 	}
 
 	_asm {
@@ -63,35 +69,41 @@ int identifyCPU()
 	_asm {
 		mov eax, 80000002h
 		cpuid
-		mov u0,eax
-		mov u1,ebx
-		mov u2,ecx
-		mov u3,edx
+		mov DWORD PTR [sCPUBranding+ 0],eax
+		mov DWORD PTR [sCPUBranding+ 4],ebx
+		mov DWORD PTR [sCPUBranding+ 8],ecx
+		mov DWORD PTR [sCPUBranding+12],edx
 		mov eax, 80000003h
 		cpuid
-		mov u4,eax
-		mov u5,ebx
-		mov u6,ecx
-		mov u7,edx
+		mov DWORD PTR [sCPUBranding+16],eax
+		mov DWORD PTR [sCPUBranding+20],ebx
+		mov DWORD PTR [sCPUBranding+24],ecx
+		mov DWORD PTR [sCPUBranding+28],edx
 		mov eax, 80000004h
 		cpuid
-		mov u8,eax
-		mov u9,ebx
-		mov u10,ecx
-		mov u11,edx
+		mov DWORD PTR [sCPUBranding+32],eax
+		mov DWORD PTR [sCPUBranding+36],ebx
+		mov DWORD PTR [sCPUBranding+40],ecx
+		mov DWORD PTR [sCPUBranding+44],edx
 	}
-	uBrand[0] = u0;
-	uBrand[1] = u1;
-	uBrand[2] = u2;
-	uBrand[3] = u3;
-	uBrand[4] = u4;
-	uBrand[5] = u5;
-	uBrand[6] = u6;
-	uBrand[7] = u7;
-	uBrand[8] = u8;
-	uBrand[9] = u9;
-	uBrand[10] = u10;
-	uBrand[11] = u11;
+	
+	if(uHighestCPUID >= 0x80000005) {
+		_asm {
+			mov	eax, 80000005h
+			cpuid
+			mov	uL1ICSize,ecx
+			mov	uL1DCSize,edx
+		}
+	}
+
+	if(uHighestCPUID >= 0x80000006) {
+		_asm {
+			mov	eax, 80000006h
+			cpuid
+			mov	uL2Size,ecx
+			mov	uL3Size,edx
+		}
+	}
 
 	return(0);
 }
@@ -162,13 +174,13 @@ _declspec(naked) ULONGLONG GetCycleCount()
     _asm ret;
 }
 
-DWORD GetCPUSpeed(int interval)
+float GetCPUSpeed(int interval)
 {
     ULONGLONG ullStart, ullStop;
     ullStart = GetCycleCount();
     Sleep(interval);
     ullStop = GetCycleCount();
-    return (DWORD)((ullStop - ullStart) / (1000 * interval));
+    return ((ullStop - ullStart) / (1000.0f * interval));
 }
 
 /* CPU Speed main()
