@@ -154,3 +154,7 @@
 == Release 2 20090831 ==
  * add "cpu.cache" function
  * fix cpu.clockex always return with ".000" ending problem
+
+== Release 3 20090903 ==
+ * add fallback when branding can't be retrieved from CPUID
+ * fix: don't try to retrieve CPUID information which is higher than reported highest CPUID
