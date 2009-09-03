@@ -60,31 +60,154 @@ int identifyCPU()
 		mov	uBasicFlags,eax
 		mov	uExtFlags,ecx
 		mov	uExt2Flags,edx
-		mov eax, 80000001h
-		cpuid
-		mov	u8ExtFlags,ecx
-		mov	u8Ext2Flags,edx
 	}
 
-	_asm {
-		mov eax, 80000002h
-		cpuid
-		mov DWORD PTR [sCPUBranding+ 0],eax
-		mov DWORD PTR [sCPUBranding+ 4],ebx
-		mov DWORD PTR [sCPUBranding+ 8],ecx
-		mov DWORD PTR [sCPUBranding+12],edx
-		mov eax, 80000003h
-		cpuid
-		mov DWORD PTR [sCPUBranding+16],eax
-		mov DWORD PTR [sCPUBranding+20],ebx
-		mov DWORD PTR [sCPUBranding+24],ecx
-		mov DWORD PTR [sCPUBranding+28],edx
-		mov eax, 80000004h
-		cpuid
-		mov DWORD PTR [sCPUBranding+32],eax
-		mov DWORD PTR [sCPUBranding+36],ebx
-		mov DWORD PTR [sCPUBranding+40],ecx
-		mov DWORD PTR [sCPUBranding+44],edx
+	if(uHighestCPUID >= 0x80000001) {
+		_asm {
+			mov	eax, 80000001h
+			cpuid
+			mov	u8ExtFlags,ecx
+			mov	u8Ext2Flags,edx
+		}
+	}
+	
+	if(uHighestCPUID >= 0x80000004) {
+		_asm {
+			mov eax, 80000002h
+			cpuid
+			mov DWORD PTR [sCPUBranding+ 0],eax
+			mov DWORD PTR [sCPUBranding+ 4],ebx
+			mov DWORD PTR [sCPUBranding+ 8],ecx
+			mov DWORD PTR [sCPUBranding+12],edx
+			mov eax, 80000003h
+			cpuid
+			mov DWORD PTR [sCPUBranding+16],eax
+			mov DWORD PTR [sCPUBranding+20],ebx
+			mov DWORD PTR [sCPUBranding+24],ecx
+			mov DWORD PTR [sCPUBranding+28],edx
+			mov eax, 80000004h
+			cpuid
+			mov DWORD PTR [sCPUBranding+32],eax
+			mov DWORD PTR [sCPUBranding+36],ebx
+			mov DWORD PTR [sCPUBranding+40],ecx
+			mov DWORD PTR [sCPUBranding+44],edx
+		}
+	}
+	else {
+		if(*sCPUVendor) {
+			if (!strncmp("AuthenticAMD", sCPUVendor, 12)) {
+				switch (uBasicFlags.iFamilyID) { // extract family code
+					case 4: // Am486/AM5x86
+						strcpy (sCPUBranding, "AMD Am486");
+						break;
+
+					case 5: // K6
+						switch (uBasicFlags.iModelID) {// extract model code
+							case 0:
+							case 1:
+							case 2:
+							case 3:
+								strcpy (sCPUBranding, "AMD K5");
+								break;
+							case 6:
+							case 7:
+								strcpy (sCPUBranding, "AMD K6");
+								break;
+							case 8:
+								strcpy (sCPUBranding, "AMD K6-2");
+								break;
+							case 9:
+							case 10:
+							case 11:
+							case 12:
+							case 13:
+							case 14:
+							case 15:
+								strcpy (sCPUBranding, "AMD K6-3");
+								break;
+						}
+						break;
+
+					case 6: // Athlon
+						// No model numbers are currently defined
+						strcpy (sCPUBranding, "AMD Athlon");
+						break;
+				}
+			}
+			else if (!strncmp("GenuineIntel", sCPUVendor, 12)) {
+				switch (uBasicFlags.iFamilyID) { // extract family code
+					case 4:
+						switch (uBasicFlags.iModelID) { // extract model code
+							case 0:
+							case 1:
+								strcpy (sCPUBranding, "INTEL 486DX");
+								break;
+							case 2:
+								strcpy (sCPUBranding, "INTEL 486SX");
+								break;
+							case 3:
+								strcpy (sCPUBranding, "INTEL 486DX2");
+								break;
+							case 4:
+								strcpy (sCPUBranding, "INTEL 486SL");
+								break;
+							case 5:
+								strcpy (sCPUBranding, "INTEL 486SX2");
+								break;
+							case 7:
+								strcpy (sCPUBranding, "INTEL 486DX2E");
+								break;
+							case 8:
+								strcpy (sCPUBranding, "INTEL 486DX4");
+								break;
+						}
+						break;
+
+					case 5:
+						switch (uBasicFlags.iModelID) { // extract model code
+							case 1:
+							case 2:
+							case 3:
+								strcpy (sCPUBranding, "INTEL Pentium");
+								break;
+							case 4:
+								strcpy (sCPUBranding, "INTEL Pentium-MMX");
+								break;
+						}
+						break;
+
+					case 6:
+						switch (uBasicFlags.iModelID) { // extract model code
+							case 1:
+								strcpy (sCPUBranding, "INTEL Pentium-Pro");
+								break;
+							case 3:
+							case 5:
+								strcpy (sCPUBranding, "INTEL Pentium-II");
+								break;  // actual differentiation depends on cache settings
+							case 6:
+								strcpy (sCPUBranding, "INTEL Celeron");
+								break;
+							case 7:
+							case 8:
+							case 10:
+								strcpy (sCPUBranding, "INTEL Pentium-III");
+								break;  // actual differentiation depends on cache settings
+						}
+						break;
+
+					case 15: // family 15, extended family 0x00
+						if(uBasicFlags.iExtendedFamilyID<<4 == 0) {
+							switch (uBasicFlags.iModelID) {
+								case 0:
+									strcpy (sCPUBranding, "INTEL Pentium-4");
+									break;
+							}
+						}
+						break;
+				}
+			}
+		}
 	}
 	
 	if(uHighestCPUID >= 0x80000005) {

@@ -70,6 +70,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 		else {
 			out.result_code = SAORIRESULT_BAD_REQUEST;
+			out.result = L"param error";
 		}
 	}
 	else if (in.args[0].find(L"os.") != string::npos) {
@@ -90,6 +91,10 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		else if (in.args[0] == L"os.build") {
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(osbuild);
+		}
+		else {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
+			out.result = L"param error";
 		}
 	}
 	else if (in.args[0].find(L"cpu.") != string::npos) {
@@ -238,7 +243,16 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(outtxt);
 		}
+		else {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
+			out.result = L"param error";
+		}
 	}
+	else {
+		out.result_code = SAORIRESULT_BAD_REQUEST;
+		out.result = L"param error";
+	}
+
 }
 
 bool CSAORI::load()
