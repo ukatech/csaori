@@ -9,6 +9,9 @@ cpu.features - list all CCPUID known CPU features (short name) with space separa
 cpu.cache - return CPU caches sizes in KB with space separated, format: "L1-Data L1-Inst L2 L3"
 
 Version History:
+20090903 - Release 3
+	- add fallback when branding can't be retrieved from CPUID
+	- fix: don't try to retrieve CPUID information which is higher than reported highest CPUID
 20090831 - Release 2
 	- add "cpu.cache" function
 	- fix cpu.clockex always return with ".000" ending problem
@@ -23,6 +26,8 @@ CPU Speed functions are copied from:
  http://www.rohitab.com/discuss/lofiversion/index.php/t26562.html
 Getting the System Version:
  http://msdn.microsoft.com/en-us/library/ms724429(VS.85).aspx
+CPUID Sample: Determines CPU Capabilities
+ http://msdn.microsoft.com/en-us/library/xs6aek1h(VS.80).aspx
 
 [UTF-8 Chinese Traditional]
 ccpuid是用CSAORI把saori_cpuid的功能重寫。
@@ -33,6 +38,9 @@ cpu.features - 列出所有CCPUID已知的CPU功能的簡寫，並以空格隔�
 cpu.cache - 回傳所有 CPU 的快取大小 (KB) 並以空格隔開，格式: "L1-Data L1-Inst L2 L3"
 
 版本歷史:
+20090903 - Release 3
+	- 新增當 CCPUID 不能從 CPUID 中獲得 CPU 名稱時的應變策略
+	- 修正：不嘗試獲得高於最高 CPUID 代碼的 CPUID 資訊
 20090831 - Release 2
 	- 新增 "cpu.cache" 功能
 	- 修正 cpu.clockex 回傳 ".000" 為結尾的問題
@@ -41,9 +49,11 @@ cpu.cache - 回傳所有 CPU 的快取大小 (KB) 並以空格隔開，格式: "
 
 鳴謝:
 CCPUID 由 Roy Tam 所寫。
-部份源程式碼改自以下的代碼：
+部份源程式碼修改自以下的代碼：
  CPUID.C - V0.2 - Jim Howes <jimhowes@ (exactly the same again).net>
 CPU Speed 功能源自:
  http://www.rohitab.com/discuss/lofiversion/index.php/t26562.html
 Getting the System Version:
  http://msdn.microsoft.com/en-us/library/ms724429(VS.85).aspx
+CPUID Sample: Determines CPU Capabilities
+ http://msdn.microsoft.com/en-us/library/xs6aek1h(VS.80).aspx
