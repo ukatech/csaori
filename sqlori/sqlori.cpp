@@ -1,4 +1,4 @@
-﻿#include "csaori.h"
+#include "csaori.h"
 #include "sqlite3.h"
 #include "sqlori.h"
 
@@ -58,17 +58,21 @@ int Sqlori::callBack(void *callee, int size, char **values, char **fields)
 	std::string &result = ((Sqlori *)callee)->_result;
 
 	if (result.empty()) {
-		result += fields[0];
-		for (int i = 1; i < size; i++) {
-			result += "\3";
-			result += fields[i];
+		{
+			result += fields[0];
+			for (int i = 1; i < size; i++) {
+				result += "\3";
+				result += fields[i];
+			}
+			result += "\2";
 		}
-		result += "\2";
 
-		result += values[0];
-		for (int i = 1; i < size; i++) {
-			result += "\3";
-			result += values[i];
+		{
+			result += values[0];
+			for (int i = 1; i < size; i++) {
+				result += "\3";
+				result += values[i];
+			}
 		}
 	}
 	else {
