@@ -193,6 +193,19 @@ int identifyCPU()
 							case 10:
 								strcpy (sCPUBranding, "INTEL Pentium-III");
 								break;  // actual differentiation depends on cache settings
+							case 9:
+							case 0xD:
+							case 0xE:
+								strcpy (sCPUBranding, "INTEL Pentium-M");
+								break;  // actual differentiation depends on cache settings
+							case 0xF:
+							case 0x16:
+							case 0x17:
+								strcpy (sCPUBranding, "INTEL Core 2");
+								break;  // actual differentiation depends on cache settings
+							case 0x1C:
+								strcpy (sCPUBranding, "INTEL Atom");
+								break;  // actual differentiation depends on cache settings
 						}
 						break;
 
@@ -297,13 +310,13 @@ _declspec(naked) ULONGLONG GetCycleCount()
     _asm ret;
 }
 
-float GetCPUSpeed(int interval)
+double GetCPUSpeed(int interval)
 {
     ULONGLONG ullStart, ullStop;
     ullStart = GetCycleCount();
     Sleep(interval);
     ullStop = GetCycleCount();
-    return ((ullStop - ullStart) / (1000.0f * interval));
+    return (static_cast<double>(static_cast<LONG>(ullStop - ullStart)) / (1000.0 * interval));
 }
 
 /* CPU Speed main()

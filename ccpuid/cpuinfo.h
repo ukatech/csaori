@@ -180,6 +180,6 @@ extern	char		sCPUVendor[16];
 
 int identifyCPU();
 ULONGLONG GetCycleCount();
-float GetCPUSpeed(int interval);
+double GetCPUSpeed(int interval);
 
 #endif /* __CPUINFO_H */
