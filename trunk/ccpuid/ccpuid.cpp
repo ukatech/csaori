@@ -23,8 +23,8 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		out.result_code = SAORIRESULT_NO_CONTENT;
 		return;
 	}
-
-	if (in.args[0] == L"platform") {
+	// saori_cpuid compatible commands
+	if (in.args[0] == L"platform") {				// platform: basename of caller exe name
 		char *czPath = new char [_MAX_DIR];
 		string platformname;
 		GetModuleFileName(NULL , czPath, _MAX_DIR);
@@ -36,35 +36,35 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		out.result_code = SAORIRESULT_OK;
 		out.result = SAORI_FUNC::MultiByteToUnicode(platformname,0);
 	}
-	else if (in.args[0].find(L"mem.") != string::npos) {
+	else if (in.args[0].find(L"mem.") != string::npos) { // memory commands
 		MEMORYSTATUS	meminfo;
 		GlobalMemoryStatus(&meminfo);
 
-		if (in.args[0] == L"mem.os") {
+		if (in.args[0] == L"mem.os") {				// mem.os: OS memory usage (0 - 100)
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(meminfo.dwMemoryLoad);
 		}
-		else if (in.args[0] == L"mem.phyt") {
+		else if (in.args[0] == L"mem.phyt") {		// mem.phyt: Total Physical Memory
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(meminfo.dwTotalPhys);
 		}
-		else if (in.args[0] == L"mem.phya") {
+		else if (in.args[0] == L"mem.phya") {		// mem.phya: Available Physical Memory
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(meminfo.dwAvailPhys);
 		}
-		else if (in.args[0] == L"mem.pagt") {
+		else if (in.args[0] == L"mem.pagt") {		// mem.pagt: Total Page file Size
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(meminfo.dwTotalPageFile);
 		}
-		else if (in.args[0] == L"mem.paga") {
+		else if (in.args[0] == L"mem.paga") {		// mem.paga: Available Page file Size
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(meminfo.dwAvailPageFile);
 		}
-		else if (in.args[0] == L"mem.virt") {
+		else if (in.args[0] == L"mem.virt") {		// mem.virt: Total Virtual Memory
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(meminfo.dwTotalVirtual);
 		}
-		else if (in.args[0] == L"mem.vira") {
+		else if (in.args[0] == L"mem.vira") {		// mem.vira: Available Virtual Memory
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(meminfo.dwAvailVirtual);
 		}
@@ -73,22 +73,22 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result = L"param error";
 		}
 	}
-	else if (in.args[0].find(L"os.") != string::npos) {
+	else if (in.args[0].find(L"os.") != string::npos) { // OS comands
 		if(!osGot) {
 			GetOSDisplayString(osname, osver, &osbuild);
 			osGot = 1;
 		}
-		if (in.args[0] == L"os.name") {
+		if (in.args[0] == L"os.name") {				// os.name: OS Name
 			string osn = osname;
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(osn);
 		}
-		else if (in.args[0] == L"os.version") {
+		else if (in.args[0] == L"os.version") {		// os.version: OS Version
 			string osv = osver;
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(osv);
 		}
-		else if (in.args[0] == L"os.build") {
+		else if (in.args[0] == L"os.build") {		// os.build: OS Build number
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(osbuild);
 		}
@@ -97,7 +97,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result = L"param error";
 		}
 	}
-	else if (in.args[0].find(L"cpu.") != string::npos) {
+	else if (in.args[0].find(L"cpu.") != string::npos) { // CPU commands
 		if(!iCPUFlagsLoaded) {
 			identifyCPU();
 
@@ -106,66 +106,67 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			dwNumberOfProcessors = stCpuInfo.dwNumberOfProcessors;
 		}
 
-		if (in.args[0] == L"cpu.num") {
+		if (in.args[0] == L"cpu.num") {				// cpu.num: CPU/Core Numbers
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(dwNumberOfProcessors);
 		}
 		// CPUID
-		else if (in.args[0] == L"cpu.vender") {
+		else if (in.args[0] == L"cpu.vender") {		// cpu.vender: CPU Vender Name
 			string cpuv = (*sCPUVendor)?sCPUVendor:"<unknown>";
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(cpuv);
 		}
-		else if (in.args[0] == L"cpu.name") {
+		else if (in.args[0] == L"cpu.name") {		// cpu.name: CPU Name
 			string cpuv = (*sCPUBranding)?sCPUBranding:"<No Name>";
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(cpuv);
 		}
-		else if (in.args[0] == L"cpu.ptype") {
+		else if (in.args[0] == L"cpu.ptype") {		// cpu.ptype: CPU Processor Type (Intel)
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(uBasicFlags.iProcessorType);
 		}
-		else if (in.args[0] == L"cpu.family") {
+		else if (in.args[0] == L"cpu.family") {		// cpu.family: CPU Family number
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(uBasicFlags.iExtendedFamilyID<<4 | uBasicFlags.iFamilyID);
 		}
-		else if (in.args[0] == L"cpu.model") {
+		else if (in.args[0] == L"cpu.model") {		// cpu.model: CPU Model number
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(uBasicFlags.iExtendedModelID<<4  | uBasicFlags.iModelID);
 		}
-		else if (in.args[0] == L"cpu.stepping") {
+		else if (in.args[0] == L"cpu.stepping") {	// cpu.stepping: CPU Stepping Number
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::intToString(uBasicFlags.iSteppingID);
 		}
-		else if (in.args[0] == L"cpu.mmx") {
+		else if (in.args[0] == L"cpu.mmx") {		// cpu.mmx: If CPU support MMX
 			out.result_code = SAORIRESULT_OK;
 			out.result = uExt2Flags.iMMX ? L"Ready" : L"Not Ready";
 		}
-		else if (in.args[0] == L"cpu.sse") {
+		else if (in.args[0] == L"cpu.sse") {		// cpu.sse: If CPU support SSE
 			out.result_code = SAORIRESULT_OK;
 			out.result = uExt2Flags.iSSE ? L"Ready" : L"Not Ready";
 		}
-		else if (in.args[0] == L"cpu.sse2") {
+		else if (in.args[0] == L"cpu.sse2") {		// cpu.sse2: If CPU support SSE2
 			out.result_code = SAORIRESULT_OK;
 			out.result = uExt2Flags.iSSE2 ? L"Ready" : L"Not Ready";
 		}
-		else if (in.args[0] == L"cpu.tdn") {
+		else if (in.args[0] == L"cpu.tdn") {		// cpu.tdn: If CPU support 3DNow!
 			out.result_code = SAORIRESULT_OK;
 			out.result = u8Ext2Flags.i3DN ? L"Ready" : L"Not Ready";
 		}
-		else if (in.args[0] == L"cpu.mmx+") {
+		else if (in.args[0] == L"cpu.mmx+") {		// cpu.mmx+: If CPU support MMX+
 			out.result_code = SAORIRESULT_OK;
 			out.result = u8Ext2Flags.iMMXEx ? L"Ready" : L"Not Ready";
 		}
-		else if (in.args[0] == L"cpu.tdn+") {
+		else if (in.args[0] == L"cpu.tdn+") {		// cpu.tdn+: If CPU support 3DNow!+
 			out.result_code = SAORIRESULT_OK;
 			out.result = u8Ext2Flags.i3DNEx ? L"Ready" : L"Not Ready";
 		}
-		else if (in.args[0] == L"cpu.htt") {
+		else if (in.args[0] == L"cpu.htt") {		// cpu.mmx: If CPU support Hyper Thread Technology
 			out.result_code = SAORIRESULT_OK;
 			out.result = uExt2Flags.iHTT ? L"Ready" : L"Not Ready";
 		}
-		else if (in.args[0] == L"cpu.features") {
+		// New CPU functions
+		else if (in.args[0] == L"cpu.features") {	// cpu.features: List all known CPU features (space separated)
 			out.result = L"";
 			out.result_code = SAORIRESULT_OK;
 
@@ -213,12 +214,12 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			if( uExtFlags.iEST ) out.result.append(L"EST ");	// Enhanced SpeedStep
 			if( uExtFlags.iCID ) out.result.append(L"CID ");	// Context-ID
 			if( uExtFlags.iVMX ) out.result.append(L"VMX ");	// Virtual Machine Extensions
-			if( u8ExtFlags.iSVM ) out.result.append(L"SVM ");	// LAHF
+			if( u8ExtFlags.iSVM ) out.result.append(L"SVM ");	// SVM
 			if( u8Ext2Flags.iLM ) out.result.append(L"x86-64 ");	// 64-bit technology
 			if( u8Ext2Flags.iNX ) out.result.append(L"NX ");	// No Execute
 			if( u8ExtFlags.iLAHF ) out.result.append(L"LAHF ");	// LAHF
 		}
-		else if (in.args[0] == L"cpu.cache") {
+		else if (in.args[0] == L"cpu.cache") {		// cpu.cache: List CPU Caches in "L1-DataCache L1-InstCache L2 L3" form (without quote)
 			char tmptxt[30];
 			string outtxt;
 			sprintf(tmptxt,"%d %d %d %d",uL1DCSize.iL1DCSize,uL1ICSize.iL1ICSize,uL2Size.iL2Size,uL3Size.iL3Size);
@@ -226,8 +227,8 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(outtxt);
 		}
-		// CPU Speed
-		else if (in.args[0] == L"cpu.clock") {
+		// CPU Speed functions (saori_cpuid compatible)
+		else if (in.args[0] == L"cpu.clock") {		// cpu.clock: measure CPU speed in 100ms, return CPU speed in MHz (integer)
 			char tmptxt[10];
 			string outtxt;
 			sprintf(tmptxt,"%d",(int)GetCPUSpeed(100));
@@ -235,7 +236,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(outtxt);
 		}
-		else if (in.args[0] == L"cpu.clockex") {
+		else if (in.args[0] == L"cpu.clockex") {	// cpu.clockex: measure CPU speed in 250ms, return CPU speed in MHz (3 decimal)
 			char tmptxt[10];
 			string outtxt;
 			sprintf(tmptxt,"%.3f",GetCPUSpeed(250));

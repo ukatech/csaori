@@ -46,7 +46,7 @@ int identifyCPU()
 	_asm {
 		mov      eax, 0
 		cpuid
-		mov     DWORD PTR [sCPUVendor+0],ebx  // Stash the manufacturer string for later
+		mov     DWORD PTR [sCPUVendor+0],ebx  // Get the manufacturer string
 		mov     DWORD PTR [sCPUVendor+4],edx
 		mov     DWORD PTR [sCPUVendor+8],ecx
 		mov      eax, 80000000h
@@ -54,7 +54,7 @@ int identifyCPU()
 		mov     uHighestCPUID,eax             // Get highest extended CPUID number
 	}
 
-	_asm {
+	_asm {									  // Get the basic flags
 		mov	eax, 01h
 		cpuid
 		mov	uBasicFlags,eax
@@ -63,7 +63,7 @@ int identifyCPU()
 	}
 
 	if(uHighestCPUID >= 0x80000001) {
-		_asm {
+		_asm {								  // Get the extended frlags
 			mov	eax, 80000001h
 			cpuid
 			mov	u8ExtFlags,ecx
@@ -72,7 +72,7 @@ int identifyCPU()
 	}
 	
 	if(uHighestCPUID >= 0x80000004) {
-		_asm {
+		_asm {								  // Get CPU Name from CPUID
 			mov eax, 80000002h
 			cpuid
 			mov DWORD PTR [sCPUBranding+ 0],eax
@@ -93,8 +93,8 @@ int identifyCPU()
 			mov DWORD PTR [sCPUBranding+44],edx
 		}
 	}
-	else {
-		if(*sCPUVendor) {
+	else {									  // If no CPU Name retrieved from CPUID (i.e. Old Processors),
+		if(*sCPUVendor) {					  // then determine CPU family from Vender/Family/Model
 			if (!strncmp("AuthenticAMD", sCPUVendor, 12)) {
 				switch (uBasicFlags.iFamilyID) { // extract family code
 					case 4: // Am486/AM5x86
@@ -193,7 +193,7 @@ int identifyCPU()
 							case 10:
 								strcpy (sCPUBranding, "INTEL Pentium-III");
 								break;  // actual differentiation depends on cache settings
-							case 9:
+							case 9: // *** Models begin this line are not confirm if those CPU do not return CPU Name with CPUID 0x80000002/3/4 ***
 							case 0xD:
 							case 0xE:
 								strcpy (sCPUBranding, "INTEL Pentium-M");
@@ -223,7 +223,7 @@ int identifyCPU()
 		}
 	}
 	
-	if(uHighestCPUID >= 0x80000005) {
+	if(uHighestCPUID >= 0x80000005) {		  // Get L1 Cache Sizes
 		_asm {
 			mov	eax, 80000005h
 			cpuid
@@ -232,7 +232,7 @@ int identifyCPU()
 		}
 	}
 
-	if(uHighestCPUID >= 0x80000006) {
+	if(uHighestCPUID >= 0x80000006) {		  // Get L2/L3 Cache Sizes
 		_asm {
 			mov	eax, 80000006h
 			cpuid
