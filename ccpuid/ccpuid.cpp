@@ -1,6 +1,7 @@
 #include "csaori.h"
 #include "winversion.h"
 #include "cpuinfo.h"
+#include "cpuusage.h"
 using namespace std;
 
 //------------------------------------------------------------------------------
@@ -226,6 +227,10 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			outtxt = tmptxt;
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(outtxt);
+		}
+		else if (in.args[0] == L"cpu.usage") {		// cpu.usage: Return CPU Usage
+			out.result_code = SAORIRESULT_OK;
+			out.result = SAORI_FUNC::intToString(CPUUsage());
 		}
 		// CPU Speed functions (saori_cpuid compatible)
 		else if (in.args[0] == L"cpu.clock") {		// cpu.clock: measure CPU speed in 100ms, return CPU speed in MHz (integer)
