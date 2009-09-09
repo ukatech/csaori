@@ -7,8 +7,11 @@ CCPUID is fully compatible with saori_cpuid.dll by Ewi Nanase, see saori_cpuid_R
 New Functions:
 cpu.features - list all CCPUID known CPU features (short name) with space separated.
 cpu.cache - return CPU caches sizes in KB with space separated, format: "L1-Data L1-Inst L2 L3"
+cpu.usage - return CPU usage (0 - 100)
 
 Version History:
+	- add "cpu.usage" function
+	- remove "Microsoft " from os.name
 20090903 - Release 3
 	- add fallback when branding can't be retrieved from CPUID
 	- fix: don't try to retrieve CPUID information which is higher than reported highest CPUID
@@ -28,6 +31,8 @@ Getting the System Version:
  http://msdn.microsoft.com/en-us/library/ms724429(VS.85).aspx
 CPUID Sample: Determines CPU Capabilities
  http://msdn.microsoft.com/en-us/library/xs6aek1h(VS.80).aspx
+如何获得CPU使用率 (How to get CPU usage)
+ http://www.4oa.com/Article/html/6/33/487/2005/17522.html
 
 [UTF-8 Chinese Traditional]
 ccpuid是用CSAORI把saori_cpuid的功能重寫。
@@ -36,8 +41,11 @@ ccpuid是用CSAORI把saori_cpuid的功能重寫。
 新指令：
 cpu.features - 列出所有CCPUID已知的CPU功能的簡寫，並以空格隔開回傳。
 cpu.cache - 回傳所有 CPU 的快取大小 (KB) 並以空格隔開，格式: "L1-Data L1-Inst L2 L3"
+cpu.usage - 回傳 CPU 使用率 (0 - 100)
 
 版本歷史:
+	- 新增 "cpu.usage" 功能
+	- 自 os.name 中移除 "Microsoft "
 20090903 - Release 3
 	- 新增當 CCPUID 不能從 CPUID 中獲得 CPU 名稱時的應變策略
 	- 修正：不嘗試獲得高於最高 CPUID 代碼的 CPUID 資訊
@@ -57,3 +65,5 @@ Getting the System Version:
  http://msdn.microsoft.com/en-us/library/ms724429(VS.85).aspx
 CPUID Sample: Determines CPU Capabilities
  http://msdn.microsoft.com/en-us/library/xs6aek1h(VS.80).aspx
+如何获得CPU使用率
+ http://www.4oa.com/Article/html/6/33/487/2005/17522.html
