@@ -35,7 +35,7 @@ BOOL GetOSDisplayString(LPTSTR osname, LPTSTR osver, DWORD* osbuild)
 		*osbuild = osvi.dwBuildNumber;
 		_stprintf( osver,TEXT("%d.%d"), osvi.dwMajorVersion, osvi.dwMinorVersion);
 
-		_tcscpy(osname, TEXT("Microsoft "));
+//		_tcscpy(osname, TEXT("Microsoft "));
 
 		// Test for the specific product.
 
@@ -246,7 +246,7 @@ BOOL GetOSDisplayString(LPTSTR osname, LPTSTR osver, DWORD* osbuild)
 		_stprintf( osver,TEXT("%d.%d"), osvi2.dwMajorVersion, osvi2.dwMinorVersion);
 
 		if(osvi2.dwPlatformId == 1) { // Win 9x/ME
-			_tcscpy(osname, TEXT("Microsoft "));
+//			_tcscpy(osname, TEXT("Microsoft "));
 			if(osvi2.dwMajorVersion == 4) {
 				if(osvi2.dwMinorVersion == 0) {
 					_tcscat(osname, TEXT("Windows 95"));
@@ -270,7 +270,7 @@ BOOL GetOSDisplayString(LPTSTR osname, LPTSTR osver, DWORD* osbuild)
 		}
 
 		else if(osvi2.dwPlatformId == 0 || osvi2.dwPlatformId == 2) { // Win NT 3.x / Win32s
-			_tcscpy(osname, TEXT("Microsoft Windows "));
+			_tcscpy(osname, TEXT("Windows "));
 			if(osvi2.dwBuildNumber == 258)
 				_tcscat(osname, TEXT("NT 3.1"));
 			else if(osvi2.dwBuildNumber == 807)
@@ -283,7 +283,7 @@ BOOL GetOSDisplayString(LPTSTR osname, LPTSTR osver, DWORD* osbuild)
 		}
 
 		else if(osvi2.dwPlatformId == 3) { // Win CE
-			_tcscpy(osname, TEXT("Microsoft Windows CE "));
+			_tcscpy(osname, TEXT("Windows CE "));
 			TCHAR ver[20];
 
 			_stprintf( ver,TEXT("%d.%d"), osvi.dwMajorVersion, osvi.dwMinorVersion);
