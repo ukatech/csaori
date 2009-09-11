@@ -42,6 +42,7 @@ public:
 	bool Init(void);
 	
 	CDriveSmartInfo *GetInfo(int id);
+	int GetDrives();
 };
 
 #endif // !defined(AFX_DriveINFO_H__9EED1D90_5944_4B4D_AE7D_1EA1A06D793B__INCLUDED_)
