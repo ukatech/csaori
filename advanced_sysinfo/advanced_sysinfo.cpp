@@ -46,6 +46,7 @@ bool CSAORI::unload(){
 ---------------------------------------------------------*/
 static bool GetSpecialFolderPath(const std::wstring &nFolder, std::wstring &path );
 static bool GetDriveInfo(int driveID,std::wstring &result,std::vector<std::wstring> &values);
+static bool GetDriveNames(std::wstring &result,std::vector<std::wstring> &values);
 
 void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 	out.result_code = SAORIRESULT_BAD_REQUEST;
@@ -64,7 +65,15 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 		}
 	}
 	else if ( wcsicmp(in.args[0].c_str(),L"get_drive_info") == 0 ) {
-		if ( in.args.size() < 2 ) { return; }
+		if ( in.args.size() < 2 ) {
+			if ( GetDriveNames(out.result,out.values) ) {
+				out.result_code = SAORIRESULT_OK;
+			}
+			else {
+				out.result_code = SAORIRESULT_NO_CONTENT;
+			}
+			return;
+		}
 
 		int id = _wtoi(in.args[1].c_str());
 		if ( GetDriveInfo(id,out.result,out.values) ) {
@@ -370,6 +379,30 @@ static bool GetDriveInfo(int driveID,std::wstring &result,std::vector<std::wstri
 			result = status_table[status];
 			return true;
 		}
+	}
+	
+	return false;
+}
+
+static bool GetDriveNames(std::wstring &result,std::vector<std::wstring> &values)
+{
+	if ( ! g_pDriveInfo ) {
+		g_pDriveInfo = new CDriveInfo;
+	}
+
+	if ( g_pDriveInfo->Init() ) {
+		int pDrives = g_pDriveInfo->GetDrives();
+		result = SAORI_FUNC::intToString(pDrives);
+		CDriveSmartInfo *pDriveInfo;
+		if ( pDrives ) {
+			for ( int i = 0 ; i < pDrives ; ++i ) {
+				pDriveInfo = g_pDriveInfo->GetInfo(i);
+				if ( pDriveInfo ) {
+					values.push_back(DriveStringToWString(pDriveInfo->m_sector.sModelNumber,sizeof(pDriveInfo->m_sector.sModelNumber)));
+				}
+			}
+		}
+		return true;
 	}
 	
 	return false;

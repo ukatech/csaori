@@ -42,6 +42,11 @@ CDriveSmartInfo *CDriveInfo::GetInfo(int id)
 	return NULL;
 }
 
+int CDriveInfo::GetDrives()
+{
+	return m_driveInfo.size();
+}
+
 /*-------------------------------------------------------
 	‰Šú‰»ƒwƒ‹ƒp[ŠÖ”ŒQ
 -------------------------------------------------------*/
