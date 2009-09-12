@@ -83,6 +83,18 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 			out.result_code = SAORIRESULT_NO_CONTENT;
 		}
 	}
+	else if ( wcsicmp(in.args[0].c_str(),L"expand_variable") == 0 ) {
+		if ( in.args.size() < 2 ) { return; }
+
+		std::string var = SAORI_FUNC::UnicodeToMultiByte(in.args[1]);
+		if (int Len = ExpandEnvironmentStrings(var.c_str(), 0, NULL)) {
+			std::vector<char> Dest(Len);
+			if (Len = ExpandEnvironmentStrings(var.c_str(), &Dest[0], static_cast<int>(Dest.size()))) {
+				out.result_code = SAORIRESULT_OK;
+				out.result = SAORI_FUNC::MultiByteToUnicode(&Dest[0]);
+			}
+		}
+	}
 }
 
 /*=========================================================
