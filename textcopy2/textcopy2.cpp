@@ -6,6 +6,15 @@
 #include <windows.h>
 #include "csaori.h"
 
+string_t replaceAll(string_t s, string_t f, string_t r) {
+	unsigned int found = 0;
+	while((found = s.find(f, found)) != std::string::npos) {
+		s.replace(found, f.length(), r);
+		found += r.size();
+	}
+	return s;
+}
+
 /*---------------------------------------------------------
 	èâä˙âª
 ---------------------------------------------------------*/
@@ -24,6 +33,7 @@ bool CSAORI::unload(){
 	é¿çs
 ---------------------------------------------------------*/
 void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
+	string_t txt;
 	out.result_code = SAORIRESULT_BAD_REQUEST;
 	if ( in.args.size() < 1 ) { return; }
 	if ( in.args[0].size() == 0 ) { return; }
@@ -41,6 +51,11 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 		}
 	}
 
+	txt = in.args[0];
+	if ( in.args.size() >= 3 ) {
+		txt = replaceAll(txt,in.args[2],L"\r\n");
+	}
+
 	::EmptyClipboard();
 
 	//NTà»è„Ç»ÇÁUnicodeëŒâûÅAÇ≈Ç»ÇØÇÍÇŒACPÇ…ïœä∑
@@ -50,15 +65,15 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 	::GetVersionEx((OSVERSIONINFO*)&osVer);
 
 	if ( osVer.dwPlatformId == VER_PLATFORM_WIN32_NT ) {
-		HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE,(in.args[0].size() + 1) * sizeof(WORD));
+		HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE,(txt.size() + 1) * sizeof(WORD));
 		WORD *clData = (WORD*)::GlobalLock(hMem);
-		wcscpy(clData,in.args[0].c_str());
+		wcscpy(clData,txt.c_str());
 		::GlobalUnlock(hMem);
 
 		::SetClipboardData(CF_UNICODETEXT,hMem); //hMemÇÕäJï˙ÇµÇ»Ç≠ÇƒÇÊÇ¢
 	}
 	else {
-		std::string astr = SAORI_FUNC::UnicodeToMultiByte(in.args[0]);
+		std::string astr = SAORI_FUNC::UnicodeToMultiByte(txt);
 
 		HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE,astr.size() + 1);
 		char *clData = (char*)::GlobalLock(hMem);
