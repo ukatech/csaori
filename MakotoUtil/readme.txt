@@ -20,7 +20,13 @@ argument[0]: inputbox
 argument[1]: [prompt]
 argument[2]: [title]
 argument[3]: [default value]
-argument[4]: [multiline? 0 or 1]
+argument[4]: [flags = 0 - 3]
+
+flags:
+0 - single line (default)
+1 - multi line
+2 - single line integer only
+3 - single line '*' masked
 
 show an input box. return user input string, \r\n will be replaced to CHR(2). return default value if user press cancel button.
 
@@ -82,7 +88,13 @@ argument[0]: inputbox
 argument[1]: [輸入提示]
 argument[2]: [標題]
 argument[3]: [預設文字]
-argument[4]: [是否多行? 0 或 1]
+argument[4]: [旗標 = 0 - 3]
+
+旗標:
+0 - 單行 (預設)
+1 - 多行
+2 - 單行，只限數字
+3 - 單行，'*'遮蔽
 
 顯示輸入框，回傳使用者輸入的文字，\r\n會替換為CHR(2)。如果使用者按 Cancel 按鈕則會回傳預設文字。
 
