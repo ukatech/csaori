@@ -30,6 +30,25 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 	else if (in.args[0] == L"inputbox") {
 		WIN32INPUTBOX_PARAM param;
+		int flags = (in.args.size() >= 5) ? _wtol(in.args[4].c_str()) : 0;
+		if(flags==2) // NUMERIC
+		{
+			definputbox_dlg[149] =32;
+			definputbox_dlg[148] =128;
+			param.bMultiline=false;
+		}
+		else if(flags==3) // PASSWORD
+		{
+			definputbox_dlg[149] =0;
+			definputbox_dlg[148] =160;
+			param.bMultiline=false;
+		}
+		else
+		{
+			definputbox_dlg[149] =0;
+			definputbox_dlg[148] =128;
+			param.bMultiline= (flags==1) ? true : false;  // MULTILINE
+		}
 
 		param.hInstance = (HINSTANCE)module_handle;
 		param.szPrompt = (in.args.size() >= 2) ? in.args[1].c_str() : _T("Prompt:");
@@ -40,8 +59,8 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 		param.szResult = buf;
 		param.nResultSize = MAX_PATH;
-		param.DlgTemplateName = MAKEINTRESOURCE(IDD_INPUTBOX);
-		param.bMultiline = (in.args.size() >= 5) ? _wtol(in.args[4].c_str()) :false;
+		param.DlgTemplateData = definputbox_dlg;
+
 		CWin32InputBox::InputBoxEx(&param);
 
 		string_t txt = buf;
@@ -49,10 +68,8 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 		out.result_code = SAORIRESULT_OK;
 		out.result = txt;
+//		out.result = SAORI_FUNC::intToString(CWin32InputBox::InputBoxEx(&param));
 	}
-	
-//	out.result = L"Charset = " + SAORI_FUNC::CHARSETtoString(in.charset);
-//	out.charset = CHARSET_UTF_8;
 }
 
 bool CSAORI::load()
