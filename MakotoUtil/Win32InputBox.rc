@@ -1,0 +1,121 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Neutral (Default) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUD)
+#ifdef _WIN32
+LANGUAGE LANG_NEUTRAL, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_INPUTBOX DIALOGEX 22, 17, 231, 109
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
+CAPTION "Win32InputBox"
+FONT 8, "MS Shell Dlg", 700, 0, 0x0
+BEGIN
+    LTEXT           "Prompt:",IDC_INPUTBOX_PROMPT,6,4,157,33,SS_NOPREFIX
+    EDITTEXT        IDC_INPUTBOX_DLG_EDIT1,6,37,216,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_INPUTBOX_DLG_EDIT2,6,55,216,49,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,171,4,51,14,WS_GROUP
+    PUSHBUTTON      "CANCEL",IDCANCEL,171,21,51,14,WS_GROUP
+    LTEXT           "",IDC_STATIC,0,39,8,8,NOT WS_VISIBLE
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_INPUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 6
+        RIGHTMARGIN, 222
+        VERTGUIDE, 163
+        VERTGUIDE, 171
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 105
+        HORZGUIDE, 37
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Neutral (Default) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
