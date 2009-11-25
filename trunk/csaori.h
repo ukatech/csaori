@@ -93,10 +93,12 @@ public:
 
 private:
 	string_t module_path;
+	HANDLE module_handle;
 
 public:
 	//内部関数
 	void setModulePath(const std::string &str);
+	void setModuleHandle(HANDLE hMod);
 	std::string request(const std::string &req);
 	
 	//相対パスかどうかをチェックして全部絶対パスに変換
