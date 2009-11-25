@@ -24,6 +24,10 @@ argument[4]: [multiline? 0 or 1]
 
 show an input box. return user input string, \r\n will be replaced to CHR(2). return default value if user press cancel button.
 
+Credits:
+Using Dialog Templates to create an InputBox() in C++
+http://www.codeproject.com/KB/dialog/w32inputbox_1.aspx
+
 Appendix:
 - Common KeyCodes
 Backspace = 8
@@ -81,6 +85,10 @@ argument[3]: [預設文字]
 argument[4]: [是否多行? 0 或 1]
 
 顯示輸入框，回傳使用者輸入的文字，\r\n會替換為CHR(2)。如果使用者按 Cancel 按鈕則會回傳預設文字。
+
+鳴謝:
+Using Dialog Templates to create an InputBox() in C++
+http://www.codeproject.com/KB/dialog/w32inputbox_1.aspx
 
 附錄:
 - 常用 KeyCode
