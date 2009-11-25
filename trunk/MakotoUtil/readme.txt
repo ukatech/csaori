@@ -30,6 +30,17 @@ flags:
 
 show an input box. return user input string, \r\n will be replaced to CHR(2). return default value if user press cancel button.
 
+(3) messagebox
+argument[0]: messagebox
+argument[1]: [message]
+argument[2]: [title]
+argument[3]: [flags = 0]
+
+flags:
+(Please refer to "Appendix - MessageBox flags")
+
+show a message box. return button value pressed by user.
+
 Credits:
 Using Dialog Templates to create an InputBox() in C++
 http://www.codeproject.com/KB/dialog/w32inputbox_1.aspx
@@ -65,6 +76,21 @@ F12 = 123
 Num Lock = 144
 Scroll Lock = 145
 
+- MessageBox flags
+#define MB_OK                       0
+#define MB_OKCANCEL                 1
+#define MB_ABORTRETRYIGNORE         2
+#define MB_YESNOCANCEL              3
+#define MB_YESNO                    4
+#define MB_RETRYCANCEL              5
+#define MB_CANCELTRYCONTINUE        6
+
+#define MB_ICONHAND                 16
+#define MB_ICONQUESTION             32
+#define MB_ICONEXCLAMATION          48
+#define MB_ICONASTERISK             64
+
+
 (End of en.US_UTF-8 Readme)
 
 [zh.TW_UTF-8 (正體中文)]
@@ -90,13 +116,18 @@ argument[2]: [標題]
 argument[3]: [預設文字]
 argument[4]: [旗標 = 0 - 3]
 
-旗標:
-0 - 單行 (預設)
-1 - 多行
-2 - 單行，只限數字
-3 - 單行，'*'遮蔽
-
 顯示輸入框，回傳使用者輸入的文字，\r\n會替換為CHR(2)。如果使用者按 Cancel 按鈕則會回傳預設文字。
+
+(3) messagebox
+argument[0]: messagebox
+argument[1]: [信息]
+argument[2]: [標題]
+argument[3]: [旗標 = 0]
+
+顯示信息框，回傳使用者按下的按鈕數值。
+
+旗標:
+(請參照「附錄 - MessageBox 旗標」)
 
 鳴謝:
 Using Dialog Templates to create an InputBox() in C++
@@ -132,5 +163,19 @@ F11 = 122
 F12 = 123
 Num Lock = 144
 Scroll Lock = 145
+
+- MessageBox 旗標
+#define MB_OK                       0
+#define MB_OKCANCEL                 1
+#define MB_ABORTRETRYIGNORE         2
+#define MB_YESNOCANCEL              3
+#define MB_YESNO                    4
+#define MB_RETRYCANCEL              5
+#define MB_CANCELTRYCONTINUE        6
+
+#define MB_ICONHAND                 16
+#define MB_ICONQUESTION             32
+#define MB_ICONEXCLAMATION          48
+#define MB_ICONASTERISK             64
 
 (End of zh.TW_UTF-8 Readme)

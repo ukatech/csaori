@@ -25,7 +25,9 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	if (in.args[0] == L"keydown") {
 		if (in.args.size() == 2) {
 			out.result_code = SAORIRESULT_OK;
-			out.result = SAORI_FUNC::intToString((GetAsyncKeyState(_wtol(in.args[1].c_str())) & 0x8000) == 0x8000);
+			out.result = SAORI_FUNC::intToString(GetAsyncKeyState(_wtol(in.args[1].c_str())) != 0);
+		} else {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
 		}
 	}
 	else if (in.args[0] == L"inputbox") {
@@ -69,6 +71,17 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		out.result_code = SAORIRESULT_OK;
 		out.result = txt;
 //		out.result = SAORI_FUNC::intToString(CWin32InputBox::InputBoxEx(&param));
+	}
+	else if (in.args[0] == L"messagebox") {
+		if (in.args.size() >= 2) {
+			out.result_code = SAORIRESULT_OK;
+			out.result = SAORI_FUNC::intToString(MessageBox(0,in.args[1].c_str(),(in.args.size() >= 3) ? in.args[2].c_str() : _T("MakotoUtil"),(in.args.size() >= 4) ? _wtol(in.args[3].c_str()) : MB_OK));
+		} else {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
+		}
+	}
+	else {
+		out.result_code = SAORIRESULT_BAD_REQUEST;
 	}
 }
 
