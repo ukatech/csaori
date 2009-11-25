@@ -29,7 +29,7 @@
 
 //global CSAORI object
 CSAORI* pSaori;
-
+HANDLE g_hModule;
 //------------------------------------------------------------------------------
 //“à•”ŠÖ”
 //------------------------------------------------------------------------------
@@ -388,6 +388,10 @@ void CSAORI::setModulePath(const std::string &str){
 	module_path=SAORI_FUNC::MultiByteToUnicode(str);
 }
 
+void CSAORI::setModuleHandle(HANDLE hMod){
+	module_handle=hMod;
+}
+
 std::string CSAORI::checkAndModifyPath(const std::string &p)
 {
 	std::string filepath = p;
@@ -400,15 +404,29 @@ std::string CSAORI::checkAndModifyPath(const std::string &p)
 
 		{
 			void *pBuf = malloc(len+1);
+#ifdef _UNICODE
+			string_t filepathw = SAORI_FUNC::MultiByteToUnicode(p);
+			std::string::size_type realLen = ::ExpandEnvironmentStrings(filepathw.c_str(),(wchar_t*)pBuf,len);
+#else
 			std::string::size_type realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(char*)pBuf,len);
+#endif
 			if ( realLen > len ) {
 				free(pBuf);
 				pBuf = malloc(realLen+1);
+#ifdef _UNICODE
+				realLen = ::ExpandEnvironmentStrings(filepathw.c_str(),(wchar_t*)pBuf,realLen);
+#else
 				realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(char*)pBuf,realLen);
+#endif
 			}
 
 			if ( realLen ) {
+#ifdef _UNICODE
+				filepathw = (wchar_t*)pBuf;
+				filepath = SAORI_FUNC::UnicodeToMultiByte(filepathw);
+#else
 				filepath = (char*)pBuf;
+#endif
 			}
 			free(pBuf);
 		}
@@ -450,6 +468,7 @@ BOOL APIENTRY DllMain(
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
+		g_hModule = hModule;
 		break;
 	case DLL_THREAD_ATTACH:
 		break;
@@ -510,6 +529,7 @@ load(HGLOBAL h, long len)
 		mpath.assign((char*)h,len);
 		GlobalFree(h);
 		pSaori->setModulePath(mpath);
+		pSaori->setModuleHandle(g_hModule);
 	}
 
 	BOOL re;
