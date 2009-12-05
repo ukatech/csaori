@@ -22,9 +22,9 @@ class chttpc_runner {
 int chttpc_runner::run(chttpc_conf* cc, wstring& out) {
 	wstring nResult = L""; bool replaced = false;
 
-	wstring fullpath = cc->module_path + cc->saveOrginal;
+	wstring saveTo_fullpath = cc->module_path + cc->saveOrginal;
 
-	int getResult = CInetHelper::getUrlContent(cc->url.c_str(), (!cc->charset.empty() ? cc->charset.c_str() : NULL), nResult, (!cc->saveOrginal.empty() ? fullpath.c_str() : NULL));
+	int getResult = CInetHelper::getUrlContent(cc->url.c_str(), (!cc->charset.empty() ? cc->charset.c_str() : NULL), nResult, (!cc->saveOrginal.empty() ? saveTo_fullpath.c_str() : NULL), cc->isLocalFile);
 	if ( getResult == CIH_FAIL ) {
 		out = nResult;
 		return CR_FAIL;
@@ -131,6 +131,12 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		chttpc_conf *cc = new chttpc_conf;
 
 		cc->url = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+
+		if(strnicmp(cc->url.c_str(),"file:",5) == 0) {
+			cc->url = checkAndModifyPath(cc->url.substr(5));
+			cc->isLocalFile = true;
+		}
+
 		cc->codepage = in.codepage;
 		cc->module_path = module_path;
 

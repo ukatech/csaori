@@ -167,7 +167,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="wininet.lib htmlcxx.lib"
-				OutputFile=".\Lite-Release/chttpc.dll"
+				OutputFile=".\Lite-Release/chttpc-lite.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="htmlcxx/Release"

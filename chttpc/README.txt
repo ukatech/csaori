@@ -8,7 +8,7 @@ Usage:
 * No Argument: Check for Internet connection, Return: 1 - OK, 0 - NG
 * 1 Argument(URL): download and return contents.
 * More than 1 Argument:
- o First one must be URL
+ o First one must be URL (Local file can be opened with "file:" prefix, base path is same place as chttpc.dll, e.g.: file:C:\bootlog.txt)
  o options afterwards:
   + translate - try to tranlate html to sakura script
   + strip - remove all html tags
@@ -29,6 +29,8 @@ known bug:
 * translate can't translate nested tags correctly (e.g. <li><a>) (shoulde be fixed in beta 1)
 
 Changelog:
+20091205 - Release 5
+           add ability of opening local file with "file:" prefix
 20090829 - Release 4
            add multiSearch option
 20090806 - Release 3
@@ -59,7 +61,7 @@ chttpc 是把 整備班的 satoriya project ( http://ms.shillest.net/satoriya.xh
 * 無引數: 檢查能否上網，回傳: 1 - OK, 0 - NG
 * 一個引數(網址): 下載並直接回傳
 * 多過一個引數：
- o 第一個必須為網址
+ o 第一個必須為網址 (本機檔案可由 "file:" 前輟開啟，基底路徑為與chttpc.dll同位置, 如：file:C:\bootlog.txt)
  o 之後的選項：
   + translate - 嘗試轉換html為sakura script
   + strip - 去除html tag
@@ -78,6 +80,8 @@ chttpc 是把 整備班的 satoriya project ( http://ms.shillest.net/satoriya.xh
 * translate 未能正確處理巢狀標籤 (如 <li><a>) (相信在beta 1中已修正)
 
 更新：
+20091205 - Release 5
+           增加開啟本機檔案的能力(以 "file:" 前輟)
 20090829 - Release 4
            增加 multiSearch 選項
 20090806 - Release 3

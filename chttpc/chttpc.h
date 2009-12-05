@@ -26,6 +26,7 @@ class chttpc_conf {
 		wstring searchEnd;
 		wstring id;
 		HWND hwnd;
+		bool isLocalFile;
 		bool isMultiSearch;
 		bool isStripTag;
 		bool isTranslateTag;
@@ -43,6 +44,7 @@ class chttpc_conf {
 			searchEnd = L"";
 			id = L"";
 			hwnd = 0;
+			isLocalFile = false;
 			isMultiSearch = false;
 			isStripTag = false;
 			isTranslateTag = false;
