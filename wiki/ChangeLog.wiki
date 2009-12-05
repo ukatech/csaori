@@ -139,6 +139,9 @@
 == Release 4 20090829 ==
  * add multiSearch option
 
+== Release 5 20091205 ==
+ * add ability of opening local file with "file:" prefix
+
 ----
 = SQLori-SQLite2 =
 
