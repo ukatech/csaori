@@ -44,8 +44,6 @@ bool CSerialCOM::Open(int n,int recv_size,int send_size)
 	// オープンに失敗したとき
 	if(m_serial==INVALID_HANDLE_VALUE)	return false;
 
-	::GetCommProperties(m_serial,&m_prop);
-
 	//送受信バッファの設定
 	::SetupComm(m_serial,recv_size,send_size);
 
@@ -211,14 +209,6 @@ int  CSerialCOM::Getc(void)
 		return EOF;
 	}
 	return buf[0];
-}
-
-bool CSerialCOM::IsSerialPort(void)
-{
-	return m_prop.dwProvSubType == PST_RS232 || 
-		m_prop.dwProvSubType == PST_RS422 || 
-		m_prop.dwProvSubType == PST_RS423 || 
-		m_prop.dwProvSubType == PST_RS449; 
 }
 
 size_t CSerialCOM::GetReceivedSize(void)
