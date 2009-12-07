@@ -148,10 +148,6 @@ void CGainer::Search(std::vector<int> &v)
 		if ( ! serial.Open(i, RECV_BUFFER, RECV_BUFFER) ) {
 			continue;
 		}
-		if ( ! serial.IsSerialPort() ) {
-			serial.Close();
-			continue;
-		}
 		if ( ! serial.SetConfig(COMLIBFLAG_38400|COMLIBFLAG_NO|COMLIBFLAG_1|COMLIBFLAG_8|COMLIBFLAG_NO_FLOW_CONTROL) ) {
 			serial.Close();
 			continue;
