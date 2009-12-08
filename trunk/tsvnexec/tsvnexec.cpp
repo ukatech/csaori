@@ -163,6 +163,7 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 		else {
 			param = tsvn;
 		}
+		param += " ";
 		param += arg;
 
 		char *paramptr = (char*)malloc(param.size()+1);
