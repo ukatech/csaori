@@ -68,25 +68,25 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "041104b0"
+        BLOCK "000004b0"
         BEGIN
-            VALUE "Comments", " \0"
-            VALUE "CompanyName", " \0"
-            VALUE "FileDescription", "set_wall_paper SAORI Extension / CSaori Library Sample\0"
-            VALUE "set_wall_paper", "1, 0, 0, 0\0"
-            VALUE "InternalName", "set_wall_paper\0"
-            VALUE "LegalCopyright", " \0"
-            VALUE "LegalTrademarks", " \0"
-            VALUE "OriginalFilename", "set_wall_paper.dll\0"
-            VALUE "PrivateBuild", " \0"
-            VALUE "ProductName", "set_wall_paper\0"
-            VALUE "ProductVersion", "1, 0, 0, 0\0"
-            VALUE "SpecialBuild", " \0"
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "ssp bugtraq\0"
+            VALUE "FileDescription", "tsvnexec\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "tsvnexec\0"
+            VALUE "LegalCopyright", "Copyright (C) 2009\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "tsvnexec.dll\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "ssp bugtraq tsvnexec\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x411, 1200
+        VALUE "Translation", 0x0, 1200
     END
 END
 
