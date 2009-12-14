@@ -42,13 +42,59 @@ bool CSAORI::unload()
 
 void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 {
+	//パラメータ必須 Arg0:コマンド
+	if ( in.args.size() < 1 ) {
+		out.result_code = SAORIRESULT_BAD_REQUEST;
+		return;
+	}
+
+	const std::wstring &cmd = in.args[0];
+
+	//***** installed *****
+	if ( wcsnicmp(cmd.c_str(),L"install",7) == 0 ) {
+		std::string path;
+	
+		out.result_code = SAORIRESULT_OK;
+		out.result = L"";
+
+		if ( GetTortoiseProcPath(path) ) {
+			DWORD tmp;
+			DWORD dwVersionSize = ::GetFileVersionInfoSize(path.c_str(),&tmp);
+
+			if ( dwVersionSize ) {
+				void *pBuf = malloc(dwVersionSize + 16); //念のため16バイトほどおまけしてみる
+
+				if ( ::GetFileVersionInfo(path.c_str(),NULL,dwVersionSize + 16,pBuf) ) {
+					UINT verInfoLen;
+					VS_FIXEDFILEINFO *verInfo;
+					::VerQueryValue(pBuf,"\\",(void**)&verInfo,&verInfoLen);
+
+					if ( verInfoLen ) {
+						wchar_t buf[70];
+
+						swprintf(buf,L"%u.%u.%u.%u",
+						verInfo->dwFileVersionMS >> 16,
+						verInfo->dwFileVersionMS & 0xFFFFU,
+						verInfo->dwFileVersionLS >> 16,
+						verInfo->dwFileVersionLS & 0xFFFFU);
+
+						out.result = buf;
+					}
+				}
+
+				free(pBuf);
+			}
+		}
+
+		return;
+	}
+
 	//パラメータ必須 Arg0:コマンド Arg1:パス Arg2以降:サブコマンド
 	if ( in.args.size() < 2 ) {
 		out.result_code = SAORIRESULT_BAD_REQUEST;
 		return;
 	}
 
-	const std::wstring &cmd = in.args[0];
 	const std::wstring &path = in.args[1];
 
 	out.result_code = SAORIRESULT_OK;
@@ -57,9 +103,11 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 	if ( wcsnicmp(cmd.c_str(),L"hwnd",4) == 0 ) {
 		//このコマンドのみ特殊：Arg1はhwnd
 		g_hwnd = reinterpret_cast<void*>(wcstoul(path.c_str(),NULL,10));
+		return;
 	}
+
 	//***** infoコマンド -> SubWCRev/COMを呼び出し *****
-	else if ( wcsnicmp(cmd.c_str(),L"info",4) == 0 ) {
+	if ( wcsnicmp(cmd.c_str(),L"info",4) == 0 ) {
 		if ( in.args.size() < 3 ) {
 			out.result_code = SAORIRESULT_BAD_REQUEST;
 			return;
@@ -125,9 +173,11 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 				out.values.push_back(std::wstring(L"!ERROR!|PARAMETER_INVALID"));
 			}
 		}
+		return;
 	}
-	//***** info以外 *****
-	else {
+
+	//***** info/install以外 *****
+	/*if*/ {
 		std::string tsvn;
 		if ( ! GetTortoiseProcPath(tsvn) ) {
 			out.result = L"!ERROR!|TSVN_NOT_FOUND|TortoiseProc";
@@ -216,6 +266,7 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 				out.result = L"!ERROR!|TSVN_EXEC_FAIL|TortoiseProc";
 			}
 		}
+		return;
 	}
 }
 
