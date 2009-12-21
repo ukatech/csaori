@@ -7,6 +7,7 @@
 
 #ifdef _MSC_VER
 #pragma warning( disable : 4786 )
+#pragma warning( disable : 4996 )
 #endif
 
 #include <cstring>
@@ -36,7 +37,7 @@ HANDLE g_hModule;
 namespace SAORI_FUNC{
 	std::string UnicodeToMultiByte(const wchar_t *Source, unsigned int CodePage, DWORD Flags)
 	{
-	  if (int Len = ::WideCharToMultiByte(CodePage, Flags, Source, wcslen(Source), NULL, 0, NULL, NULL)) {
+	  if (size_t Len = ::WideCharToMultiByte(CodePage, Flags, Source, wcslen(Source), NULL, 0, NULL, NULL)) {
 		std::vector<char> Dest(Len);
 		if (Len = ::WideCharToMultiByte(CodePage, Flags, Source, wcslen(Source), &Dest[0], static_cast<int>(Dest.size()), NULL, NULL)) {
 		  return std::string(Dest.begin(), Dest.begin() + Len);
@@ -48,7 +49,7 @@ namespace SAORI_FUNC{
 
 	std::wstring MultiByteToUnicode(const char* Source, unsigned int CodePage, DWORD Flags)
 	{
-	  if (int Len = ::MultiByteToWideChar(CodePage, Flags, Source, strlen(Source), NULL, 0)) {
+	  if (size_t Len = ::MultiByteToWideChar(CodePage, Flags, Source, strlen(Source), NULL, 0)) {
 		std::vector<wchar_t> Dest(Len);
 		if (Len = ::MultiByteToWideChar(CodePage, 0, Source, strlen(Source), &Dest[0], static_cast<int>(Dest.size()))) {
 		  return std::wstring(Dest.begin(), Dest.begin() + Len);

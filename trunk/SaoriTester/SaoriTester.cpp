@@ -41,6 +41,8 @@ CSaoriTesterApp theApp;
 
 BOOL CSaoriTesterApp::InitInstance()
 {
+	::CoInitialize(NULL);
+
 	free((void*)m_pszProfileName);
 
 	char myPath[MAX_PATH];
@@ -58,4 +60,11 @@ BOOL CSaoriTesterApp::InitInstance()
 	m_pMainWnd = pDlg;
 
 	return TRUE;
+}
+
+int CSaoriTesterApp::ExitInstance() 
+{
+	::CoUninitialize();
+
+	return CWinApp::ExitInstance();
 }
