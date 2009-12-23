@@ -4,9 +4,6 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <process.h>
-#include <atlbase.h>
-#include <comdef.h>
 #include "csaori.h"
 
 #include <sensorsapi.h>
@@ -39,8 +36,6 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 		out.result = L"0";
 	}
 }
-
-static const GUID IOGUID_SENSOR_HUMAN_ECO_ID = {0XF7B52CCF, 0XF6CB, 0X4B84, {0X8F, 0X5C, 0X49, 0X9F, 0XAB, 0X02, 0XF0, 0XAA} };
 
 int GetSensorState()
 {
@@ -116,31 +111,17 @@ int GetSensorState()
 		}
 
 		if ( SUCCEEDED ( hrRes ) ) {
-           if ( NULL != pisSens && NULL != pDataReport ) {
-				SENSOR_ID siSens = GUID_NULL;
-				hrRes = pisSens->GetID( &siSens );
-
-				if ( SUCCEEDED ( hrRes ) ) {
-					BSTR FriendlyName;
-					pisSens->GetFriendlyName( &FriendlyName );
-
-					if ( siSens == IOGUID_SENSOR_HUMAN_ECO_ID || memcmp( FriendlyName, L"I-O DATA SENSOR-HM", sizeof(FriendlyName) ) == 0) {
-						psmSnsMng->GetSensorByID( siSens, &pisSens );
-
-						hrRes = pisSens->GetData( &pDataReport );
-
-						if ( SUCCEEDED ( hrRes ) ) {
-							PROPVARIANT pvSensHm;
-							PropVariantInit( &pvSensHm );
-							hrRes = pDataReport->GetSensorValue( SENSOR_DATA_TYPE_HUMAN_PRESENCE, &pvSensHm );
-							if ( SUCCEEDED( hrRes ) ) {
-								vbHuman = pvSensHm.boolVal;
-							}
-							PropVariantClear( &pvSensHm );
-						}
-					}
-				}
+			PROPVARIANT pvSensHm;
+			PropVariantInit( &pvSensHm );
+			hrRes = pDataReport->GetSensorValue( SENSOR_DATA_TYPE_HUMAN_PRESENCE, &pvSensHm );
+			if ( SUCCEEDED( hrRes ) ) {
+				vbHuman = pvSensHm.boolVal;
 			}
+			PropVariantClear( &pvSensHm );
+
+			pisSens->Release();
+			pisSens = NULL;
+			break;
         }
 
 		pisSens->Release();
