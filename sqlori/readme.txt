@@ -7,7 +7,7 @@ License: This SAORI is for testing and teaching, anyone can use and modify it fr
 1. Update
 Date     Version  Log
 svn               + Add SQLITE_VERSION command
-                  ! update SQLite to 3.6.17
+                  ! update SQLite to 3.6.22
 20090810 1.2.13   ! change return format to "return code(0x2)[column name[(0x3)column name...]](0x2)[data field[(0x3)data field...]]"
                     to avoid (0x1) translation
 20090723 1.1.10+  + add back SQLite 3.6.16 source code as SQLite is Public Domain
@@ -25,7 +25,7 @@ svn               + Add SQLITE_VERSION command
 In simple words, SQLite + CSAORI = SQLori.
 
 SQLori is a very simple, but it is far better than the old SAORI debeso.dll.
-Using SQLite 3.6.17
+Using SQLite 3.6.22
 For simple coding, SQLori doesn't use Value[n].
 
 3. Commands
@@ -160,7 +160,7 @@ SQLori v1.2.13
 1. 更新
 Date     Version  Log
 svn               + 加入 SQLITE_VERSION 指令
-                  ! 更新 SQLite 至 3.6.17
+                  ! 更新 SQLite 至 3.6.22
 20090810 1.2.13   ! 改變回傳格成為「回傳嗎(0x2)[欄位名稱[(0x3)欄位名稱…]](0x2)[數值[(0x3)數值…]]」以避免 (0x1) 轉碼問題
 20090723 1.1.10+  + 補回SQLite 3.6.16的源碼，SQLite是Public Domain的關係一起包進來也沒關係。
                   ! 修正：不指定filepath時，預設資料庫檔名為sqlori.db
@@ -179,7 +179,7 @@ svn               + 加入 SQLITE_VERSION 指令
 
 SQLori在功能上極為陽春
 不過絕對比debeso.dll這個N年前的SAORI好的多...XD
-使用sqlite版本為3.6.16
+使用sqlite版本為3.6.22
 為求簡便，只返回單一返值而不使用Value[n]格式
 
 3. 指令
