@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "CCPUID_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "../" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "CCPUID_EXPORTS" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "../../" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "CCPUID_EXPORTS" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x411 /d "NDEBUG"
@@ -99,7 +99,7 @@ SOURCE=.\cpuinfo.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\csaori.cpp
+SOURCE=..\..\csaori.cpp
 # End Source File
 # Begin Source File
 
@@ -115,7 +115,7 @@ SOURCE=.\cpuinfo.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\csaori.h
+SOURCE=..\..\csaori.h
 # End Source File
 # Begin Source File
 

@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="uds"
+	Name="sqlori"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -21,11 +21,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;UDS_EXPORTS"
+				AdditionalIncludeDirectories="..\.."
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;sqlori_EXPORTS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Debug/uds.pch"
+				PrecompiledHeaderFile=".\Debug/sqlori.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -36,12 +37,12 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile=".\Debug/uds.dll"
+				OutputFile=".\Debug/sqlori.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Debug/uds.pdb"
-				ImportLibrary=".\Debug/uds.lib"
+				ProgramDatabaseFile=".\Debug/sqlori.pdb"
+				ImportLibrary=".\Debug/sqlori.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -49,7 +50,7 @@
 				MkTypLibCompatible="TRUE"
 				SuppressStartupBanner="TRUE"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/uds.tlb"
+				TypeLibraryName=".\Debug/sqlori.tlb"
 				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
@@ -79,18 +80,18 @@
 			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			CharacterSet="0">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories=".."
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;UDS_EXPORTS"
+				AdditionalIncludeDirectories="..\.."
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;sqlori_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Release/uds.pch"
+				PrecompiledHeaderFile=".\Release/sqlori.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -100,11 +101,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile=".\Release/uds.dll"
+				OutputFile=".\Release/sqlori.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				ProgramDatabaseFile=".\Release/uds.pdb"
-				ImportLibrary=".\Release/uds.lib"
+				ProgramDatabaseFile=".\Release/sqlori.pdb"
+				ImportLibrary=".\Release/sqlori.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -112,7 +113,7 @@
 				MkTypLibCompatible="TRUE"
 				SuppressStartupBanner="TRUE"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/uds.tlb"
+				TypeLibraryName=".\Release/sqlori.tlb"
 				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
@@ -143,47 +144,32 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\csaori.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;UDS_EXPORTS;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;UDS_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\..\csaori.cpp">
 			</File>
 			<File
-				RelativePath="uds.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;UDS_EXPORTS;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;UDS_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath=".\csaori_interface.cpp">
+			</File>
+			<File
+				RelativePath=".\sqlite3.c">
+			</File>
+			<File
+				RelativePath=".\sqlori.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\csaori.h">
+				RelativePath="..\..\csaori.h">
+			</File>
+			<File
+				RelativePath=".\sqlite3.h">
+			</File>
+			<File
+				RelativePath=".\sqlite3ext.h">
+			</File>
+			<File
+				RelativePath=".\sqlori.h">
 			</File>
 		</Filter>
 		<Filter

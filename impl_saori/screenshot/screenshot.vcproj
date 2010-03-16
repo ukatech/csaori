@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="ccpuid"
+	Name="screenshot"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -21,11 +21,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;ccpuid_EXPORTS"
+				AdditionalIncludeDirectories="..\.."
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;screenshot_EXPORTS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Debug/ccpuid.pch"
+				PrecompiledHeaderFile=".\Debug/screenshot.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -36,12 +37,12 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile=".\Debug/ccpuid.dll"
+				OutputFile=".\Debug/screenshot.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Debug/ccpuid.pdb"
-				ImportLibrary=".\Debug/ccpuid.lib"
+				ProgramDatabaseFile=".\Debug/screenshot.pdb"
+				ImportLibrary=".\Debug/screenshot.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -49,7 +50,7 @@
 				MkTypLibCompatible="TRUE"
 				SuppressStartupBanner="TRUE"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/ccpuid.tlb"
+				TypeLibraryName=".\Debug/screenshot.tlb"
 				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
@@ -84,13 +85,13 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories=".."
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;ccpuid_EXPORTS"
+				AdditionalIncludeDirectories="..\.."
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;screenshot_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Release/ccpuid.pch"
+				PrecompiledHeaderFile=".\Release/screenshot.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -100,11 +101,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile=".\Release/ccpuid.dll"
+				OutputFile=".\Release/screenshot.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				ProgramDatabaseFile=".\Release/ccpuid.pdb"
-				ImportLibrary=".\Release/ccpuid.lib"
+				ProgramDatabaseFile=".\Release/screenshot.pdb"
+				ImportLibrary=".\Release/screenshot.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -112,7 +113,7 @@
 				MkTypLibCompatible="TRUE"
 				SuppressStartupBanner="TRUE"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/ccpuid.tlb"
+				TypeLibraryName=".\Release/screenshot.tlb"
 				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
@@ -143,13 +144,13 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="ccpuid.cpp">
+				RelativePath="..\..\csaori.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;ccpuid_EXPORTS;$(NoInherit)"
+						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;screenshot_EXPORTS;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -157,23 +158,17 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;ccpuid_EXPORTS;$(NoInherit)"/>
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;screenshot_EXPORTS;$(NoInherit)"/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\cpuinfo.cpp">
-			</File>
-			<File
-				RelativePath=".\cpuusage.cpp">
-			</File>
-			<File
-				RelativePath="..\csaori.cpp">
+				RelativePath="screenshot.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;ccpuid_EXPORTS;$(NoInherit)"
+						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;screenshot_EXPORTS;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -181,27 +176,15 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;ccpuid_EXPORTS;$(NoInherit)"/>
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;screenshot_EXPORTS;$(NoInherit)"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\winver.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath=".\cpuinfo.h">
-			</File>
-			<File
-				RelativePath=".\cpuusage.h">
-			</File>
-			<File
-				RelativePath="..\csaori.h">
-			</File>
-			<File
-				RelativePath=".\winversion.h">
+				RelativePath="..\..\csaori.h">
 			</File>
 		</Filter>
 		<Filter
