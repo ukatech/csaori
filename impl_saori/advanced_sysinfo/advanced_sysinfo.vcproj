@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../"
+				AdditionalIncludeDirectories="..\..\"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FILEVERSION_EXPORTS;STRICT;WINVER=0x0400;_WIN32_WINNT=0x0400"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -87,7 +87,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../"
+				AdditionalIncludeDirectories="..\..\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;FILEVERSION_EXPORTS;STRICT;WINVER=0x0400;_WIN32_WINNT=0x0400"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -167,7 +167,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\csaori.cpp">
+				RelativePath="..\..\csaori.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
@@ -211,7 +211,7 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\csaori.h">
+				RelativePath="..\..\csaori.h">
 			</File>
 			<File
 				RelativePath="DriveInfo.h">

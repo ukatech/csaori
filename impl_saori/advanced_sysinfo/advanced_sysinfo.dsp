@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="gainer" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="advanced_sysinfo" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** 編集しないでください **
 
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
-CFG=gainer - Win32 Debug
+CFG=advanced_sysinfo - Win32 Debug
 !MESSAGE これは有効なﾒｲｸﾌｧｲﾙではありません。 このﾌﾟﾛｼﾞｪｸﾄをﾋﾞﾙﾄﾞするためには NMAKE を使用してください。
 !MESSAGE [ﾒｲｸﾌｧｲﾙのｴｸｽﾎﾟｰﾄ] ｺﾏﾝﾄﾞを使用して実行してください
 !MESSAGE 
-!MESSAGE NMAKE /f "gainer.mak".
+!MESSAGE NMAKE /f "advanced_sysinfo.mak".
 !MESSAGE 
 !MESSAGE NMAKE の実行時に構成を指定できます
 !MESSAGE ｺﾏﾝﾄﾞ ﾗｲﾝ上でﾏｸﾛの設定を定義します。例:
 !MESSAGE 
-!MESSAGE NMAKE /f "gainer.mak" CFG="gainer - Win32 Debug"
+!MESSAGE NMAKE /f "advanced_sysinfo.mak" CFG="advanced_sysinfo - Win32 Debug"
 !MESSAGE 
 !MESSAGE 選択可能なﾋﾞﾙﾄﾞ ﾓｰﾄﾞ:
 !MESSAGE 
-!MESSAGE "gainer - Win32 Release" ("Win32 (x86) Dynamic-Link Library" 用)
-!MESSAGE "gainer - Win32 Debug" ("Win32 (x86) Dynamic-Link Library" 用)
+!MESSAGE "advanced_sysinfo - Win32 Release" ("Win32 (x86) Dynamic-Link Library" 用)
+!MESSAGE "advanced_sysinfo - Win32 Debug" ("Win32 (x86) Dynamic-Link Library" 用)
 !MESSAGE 
 
 # Begin Project
@@ -29,7 +29,7 @@ CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "gainer - Win32 Release"
+!IF  "$(CFG)" == "advanced_sysinfo - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -43,7 +43,8 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FILEVERSION_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "../" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FILEVERSION_EXPORTS" /D WINVER=0x0400 /D "STRICT" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FILEVERSION_EXPORTS" /D "STRICT" /D WINVER=0x0400 /D _WIN32_WINNT=0x0400 /FD /c
+# SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x411 /d "NDEBUG"
@@ -53,9 +54,9 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib winmm.lib version.lib /nologo /dll /machine:I386
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib shell32.lib winmm.lib /nologo /dll /machine:I386
 
-!ELSEIF  "$(CFG)" == "gainer - Win32 Debug"
+!ELSEIF  "$(CFG)" == "advanced_sysinfo - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -69,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FILEVERSION_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FILEVERSION_EXPORTS" /D WINVER=0x0400 /D "STRICT" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FILEVERSION_EXPORTS" /D "STRICT" /D WINVER=0x0400 /D _WIN32_WINNT=0x0400 /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -80,32 +81,28 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib winmm.lib version.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib shell32.lib winmm.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 
 # Begin Target
 
-# Name "gainer - Win32 Release"
-# Name "gainer - Win32 Debug"
+# Name "advanced_sysinfo - Win32 Release"
+# Name "advanced_sysinfo - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\csaori.cpp
+SOURCE=.\advanced_sysinfo.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\gainer.cpp
+SOURCE=..\..\csaori.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\gainercxx.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\serial.cpp
+SOURCE=.\DriveInfo.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -113,15 +110,7 @@ SOURCE=.\serial.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\csaori.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\erslib.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\gainercxx.h
+SOURCE=..\..\csaori.h
 # End Source File
 # Begin Source File
 
@@ -129,7 +118,11 @@ SOURCE=.\resource.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\serial.h
+SOURCE=.\smart_struct.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DriveInfo.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
@@ -137,7 +130,7 @@ SOURCE=.\serial.h
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE=.\gainer.rc
+SOURCE=.\advanced_sysinfo.rc
 # End Source File
 # End Group
 # End Target
