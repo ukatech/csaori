@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="sqlori"
+	Name="sqlori-sqlite2"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".."
+				AdditionalIncludeDirectories="..\.."
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;sqlori_EXPORTS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -85,7 +85,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories=".."
+				AdditionalIncludeDirectories="..\..;sqlite2;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;sqlori_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -101,9 +101,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile=".\Release/sqlori.dll"
+				AdditionalDependencies="sqlite.lib"
+				OutputFile=".\Release/sqlori-sqlite2.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="sqlite2\release"
 				ProgramDatabaseFile=".\Release/sqlori.pdb"
 				ImportLibrary=".\Release/sqlori.lib"
 				TargetMachine="1"/>
@@ -144,13 +146,10 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\csaori.cpp">
+				RelativePath="..\..\csaori.cpp">
 			</File>
 			<File
 				RelativePath=".\csaori_interface.cpp">
-			</File>
-			<File
-				RelativePath=".\sqlite3.c">
 			</File>
 			<File
 				RelativePath=".\sqlori.cpp">
@@ -160,13 +159,7 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\csaori.h">
-			</File>
-			<File
-				RelativePath=".\sqlite3.h">
-			</File>
-			<File
-				RelativePath=".\sqlite3ext.h">
+				RelativePath="..\..\csaori.h">
 			</File>
 			<File
 				RelativePath=".\sqlori.h">

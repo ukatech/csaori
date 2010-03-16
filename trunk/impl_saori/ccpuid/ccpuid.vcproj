@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="sqlori-sqlite2"
+	Name="ccpuid"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -21,12 +21,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".."
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;sqlori_EXPORTS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;ccpuid_EXPORTS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Debug/sqlori.pch"
+				PrecompiledHeaderFile=".\Debug/ccpuid.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -37,12 +36,12 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile=".\Debug/sqlori.dll"
+				OutputFile=".\Debug/ccpuid.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Debug/sqlori.pdb"
-				ImportLibrary=".\Debug/sqlori.lib"
+				ProgramDatabaseFile=".\Debug/ccpuid.pdb"
+				ImportLibrary=".\Debug/ccpuid.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -50,7 +49,7 @@
 				MkTypLibCompatible="TRUE"
 				SuppressStartupBanner="TRUE"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/sqlori.tlb"
+				TypeLibraryName=".\Debug/ccpuid.tlb"
 				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
@@ -80,18 +79,18 @@
 			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="0">
+			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..;sqlite2;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;sqlori_EXPORTS"
+				AdditionalIncludeDirectories="..\.."
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;ccpuid_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Release/sqlori.pch"
+				PrecompiledHeaderFile=".\Release/ccpuid.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -101,13 +100,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="sqlite.lib"
-				OutputFile=".\Release/sqlori-sqlite2.dll"
+				OutputFile=".\Release/ccpuid.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="sqlite2\release"
-				ProgramDatabaseFile=".\Release/sqlori.pdb"
-				ImportLibrary=".\Release/sqlori.lib"
+				ProgramDatabaseFile=".\Release/ccpuid.pdb"
+				ImportLibrary=".\Release/ccpuid.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -115,7 +112,7 @@
 				MkTypLibCompatible="TRUE"
 				SuppressStartupBanner="TRUE"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/sqlori.tlb"
+				TypeLibraryName=".\Release/ccpuid.tlb"
 				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
@@ -146,23 +143,65 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\csaori.cpp">
+				RelativePath="ccpuid.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;ccpuid_EXPORTS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;ccpuid_EXPORTS;$(NoInherit)"/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\csaori_interface.cpp">
+				RelativePath=".\cpuinfo.cpp">
 			</File>
 			<File
-				RelativePath=".\sqlori.cpp">
+				RelativePath=".\cpuusage.cpp">
+			</File>
+			<File
+				RelativePath="..\..\csaori.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;ccpuid_EXPORTS;$(NoInherit)"
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;ccpuid_EXPORTS;$(NoInherit)"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\winver.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\csaori.h">
+				RelativePath=".\cpuinfo.h">
 			</File>
 			<File
-				RelativePath=".\sqlori.h">
+				RelativePath=".\cpuusage.h">
+			</File>
+			<File
+				RelativePath="..\..\csaori.h">
+			</File>
+			<File
+				RelativePath=".\winversion.h">
 			</File>
 		</Filter>
 		<Filter
