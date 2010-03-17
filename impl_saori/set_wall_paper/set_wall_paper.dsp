@@ -96,6 +96,10 @@ SOURCE=..\..\csaori.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\csaori_base.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\set_wall_paper.cpp
 # End Source File
 # End Group
@@ -105,6 +109,10 @@ SOURCE=.\set_wall_paper.cpp
 # Begin Source File
 
 SOURCE=..\..\csaori.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\csaori_base.h
 # End Source File
 # Begin Source File
 

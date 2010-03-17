@@ -4,24 +4,24 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include "csaori.h"
+#include "cplugin.h"
 
 #include <sensorsapi.h>
 #include <sensors.h>
 
 static int GetSensorState();
 
-bool CSAORI::load()
+bool CPLUGIN::load()
 {
 	return true;
 }
 
-bool CSAORI::unload()
+bool CPLUGIN::unload()
 {
 	return true;
 }
 
-void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
+void CPLUGIN::exec(const CSAORIInput &in, CSAORIOutput &out)
 {
 	out.result_code = SAORIRESULT_OK;
 	int result = GetSensorState();

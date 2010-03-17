@@ -2,7 +2,7 @@
  * csaori_base.cpp
  * 
  * written by Ukiya http://ukiya.sakura.ne.jp/
- * based by えびさわ様 "gethwnd.dll"
+ * based by Mr.EBISAWA "gethwnd.dll"
  */
 
 #ifdef _MSC_VER
@@ -19,7 +19,6 @@
 #include "csaori_base.h"
 
 //////////WINDOWS DEFINE///////////////////////////
-//includeのあとにおいてね！
 #ifdef _WINDOWS
 #ifdef _DEBUG
 #include <crtdbg.h>
@@ -32,12 +31,10 @@
 CSAORIBase* pSaori;
 HANDLE g_hModule;
 
-CSAORIBase* CreateInstance(void);
-
-#define static_strlen(s) ((sizeof(s) / sizeof(s[0]))-1)
+extern CSAORIBase* CreateInstance(void);
 
 //------------------------------------------------------------------------------
-//内部関数
+// Utility functions
 //------------------------------------------------------------------------------
 namespace SAORI_FUNC{
 	std::string UnicodeToMultiByte(const wchar_t *Source, unsigned int CodePage, DWORD Flags)
@@ -156,10 +153,9 @@ namespace SAORI_FUNC{
 		return string_t(p);
 	}
 
-	//
-	// string の tpos 位置からから１行（改行もしくは終端まで）取り出す 
-	// 戻り値 ... 次行開始位置（次行がないときは string::npos） 
-	//
+	// cut one line
+	// return ... first position of next line or string::npos if not found.
+
 	string_t::size_type getLine(string_t &sl, const string_t &src, string_t::size_type tpos)
 	{
 		string_t::size_type len = src.size();
@@ -192,23 +188,24 @@ namespace SAORI_FUNC{
 }
 
 //------------------------------------------------------------------------------
-//CSAORIInput
+// CSAORIInput
 //------------------------------------------------------------------------------
 bool CSAORIInput::parseString(const string_t &src)
 {
-	static const char_t atag[] = SAORI_ARGUMENT;
-	static const string_t::size_type catag = static_strlen(SAORI_ARGUMENT);
+	const string_t& atag = base.s_saori_argument();
+	const string_t::size_type catag = atag.length();
 	
 	string_t::size_type pos = 0, nextpos;
 	string_t::size_type ts;
 	std::vector<string_t> _arg;
 	std::map<string_t, string_t> _opt;
 	string_t _cmd;
+	string_t _id;
 	
 	string_t sl;
 	
 	pos = SAORI_FUNC::getLine(sl, src, pos);
-	ts = sl.find(L" " SAORI_DEF);
+	ts = sl.find(base.s_saori_def());
 	if (ts == string_t::npos) return false;
 	_cmd = sl.substr(0, ts);
 	
@@ -223,9 +220,8 @@ bool CSAORIInput::parseString(const string_t &src)
 			k = sl.substr(0, ts);
 			v = sl.substr(ts + 2);
 			const char_t *pk = k.c_str();
-			// _argument[n] は vector (_args) に積み、それ以外の要素は 
-			// map (_opt) に積む 
-			if (k.size() > catag && _memicmp(pk, atag, catag) == 0) {
+			// _argument[n] は vector (_args) に積む
+			if (k.size() > catag && _wcsnicmp(pk, atag.c_str(), catag) == 0) {
 				int ord = _wtoi(pk + catag);
 				if (ord > 0 || (ord == 0 && k[catag] == L'0')) {
 					if (argc <= ord) {
@@ -240,6 +236,11 @@ bool CSAORIInput::parseString(const string_t &src)
 					argc = (int)(_arg.size());
 				}
 			}
+			// ID: はidに
+			else if ( wcsicmp(k.c_str(),L"ID") == 0 ) {
+				_id = v;
+			}
+			// それ以外の要素は map (_opt) に積む 
 			else {
 				if (ts > 0) {
 					//よくあるヘッダの大文字小文字統一
@@ -268,12 +269,22 @@ bool CSAORIInput::parseString(const string_t &src)
 	cmd=_cmd;
 	args=_arg;
 	opts=_opt;
+	id=_id;
 	return true;
 }
 
 //------------------------------------------------------------------------------
 //CSAORIOutput
 //------------------------------------------------------------------------------
+void CSAORIOutput::setResultEmpty()
+{
+	if ( result_code == SAORIRESULT_OK || result_code == SAORIRESULT_FORCE_OK ) {
+		result_code = SAORIRESULT_NO_CONTENT;
+		result.erase();
+		values.clear();
+	}
+}
+
 string_t CSAORIOutput::toString()
 {
 	if ( result_code == SAORIRESULT_FORCE_OK ) {
@@ -290,21 +301,24 @@ string_t CSAORIOutput::toString()
 	swprintf(tmptxt,L"%d",result_code);
 
 	std::wstring dest;
-	dest += SAORI_VERSIONSTRING L" ";
+	dest += base.s_saori_version();
+	dest += L" ";
 	dest += tmptxt + std::wstring(L" ") + std::wstring(rcstr) + L"\r\n";
 
 	dest += L"Charset: " + SAORI_FUNC::CodePagetoString(codepage) + L"\r\n";
 	
 //	if (!result.empty()) { //空文字列でも結果は返すべき
-		dest += L"Result: " + result + L"\r\n";
+	dest += base.s_saori_result() + L": " + result + L"\r\n";
 //	}
 	if (!values.empty()) {
 		int i, n = (int)(values.size());
 		string_t tmp;
 		for(i=0; i<n; i++) {
-			swprintf(tmptxt,SAORI_VALUE L"%d",i);
+			swprintf(tmptxt,L"%d",i);
 
-			dest += std::wstring(tmptxt) + std::wstring(L": ");
+			dest += base.s_saori_value();
+			dest += tmptxt;
+			dest += std::wstring(L": ");
 
 			tmp = values[i];
 			std::string::size_type nPos = 0;
@@ -318,7 +332,7 @@ string_t CSAORIOutput::toString()
 				tmp.replace(nPos, 2 , L"\1");
 			}
 
-			dest += values[i] + L"\r\n";
+			dest += tmp + L"\r\n";
 		}
 	}
 	if (!opts.empty()) {
@@ -356,13 +370,13 @@ std::string CSAORIBase::request(const std::string &rq_tmp)
 	string_t rq=SAORI_FUNC::MultiByteToUnicode(rq_tmp,cp);
 
 	//解析処理開始
-	pIn=new CSAORIInput();
+	pIn=new CSAORIInput(*this);
 	pIn->codepage=cp;
 	pIn->opts[L"SecurityLevel"] = L"Local";
 	bool result=pIn->parseString(rq);
 	
 	//pOut初期化
-	pOut=new CSAORIOutput();
+	pOut=new CSAORIOutput(*this);
 	pOut->codepage=pIn->codepage;
 	pOut->result=L"";
 	pOut->result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
@@ -372,15 +386,26 @@ std::string CSAORIBase::request(const std::string &rq_tmp)
 	}else{
 		if (pIn->cmd == L"GET Version") {
 			pOut->result_code=SAORIRESULT_FORCE_OK;
-		}else if (pIn->cmd == L"EXECUTE") {
+		}
+		else if ( wcsicmp(pIn->cmd.c_str(),L"EXECUTE") == 0 || wcsicmp(pIn->cmd.c_str(),L"GET") == 0 || wcsicmp(pIn->cmd.c_str(),L"NOTIFY") == 0 ) {
 			string_t sec = pIn->opts[L"SecurityLevel"];
-			if (sec==L"Local" || sec==L"local" || sec.empty()) {
+
+			exec_before(*pIn,*pOut);
+			if ( sec==L"Local" || sec==L"local" || sec.empty() ) {
 				exec(*pIn,*pOut);
 			}
 			else {
-				pOut->result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
+				if ( ! exec_insecure(*pIn,*pOut) ) {
+					pOut->result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
+				}
 			}
-		}else {
+			exec_after(*pIn,*pOut);
+
+			if ( wcsicmp(pIn->cmd.c_str(),L"NOTIFY") == 0 ) {
+				pOut->setResultEmpty();
+			}
+		}
+		else {
 			pOut->result_code=SAORIRESULT_BAD_REQUEST;
 		}
 	}
@@ -505,7 +530,7 @@ request(HGLOBAL h, long *len)
 #ifndef _DEBUG
 	}
 	catch(...) {
-		re = SAORI_VERSIONSTRING_A " 500 Internal Server Error\r\n\r\n";
+		re = SAORI_FUNC::UnicodeToMultiByte(pSaori->s_saori_version() + string_t(L" 500 Internal Server Error\r\n\r\n"));
 	}
 #endif
 

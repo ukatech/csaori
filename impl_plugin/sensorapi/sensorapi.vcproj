@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="sensorhm"
+	Name="sensorapi"
 	ProjectGUID="{21CDEACC-6053-4654-97C4-84BDC6F62028}"
-	RootNamespace="sensorhm"
+	RootNamespace="sensorapi"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\"
+				AdditionalIncludeDirectories="..\..\"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;SAORI_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -116,7 +116,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\"
+				AdditionalIncludeDirectories="..\..\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SAORI_EXPORTS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -176,11 +176,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\csaori.cpp"
+				RelativePath="..\..\cplugin.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\sensorhm.cpp"
+				RelativePath="..\..\csaori_base.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\sensorapi.cpp"
 				>
 			</File>
 		</Filter>
@@ -190,7 +194,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\csaori.h"
+				RelativePath="..\..\cplugin.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\csaori_base.h"
 				>
 			</File>
 			<File
@@ -204,7 +212,7 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\sensorhm.rc"
+				RelativePath=".\sensorapi.rc"
 				>
 			</File>
 		</Filter>

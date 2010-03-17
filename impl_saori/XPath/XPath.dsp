@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FILEVERSION_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /Oy- /I "..\..\" /I "tinyxpath/" /D "_WINDOWS" /D "_USRDLL" /D "FILEVERSION_EXPORTS" /D WINVER=0x0400 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "STRICT" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /Oy- /I "..\..\\" /I "tinyxpath/" /D "_WINDOWS" /D "_USRDLL" /D "FILEVERSION_EXPORTS" /D WINVER=0x0400 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "STRICT" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x411 /d "NDEBUG"
@@ -69,7 +69,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FILEVERSION_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\" /I "tinyxpath/" /D "_WINDOWS" /D "_USRDLL" /D "FILEVERSION_EXPORTS" /D WINVER=0x0400 /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "STRICT" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\\" /I "tinyxpath/" /D "_WINDOWS" /D "_USRDLL" /D "FILEVERSION_EXPORTS" /D WINVER=0x0400 /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "STRICT" /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -97,6 +97,10 @@ SOURCE=..\..\csaori.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\csaori_base.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\XPath.cpp
 # End Source File
 # End Group
@@ -106,6 +110,10 @@ SOURCE=.\XPath.cpp
 # Begin Source File
 
 SOURCE=..\..\csaori.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\csaori_base.h
 # End Source File
 # Begin Source File
 
