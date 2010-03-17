@@ -2,7 +2,7 @@
  * csaori_base.h
  * 
  * written by Ukiya http://ukiya.sakura.ne.jp/
- * based by えびさわ様 "gethwnd.dll"
+ * based by Mr.EBISAWA "gethwnd.dll"
  */
 
 #pragma once
@@ -70,10 +70,20 @@ namespace SAORI_FUNC {
 }
 
 //Classes
+class CSAORIBase;
+
 class CSAORIInput{
+private:
+	const CSAORIBase &base;
+	
+	CSAORIInput(void); //DUMMY
 public:
+	CSAORIInput(const CSAORIBase &b) : base(b) {
+	}
+	
 	unsigned int codepage;
 	string_t cmd;
+	string_t id;
 	std::vector<string_t> args;
 	std::map<string_t,string_t> opts;
 
@@ -81,7 +91,14 @@ public:
 };
 
 class CSAORIOutput{
+private:
+	const CSAORIBase &base;
+	
+	CSAORIOutput(void); //DUMMY
 public:
+	CSAORIOutput(const CSAORIBase &b) : base(b) {
+	}
+
 	unsigned int codepage;
 	SAORIRESULT result_code;
 	string_t result;
@@ -89,6 +106,7 @@ public:
 	std::map<string_t,string_t> opts;
 
 	string_t toString();
+	void setResultEmpty();
 };
 
 class CSAORIBase {
@@ -105,16 +123,33 @@ private:
 	HANDLE module_handle;
 
 public:
-	//内部関数
+	//Internal Functions
 	void setModulePath(const std::string &str);
 	void setModuleHandle(HANDLE hMod);
+
+	const string_t& getModulePath(void) const { return module_path; }
+	HANDLE getModuleHandle(void) { return module_handle; }
+
 	std::string request(const std::string &req);
 	
-	//相対パスかどうかをチェックして全部絶対パスに変換
+	//Check relative path and convert to full path
 	std::string checkAndModifyPath(const std::string &path);
+	
+	//Interface specific constant string functions to override
+	virtual const string_t& s_saori_version(void) const = 0;
+	virtual const string_t& s_saori_def(void) const = 0;
+	virtual const string_t& s_saori_argument(void) const = 0;
+	virtual const string_t& s_saori_value(void) const = 0;
+	virtual const string_t& s_saori_result(void) const = 0;
 
-	//以下が実装すべき関数
+	//Prologue / Epilogue
+	virtual void exec_before(const CSAORIInput& in,CSAORIOutput& out) { }
+	virtual void exec_after(const CSAORIInput& in,CSAORIOutput& out) { }
+
+	//Public functions to implement.
 	virtual void exec(const CSAORIInput& in,CSAORIOutput& out) = 0;
+	virtual bool exec_insecure(const CSAORIInput& in,CSAORIOutput& out) { return false; } //SecLevel Remote : Optional
+
 	virtual bool unload() = 0;
 	virtual bool load() = 0;
 };

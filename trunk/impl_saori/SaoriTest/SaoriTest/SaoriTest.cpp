@@ -22,7 +22,10 @@ bool CSAORI::unload(){
 	é¿çs
 ---------------------------------------------------------*/
 void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
-	out.result_code=SAORIRESULT_OK;
-	out.result=module_path+in.args[0]+in.args[1];
+	out.result_code = SAORIRESULT_OK;
+
+	out.result = getModulePath();
+	out.result += in.args[0];
+	out.result += in.args[1];
 }
 

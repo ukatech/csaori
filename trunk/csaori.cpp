@@ -22,23 +22,31 @@
 #endif
 ///////////////////////////////////////////////////
 
-#define SAORI_DEF   L"SAORI/"
-#define SAORI_DEF_A "SAORI/"
-
-#define SAORI_VERSIONSTRING_10		SAORI_DEF L"1.0"
-#define SAORI_VERSIONSTRING_10_A	SAORI_DEF_A "1.0"
-
-#define SAORI_VERSIONSTRING			SAORI_VERSIONSTRING_10
-#define SAORI_VERSIONSTRING_A		SAORI_VERSIONSTRING_10_A
-
-#define SAORI_ARGUMENT L"Argument"
-#define SAORI_VALUE    L"Value"
-
-#ifndef CSAORI_IMPL
-#define CSAORI_IMPL
-#include "csaori_base.cpp"
-#endif //CSAORI_IMPL
-
+const string_t& CSAORI::s_saori_version(void) const
+{
+	static string_t s = L"SAORI/1.0";
+	return s;
+}
+const string_t& CSAORI::s_saori_def(void) const
+{
+	static string_t s = L" SAORI/";
+	return s;
+}
+const string_t& CSAORI::s_saori_argument(void) const
+{
+	static string_t s = L"Argument";
+	return s;
+}
+const string_t& CSAORI::s_saori_value(void) const
+{
+	static string_t s = L"Value";
+	return s;
+}
+const string_t& CSAORI::s_saori_result(void) const
+{
+	static string_t s = L"Result";
+	return s;
+}
 
 CSAORIBase* CreateInstance(void)
 {
