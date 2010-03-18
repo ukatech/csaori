@@ -63,7 +63,7 @@ volatile bool g_isLive;
 RECT g_oldRECT;
 HWND g_oldHWND;
 
-string_t g_dstTitle;
+std::string g_dstTitle;
 
 #ifdef _DEBUG
 FILE* fp;
@@ -123,7 +123,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 			}
 		}else if(in.args[2][0]==L'@'){
 			g_type=TYPE_TITLE;
-			g_dstTitle=in.args[2].substr(1);
+			g_dstTitle=SAORI_FUNC::UnicodeToMultiByte(in.args[2].substr(1));
 		}else{
 			out.result=L"";
 			out.result_code=SAORIRESULT_BAD_REQUEST;
@@ -418,7 +418,7 @@ RECALC:
 			tophwnd=g_followHWND;
 		}else{
 */
-			tophwnd=::FindWindow(L"#32768",NULL);
+			tophwnd=::FindWindowA("#32768",NULL);
 			if(tophwnd!=NULL && IsWindowVisible(tophwnd)){
 				//ÉÅÉjÉÖÅ[Ç™èoÇƒÇÈèÍçá
 				tophwnd=HWND_NOTOPMOST;
@@ -514,10 +514,10 @@ int _getPosition2(string_t str){
 }
 
 BOOL CALLBACK _enumwnd(HWND hwnd,LPARAM lParam){
-	char_t buf[255];
-	int res=GetWindowText(hwnd,buf,254);
+	char buf[255];
+	int res=GetWindowTextA(hwnd,buf,254);
 	if(res!=0){
-		if(wcsstr(buf,g_dstTitle.c_str())!=NULL){
+		if(strstr(buf,g_dstTitle.c_str())!=NULL){
 			g_dstHWND=hwnd;
 			return FALSE;
 		}
