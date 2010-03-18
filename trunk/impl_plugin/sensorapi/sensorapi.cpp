@@ -1,145 +1,133 @@
+//setlocale//
+#ifdef _MSC_VER
+#if _MSC_VER >= 1400
+#pragma setlocale("japanese")
+#endif
+#endif
+//setlocale end//
+
 #ifdef _MSC_VER
 #pragma warning( disable : 4786 )
 #endif
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include "cplugin.h"
+#include <new>
 
-#include <sensorsapi.h>
-#include <sensors.h>
+#include "sensorapi.h"
+#include "sensor_event.h"
 
-static int GetSensorState();
+//////////WINDOWS DEFINE///////////////////////////
+#ifdef _WINDOWS
+#ifdef _DEBUG
+#include <crtdbg.h>
+#define new new( _NORMAL_BLOCK, __FILE__, __LINE__)
+#endif
+#endif
+///////////////////////////////////////////////////
 
-bool CPLUGIN::load()
+CSAORIBase* CreateInstance(void)
 {
-	return true;
+	return new CSensorAPIPlugin();
 }
 
-bool CPLUGIN::unload()
-{
-	return true;
+bool operator< (const GUID &a,const GUID &b) {
+	return memcmp(&a,&b,sizeof(a)) < 0;
 }
 
-void CPLUGIN::exec(const CSAORIInput &in, CSAORIOutput &out)
+template <typename T> void SafeReleaseRef(T* &pT)
 {
-	out.result_code = SAORIRESULT_OK;
-	int result = GetSensorState();
-
-	if ( result < 0 ) {
-		out.result = L"not found";
-	}
-	else if ( result > 0 ) {
-		out.result = L"1";
-	}
-	else {
-		out.result = L"0";
+	if ( pT ) {
+		pT->Release();
+		pT = NULL;
 	}
 }
 
-int GetSensorState()
+bool CSensorAPIPlugin::load()
 {
-	ISensorManager* psmSnsMng;
-
-	HRESULT hrRes = CoCreateInstance( CLSID_SensorManager, 0, CLSCTX_ALL, __uuidof( ISensorManager ), ( void** )&psmSnsMng );
+	HRESULT hrRes = CoCreateInstance( CLSID_SensorManager, 0, CLSCTX_ALL, IID_PPV_ARGS(&m_pSnsMng) );
 	if ( ! SUCCEEDED( hrRes ) ) {
-		psmSnsMng = NULL;
+		m_pSnsMng = NULL;
     }
-
-	if ( ! psmSnsMng ) {
-		return -1;
+	if ( ! m_pSnsMng ) {
+		return false;
 	}
 
-	ISensorCollection*	piscSensCol = NULL;
-	psmSnsMng->GetSensorsByCategory( SENSOR_CATEGORY_BIOMETRIC, &piscSensCol );
-	if ( !piscSensCol ) {
-		psmSnsMng->Release();
-		return -1;
+	m_pSnsEvt = new CSensorEvent(this);
+	if ( ! m_pSnsEvt ) {
+		SafeReleaseRef(m_pSnsMng);
+		return false;
 	}
+	m_pSnsEvt->AddRef();
 
-	hrRes = psmSnsMng->GetSensorsByType( SENSOR_TYPE_HUMAN_PRESENCE, &piscSensCol );
-	if ( !piscSensCol ) {
-		psmSnsMng->Release();
-		return -1;
+	m_pSnsMngEvt = new CSensorManagerEvent(this,m_pSnsEvt);
+	if ( ! m_pSnsMngEvt ) {
+		SafeReleaseRef(m_pSnsEvt);
+		SafeReleaseRef(m_pSnsMng);
+		return false;
 	}
+	m_pSnsMngEvt->AddRef();
 
-	ULONG ulMaxCnt = 0;
-	hrRes = piscSensCol->GetCount( &ulMaxCnt );
-	if ( !ulMaxCnt ) {
-		piscSensCol->Release();
-		psmSnsMng->Release();
-		return -1;
-	}
+	ISensorCollection*	pSensCol = NULL;
+	m_pSnsMng->GetSensorsByCategory(SENSOR_CATEGORY_ALL,&pSensCol);
+	if ( pSensCol ) {
+		ULONG ulMaxCnt = 0;
+		hrRes = pSensCol->GetCount(&ulMaxCnt);
+		if ( ulMaxCnt ) {
+			for ( ULONG i = 0 ; i < ulMaxCnt ; i++ ) {
+				ISensor* pSens = NULL;
+				hrRes = pSensCol->GetAt(i,&pSens);
+				if ( ! pSens ) { continue; }
 
-	unsigned int uiCnt = 0;
-
-	VARIANT_BOOL vbHuman = FALSE;
-
-	for ( uiCnt = 0 ; uiCnt < ulMaxCnt ; uiCnt++ ) {
-		ISensor* pisSens = NULL;
-		hrRes = piscSensCol->GetAt( uiCnt, &pisSens );
-
-		if ( !pisSens ) {
-			continue;
-		}
-
-		SENSOR_TYPE_ID stiSnsId;
-		pisSens->GetType( &stiSnsId );
-
-		if ( stiSnsId == GUID_NULL ) {
-			piscSensCol->Release();
-			return -1;
-		}
-
-		ISensorDataReport* pDataReport;
-		hrRes = pisSens->GetData( &pDataReport );
-
-		if ( hrRes == E_INVALIDARG ) {
-			piscSensCol->Release();
-			psmSnsMng->Release();
-			return -1;
-		}
-		else if ( hrRes == HRESULT_FROM_WIN32( ERROR_NO_DATA ) ) {
-			piscSensCol->Release();
-			psmSnsMng->Release();
-			return -1;
-		}
-		else if ( hrRes == E_ACCESSDENIED ) {
-			piscSensCol->Release();
-			psmSnsMng->Release();
-			return -1;
-		}
-
-		if ( SUCCEEDED ( hrRes ) ) {
-			PROPVARIANT pvSensHm;
-			PropVariantInit( &pvSensHm );
-			hrRes = pDataReport->GetSensorValue( SENSOR_DATA_TYPE_HUMAN_PRESENCE, &pvSensHm );
-			if ( SUCCEEDED( hrRes ) ) {
-				vbHuman = pvSensHm.boolVal;
+				if ( m_pSnsEvt ) {
+					AddSensor(pSens);
+					pSens->SetEventSink(m_pSnsEvt);
+				}
 			}
-			PropVariantClear( &pvSensHm );
-
-			pisSens->Release();
-			pisSens = NULL;
-			break;
-        }
-
-		pisSens->Release();
-		pisSens = NULL;
+		}
 	}
 
-	piscSensCol->Clear();
-	piscSensCol->Release();
-	piscSensCol = NULL;
-	
-	psmSnsMng->Release();
-
-	if  ( vbHuman == VARIANT_FALSE ) {
-		return 0;
-	}
-	else {
-		return 1;
-	}
+	m_pSnsMng->SetEventSink(m_pSnsMngEvt);
+	return true;
 }
 
+bool CSensorAPIPlugin::unload()
+{
+	SafeReleaseRef(m_pSnsMng);
+	SafeReleaseRef(m_pSnsMngEvt);
+	SafeReleaseRef(m_pSnsEvt);
+
+	return true;
+}
+
+void CSensorAPIPlugin::exec(const CSAORIInput &in, CSAORIOutput &out)
+{
+	out.result_code = SAORIRESULT_NO_CONTENT;
+}
+
+void CSensorAPIPlugin::AddSensor(ISensor *pS)
+{
+	SENSOR_ID id;
+	pS->GetID(&id);
+
+	std::map<SENSOR_ID,ISensor*>::iterator itr = m_sensorlist.find(id);
+	if ( itr != m_sensorlist.end() ) {
+		m_sensorlist[id] = pS;
+		return;
+	}
+
+	pS->AddRef();
+	m_sensorlist[id] = pS;
+}
+
+void CSensorAPIPlugin::DeleteSensor(const SENSOR_ID &id)
+{
+	std::map<SENSOR_ID,ISensor*>::iterator itr = m_sensorlist.find(id);
+	if ( itr == m_sensorlist.end() ) {
+		return;
+	}
+
+	itr->second->Release();
+	m_sensorlist.erase(itr);
+}
 
