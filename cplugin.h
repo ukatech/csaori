@@ -7,7 +7,19 @@
 
 #pragma once
 
+#include <map>
+
 #include "csaori_base.h"
+
+class CGhostInfo {
+public:
+	void* hwnd;
+	string_t name;
+	string_t id;
+	string_t path;
+	string_t shell_name;
+	string_t shell_path;
+};
 
 class CPLUGIN : public CSAORIBase {
 private:
@@ -19,10 +31,9 @@ private:
 	string_t marker;
 	string_t security_level;
 
-public:
-	CPLUGIN(){}
-	virtual ~CPLUGIN(){}
+	std::map<string_t,CGhostInfo> ghost_map;
 
+protected:
 	//インターフェース固有文字列群
 	virtual const string_t& s_saori_version(void) const;
 	virtual const string_t& s_saori_def(void) const;
@@ -33,6 +44,10 @@ public:
 	//Prologue / Epilogue
 	virtual void exec_before(const CSAORIInput& in,CSAORIOutput& out);
 	virtual void exec_after(const CSAORIInput& in,CSAORIOutput& out);
+
+public:
+	CPLUGIN(){}
+	virtual ~CPLUGIN(){}
 
 	//以下が実装すべき関数
 	virtual void exec(const CSAORIInput& in,CSAORIOutput& out);

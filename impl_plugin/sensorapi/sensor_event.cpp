@@ -1,4 +1,5 @@
 #include "sensor_event.h"
+#include "sensorapi.h"
 #include <sensors.h>
 
 //////////WINDOWS DEFINE///////////////////////////
@@ -17,32 +18,35 @@ template <class T> inline void SafeReleaseRef(T* &pT)
 	pT = NULL;
 }
 
-STDMETHODIMP CHmSensorEvent::QueryInterface(REFIID iid, void** ppv)
+//********** SENSOR MANAGER EVENTS **********//
+
+STDMETHODIMP CSensorManagerEvent::QueryInterface(REFIID iid, void** ppv)
 {
 	if (ppv == NULL) {
 		return E_POINTER;
 	}
 	if (iid == __uuidof(IUnknown)) {
+		AddRef();
 		*ppv = static_cast<IUnknown*>(this);
 	}
-	else if (iid == __uuidof(ISensorEvents)) {
-		*ppv = static_cast<ISensorEvents*>(this);
+	else if (iid == __uuidof(ISensorManagerEvents)) {
+		AddRef();
+		*ppv = static_cast<ISensorManagerEvents*>(this);
 	}
 	else {
 		*ppv = NULL;
 		return E_NOINTERFACE;
 	}
 
-	AddRef();
 	return S_OK;
 }
 
-STDMETHODIMP_(ULONG) CHmSensorEvent::AddRef()
+STDMETHODIMP_(ULONG) CSensorManagerEvent::AddRef()
 {
 	return ::InterlockedIncrement(&m_cRef); 
 }
 
-STDMETHODIMP_(ULONG) CHmSensorEvent::Release()
+STDMETHODIMP_(ULONG) CSensorManagerEvent::Release()
 {
 	ULONG count = ::InterlockedDecrement(&m_cRef);
 	if (count == 0) {
@@ -52,79 +56,72 @@ STDMETHODIMP_(ULONG) CHmSensorEvent::Release()
 	return count;
 }
 
-STDMETHODIMP CHmSensorEvent::OnEvent(
-									 ISensor *pSensor,
-									 REFGUID eventID,
-									 IPortableDeviceValues *pEventData)
-{
-	HRESULT hr = S_OK;
+//--------- SPECIFIC ----------//
 
-	return hr;
+STDMETHODIMP CSensorManagerEvent::OnSensorEnter(ISensor *pSensor,SensorState state)
+{
+	p->AddSensor(pSensor);
+	return S_OK;
 }
 
-STDMETHODIMP CHmSensorEvent::OnDataUpdated(ISensor *pSensor,ISensorDataReport *pDataReport)
+//********** SENSOR EVENTS **********//
+
+STDMETHODIMP CSensorEvent::QueryInterface(REFIID iid, void** ppv)
 {
-	HRESULT hr = S_OK;
-
-	if(NULL == pDataReport || NULL == pSensor) {
-		return E_INVALIDARG;
+	if (ppv == NULL) {
+		return E_POINTER;
+	}
+	if (iid == __uuidof(IUnknown)) {
+		AddRef();
+		*ppv = static_cast<IUnknown*>(this);
+	}
+	else if (iid == __uuidof(ISensorEvents)) {
+		AddRef();
+		*ppv = static_cast<ISensorEvents*>(this);
+	}
+	else {
+		*ppv = NULL;
+		return E_NOINTERFACE;
 	}
 
-	pSensor->AddRef();
-	pDataReport->AddRef();
-
-	bool vbHuman = false;
-
-	PROPVARIANT pvSensHm;
-	PropVariantInit( &pvSensHm );
-	hr = pDataReport->GetSensorValue( SENSOR_DATA_TYPE_HUMAN_PRESENCE, &pvSensHm );
-	if ( SUCCEEDED( hr ) ) {
-		vbHuman = pvSensHm.boolVal != 0;
-	}
-	PropVariantClear( &pvSensHm );
-
-	SafeReleaseRef(pSensor);
-	SafeReleaseRef(pDataReport);
-
-	return hr;
+	return S_OK;
 }
 
-STDMETHODIMP CHmSensorEvent::OnLeave(REFSENSOR_ID sensorID)
+STDMETHODIMP_(ULONG) CSensorEvent::AddRef()
 {
-	HRESULT hr = S_OK;
-
-	return hr;
+	return ::InterlockedIncrement(&m_cRef); 
 }
 
-STDMETHODIMP CHmSensorEvent::OnStateChanged(ISensor* pSensor,SensorState state)
+STDMETHODIMP_(ULONG) CSensorEvent::Release()
 {
-	HRESULT hr = S_OK;
-	/*SENSOR_CATEGORY_ID id = GUID_NULL;
-
-	if(NULL == pSensor)
-	{
-	return E_INVALIDARG;
+	ULONG count = ::InterlockedDecrement(&m_cRef);
+	if (count == 0) {
+		delete this;
+		return 0;
 	}
+	return count;
+}
 
-	pSensor->AddRef();
+//--------- SPECIFIC ----------//
 
-	hr = pSensor->GetCategory(&id);
+STDMETHODIMP CSensorEvent::OnEvent(ISensor *pSensor,REFGUID eventID,IPortableDeviceValues *pEventData)
+{
+	return S_OK;
+}
 
-	if(SUCCEEDED(hr))
-	{
-	if(id == SENSOR_CATEGORY_BIOMETRIC)
-	{
-	if(state == SENSOR_STATE_READY)
-	{
-	}
-	else if(state == SENSOR_STATE_ACCESS_DENIED)
-	{
-	}
-	}
-	}
+STDMETHODIMP CSensorEvent::OnDataUpdated(ISensor *pSensor,ISensorDataReport *pDataReport)
+{
+	return S_OK;
+}
 
-	SafeReleaseRef(pSensor);*/  
+STDMETHODIMP CSensorEvent::OnLeave(REFSENSOR_ID sensorID)
+{
+	p->DeleteSensor(sensorID);
+	return S_OK;
+}
 
-	return hr;
+STDMETHODIMP CSensorEvent::OnStateChanged(ISensor* pSensor,SensorState state)
+{
+	return S_OK;
 }
 

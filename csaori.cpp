@@ -1,8 +1,16 @@
+//setlocale//
+#ifdef _MSC_VER
+#if _MSC_VER >= 1400
+#pragma setlocale("japanese")
+#endif
+#endif
+//setlocale end//
+
 /*
  * csaori.cpp
  * 
  * written by Ukiya http://ukiya.sakura.ne.jp/
- * based by Ç¶Ç—Ç≥ÇÌól "gethwnd.dll"
+ * based by Mr.EBISAWA "gethwnd.dll"
  */
 
 #ifdef _MSC_VER
@@ -13,7 +21,6 @@
 #include "csaori.h"
 
 //////////WINDOWS DEFINE///////////////////////////
-//includeÇÃÇ†Ç∆Ç…Ç®Ç¢ÇƒÇÀÅI
 #ifdef _WINDOWS
 #ifdef _DEBUG
 #include <crtdbg.h>

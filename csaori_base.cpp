@@ -1,3 +1,11 @@
+//setlocale//
+#ifdef _MSC_VER
+#if _MSC_VER >= 1400
+#pragma setlocale("japanese")
+#endif
+#endif
+//setlocale end//
+
 /*
  * csaori_base.cpp
  * 
@@ -391,7 +399,7 @@ std::string CSAORIBase::request(const std::string &rq_tmp)
 			string_t sec = pIn->opts[L"SecurityLevel"];
 
 			exec_before(*pIn,*pOut);
-			if ( sec==L"Local" || sec==L"local" || sec.empty() ) {
+			if ( sec.empty() || wcsicmp(sec.c_str(),L"local") == 0 ) {
 				exec(*pIn,*pOut);
 			}
 			else {
