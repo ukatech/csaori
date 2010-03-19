@@ -24,9 +24,12 @@ private:
 	CSensorManagerEvent* m_pSnsMngEvt;
 
 	std::map<SENSOR_ID,ISensor*> m_sensorlist;
+	std::map<SENSOR_ID,ISensor*> m_sensorlist_denied;
+
+	bool m_sensorlist_updated;
 
 public:
-	CSensorAPIPlugin(void) : m_pSnsMng(NULL),m_pSnsEvt(NULL),m_pSnsMngEvt(NULL) {
+	CSensorAPIPlugin(void) : m_pSnsMng(NULL),m_pSnsEvt(NULL),m_pSnsMngEvt(NULL),m_sensorlist_updated(false) {
 	}
 	~CSensorAPIPlugin() {
 	}

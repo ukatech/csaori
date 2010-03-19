@@ -299,7 +299,7 @@ string_t CSAORIOutput::toString()
 		result_code = SAORIRESULT_OK;
 	}
 	//No ContentÇ…é©ìÆï‚ê≥
-	else if ( result.empty() && values.empty() && result_code == SAORIRESULT_OK ) {
+	else if ( result.empty() && values.empty() && opts.empty() && result_code == SAORIRESULT_OK ) {
 		result_code = SAORIRESULT_NO_CONTENT;
 	}
 

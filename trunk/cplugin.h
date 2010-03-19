@@ -22,7 +22,7 @@ public:
 };
 
 class CPLUGIN : public CSAORIBase {
-private:
+protected:
 	string_t script;
 	string_t script_option;
 	string_t event;
@@ -33,7 +33,6 @@ private:
 
 	std::map<string_t,CGhostInfo> ghost_map;
 
-protected:
 	//インターフェース固有文字列群
 	virtual const string_t& s_saori_version(void) const;
 	virtual const string_t& s_saori_def(void) const;
