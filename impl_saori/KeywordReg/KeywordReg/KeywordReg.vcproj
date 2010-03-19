@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\"
+				AdditionalIncludeDirectories="..\..\..\"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;SAORI_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -118,7 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\"
+				AdditionalIncludeDirectories="..\..\..\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;KEYWORDREG_EXPORTS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -180,7 +180,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\csaori.cpp"
+				RelativePath="..\..\..\csaori.cpp"
 				>
 			</File>
 			<File
@@ -194,7 +194,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\csaori.h"
+				RelativePath="..\..\..\csaori.h"
 				>
 			</File>
 			<File
