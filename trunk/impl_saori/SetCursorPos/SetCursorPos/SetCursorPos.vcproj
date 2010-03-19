@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="AqTalkSaori"
-	ProjectGUID="{31589A67-BDF7-40E2-A2FD-2CC79D7886CB}"
-	RootNamespace="AqTalkSaori"
+	Name="SetCursorPos"
+	ProjectGUID="{33F63577-C19D-4F71-BFFB-B4BAC894F68F}"
+	RootNamespace="SetCursorPos"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -41,8 +41,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;SAORI_EXPORTS;"
+				AdditionalIncludeDirectories="..\..\..\"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -62,9 +62,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib"
+				AdditionalDependencies="user32.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -120,8 +119,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SAORI_EXPORTS;"
+				AdditionalIncludeDirectories="..\..\..\"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SETCURSORPOS_EXPORTS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -139,9 +138,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib"
+				AdditionalDependencies="user32.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -183,11 +181,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\AqTalkSaori.cpp"
+				RelativePath="..\..\..\csaori.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\csaori.cpp"
+				RelativePath=".\SetCursorPos.cpp"
 				>
 			</File>
 		</Filter>
@@ -197,7 +195,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\csaori.h"
+				RelativePath="..\..\..\csaori.h"
 				>
 			</File>
 			<File
@@ -211,18 +209,10 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\AqTalkSaori.rc"
+				RelativePath=".\SetCursorPos.rc"
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
-		<File
-			RelativePath=".\resource"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
