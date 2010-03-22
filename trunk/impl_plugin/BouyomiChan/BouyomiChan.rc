@@ -46,14 +46,14 @@ BEGIN
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "CSaori Project\0"
-            VALUE "FileDescription", "SensorAPI\0"
+            VALUE "FileDescription", "BouyomiChan\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
-            VALUE "InternalName", "SensorAPI\0"
+            VALUE "InternalName", "BouyomiChan\0"
             VALUE "LegalCopyright", "Copyright (C) CSaori Project\0"
             VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "SensorAPI.dll\0"
+            VALUE "OriginalFilename", "BouyomiChan.dll\0"
             VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "SensorAPI\0"
+            VALUE "ProductName", "BouyomiChan\0"
             VALUE "ProductVersion", "1, 0, 0, 1\0"
             VALUE "SpecialBuild", "\0"
         END

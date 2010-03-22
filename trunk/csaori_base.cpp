@@ -18,6 +18,9 @@
 #pragma warning( disable : 4996 )
 #endif
 
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 #include <cstring>
 #include <cstdlib>
 #include <algorithm>
@@ -193,6 +196,58 @@ namespace SAORI_FUNC{
 		os << num;
 		return os.str();
 	}
+
+	CCriticalSection::CCriticalSection(void) : init(false)
+	{
+		//Vista以降のメモリリークとマルチスレッドのパフォーマンス対策
+		typedef BOOL (WINAPI *FInitializeCriticalSectionEx)(LPCRITICAL_SECTION lpCriticalSection,DWORD dwSpinCount,DWORD Flags);
+		typedef BOOL (WINAPI *FInitializeCriticalSectionAndSpinCount)(LPCRITICAL_SECTION lpCriticalSection,DWORD dwSpinCoun);
+
+		static FInitializeCriticalSectionEx SInitializeCriticalSectionEx = NULL;
+		static FInitializeCriticalSectionAndSpinCount SInitializeCriticalSectionAndSpinCount = NULL;
+		static bool init = false;
+
+		if ( ! init ) {
+			init = true;
+			SInitializeCriticalSectionEx = reinterpret_cast<FInitializeCriticalSectionEx>(
+				::GetProcAddress(::GetModuleHandleA("kernel32"),"InitializeCriticalSectionEx") );
+
+			SInitializeCriticalSectionAndSpinCount = reinterpret_cast<FInitializeCriticalSectionAndSpinCount>(
+				::GetProcAddress(::GetModuleHandleA("kernel32"),"InitializeCriticalSectionAndSpinCount") );
+		}
+
+		BOOL result;
+		if ( SInitializeCriticalSectionEx ) {
+			result = SInitializeCriticalSectionEx(&c,1500,0x01000000 /*CRITICAL_SECTION_NO_DEBUG_INFO*/);
+		}
+		else if ( SInitializeCriticalSectionAndSpinCount ) {
+			result = SInitializeCriticalSectionAndSpinCount(&c,1500);
+		}
+		else {
+			::InitializeCriticalSection(&c);
+			result = 1;
+		}
+		init = (result != 0);
+	}
+	CCriticalSection::~CCriticalSection()
+	{
+		if ( init ) {
+			::DeleteCriticalSection(&c);
+		}
+	}
+	void CCriticalSection::Enter(void)
+	{
+		if ( init ) {
+			::EnterCriticalSection(&c);
+		}
+	}
+	void CCriticalSection::Leave(void)
+	{
+		if ( init ) {
+			::LeaveCriticalSection(&c);
+		}
+	}
+
 }
 
 //------------------------------------------------------------------------------

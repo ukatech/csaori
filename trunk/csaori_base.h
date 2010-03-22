@@ -67,6 +67,32 @@ namespace SAORI_FUNC {
 
 	std::wstring CodePagetoString(unsigned int cp);
 	unsigned int StringtoCodePage(const char *str);
+
+	//CriticalSection
+	class CCriticalSection {
+	private:
+		CRITICAL_SECTION c;
+		bool init;
+	public:
+		CCriticalSection(void);
+		~CCriticalSection();
+
+		void Enter(void);
+		void Leave(void);
+	};
+
+	//CriticalSection開放ラッパー
+	class CCriticalSectionLock {
+	private:
+		CCriticalSection &c;
+	public:
+		CCriticalSectionLock(CCriticalSection &pc) : c(pc) {
+			c.Enter();
+		}
+		~CCriticalSectionLock() {
+			c.Leave();
+		}
+	};
 }
 
 //Classes
