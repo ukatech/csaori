@@ -60,7 +60,7 @@ STDMETHODIMP_(ULONG) CSensorManagerEvent::Release()
 
 STDMETHODIMP CSensorManagerEvent::OnSensorEnter(ISensor *pSensor,SensorState state)
 {
-	p->AddSensor(pSensor);
+	p->AddSensor(pSensor,state);
 	return S_OK;
 }
 
@@ -111,6 +111,7 @@ STDMETHODIMP CSensorEvent::OnEvent(ISensor *pSensor,REFGUID eventID,IPortableDev
 
 STDMETHODIMP CSensorEvent::OnDataUpdated(ISensor *pSensor,ISensorDataReport *pDataReport)
 {
+	p->DataUpdateSensor(pSensor,pDataReport);
 	return S_OK;
 }
 
@@ -122,6 +123,7 @@ STDMETHODIMP CSensorEvent::OnLeave(REFSENSOR_ID sensorID)
 
 STDMETHODIMP CSensorEvent::OnStateChanged(ISensor* pSensor,SensorState state)
 {
+	p->StateChangeSensor(pSensor,state);
 	return S_OK;
 }
 

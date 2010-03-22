@@ -13,8 +13,11 @@
 
 class CSensorEvent;
 class CSensorManagerEvent;
+class CSensorAPIData;
 
 bool operator< (const GUID &a,const GUID &b);
+
+typedef std::map<SENSOR_ID,CSensorAPIData*> sensor_data_map;
 
 class CSensorAPIPlugin : public CPLUGIN
 {
@@ -23,23 +26,28 @@ private:
 	CSensorEvent* m_pSnsEvt;
 	CSensorManagerEvent* m_pSnsMngEvt;
 
-	std::map<SENSOR_ID,ISensor*> m_sensorlist;
-	std::map<SENSOR_ID,ISensor*> m_sensorlist_denied;
+	sensor_data_map m_sensorlist;
+	sensor_data_map m_sensorlist_denied;
 
-	bool m_sensorlist_updated;
+	volatile bool m_sensorlist_updated;
+
+	SAORI_FUNC::CCriticalSection m_lock;
 
 public:
-	CSensorAPIPlugin(void) : m_pSnsMng(NULL),m_pSnsEvt(NULL),m_pSnsMngEvt(NULL),m_sensorlist_updated(false) {
-	}
-	~CSensorAPIPlugin() {
-	}
+	CSensorAPIPlugin(void);
+	~CSensorAPIPlugin();
 
 	virtual void exec(const CSAORIInput& in,CSAORIOutput& out);
 	virtual bool unload();
 	virtual bool load();
 
-	void AddSensor(ISensor *pS);
+	void AddSensor(ISensor *pS,SensorState state);
+	void StateChangeSensor(ISensor *pS,SensorState state);
+	void DataUpdateSensor(ISensor *pS,ISensorDataReport *pD);
 	void DeleteSensor(const SENSOR_ID &id);
+
+	void OnSecondChange(const CSAORIInput &in, CSAORIOutput &out);
+	void OnMenuExec(const CSAORIInput &in, CSAORIOutput &out);
 };
 
 #endif //SENSOR_API_PLUGIN_INCLUDED
