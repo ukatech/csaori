@@ -268,6 +268,7 @@ void CSensorAPIPlugin::OnSecondChange(const CSAORIInput &in, CSAORIOutput &out)
 				std::vector<string_t> &data = itr->second->GetData();
 				out.values.insert(out.values.end(),data.begin(),data.end());
 
+				out.result_code = SAORIRESULT_OK;
 				return;
 			}
 		}

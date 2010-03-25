@@ -24,12 +24,16 @@ private:
 	std::deque<CBouyomiChanData> thread_queue;
 	HANDLE thread_event;
 	HANDLE thread_handle;
+	int speak_type;
+	std::string ini_file_path;
 
 public:
 	CBouyomiChan(void);
 	~CBouyomiChan();
 
 	void ThreadProc(void);
+
+	void ShowMenu(CSAORIOutput& out);
 
 	virtual void exec(const CSAORIInput& in,CSAORIOutput& out);
 	virtual bool unload();

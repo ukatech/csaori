@@ -64,6 +64,18 @@ void CPLUGIN::exec_before(const CSAORIInput& in,CSAORIOutput& out)
 	target.erase();
 	marker.erase();
 	security_level.erase();
+
+	language.erase();
+	map_strpair::const_iterator itr = in.opts.find(L"Language");
+	if ( itr != in.opts.end() ) {
+		language = itr->second;
+	}
+
+	sender.erase();
+	itr = in.opts.find(L"Sender");
+	if ( itr != in.opts.end() ) {
+		sender = itr->second;
+	}
 }
 
 void CPLUGIN::exec_after(const CSAORIInput& in,CSAORIOutput& out)
@@ -94,7 +106,9 @@ void CPLUGIN::exec_after(const CSAORIInput& in,CSAORIOutput& out)
 		if ( wcsicmp(in.id.c_str(),L"OnGhostBoot") == 0 || wcsicmp(in.id.c_str(),L"OnGhostInfoUpdate") == 0 ) {
 			string_t path = in.args[4];
 
-			std::map<string_t,CGhostInfo>::iterator itr = ghost_map.find(path);
+			ghost_map_type::iterator itr = ghost_map.find(path);
+
+			SAORI_FUNC::CCriticalSectionLock lock(sstp_thread_lock);
 
 			CGhostInfo *pGI;
 			if ( itr != ghost_map.end() ) {
@@ -119,11 +133,53 @@ void CPLUGIN::exec_after(const CSAORIInput& in,CSAORIOutput& out)
 		else if ( wcsicmp(in.id.c_str(),L"OnGhostExit") == 0 ) {
 			string_t path = in.args[4];
 
-			std::map<string_t,CGhostInfo>::iterator itr = ghost_map.find(path);
+			SAORI_FUNC::CCriticalSectionLock lock(sstp_thread_lock);
+
+			ghost_map_type::iterator itr = ghost_map.find(path);
 			if ( itr != ghost_map.end() ) {
 				ghost_map.erase(itr);
 			}
 		}
+	}
+}
+
+void CPLUGIN::send_sstp(const std::string &str,void* hwnd)
+{
+
+	if ( ! hwnd ) {
+		SAORI_FUNC::CCriticalSectionLock lock(sstp_thread_lock);
+		
+		DWORD result;
+
+		COPYDATASTRUCT c;
+		c.dwData = 9801;
+		c.cbData = str.size();
+		c.lpData = const_cast<char*>(str.c_str());
+
+		for ( ghost_map_type::iterator itr = ghost_map.begin() ; 
+			itr != ghost_map.end() ; ++itr ) {
+			hwnd = itr->second.hwnd;
+
+			::SendMessageTimeout(reinterpret_cast<HWND>(hwnd),
+				WM_COPYDATA,
+				reinterpret_cast<WPARAM>(hwnd),
+				reinterpret_cast<LPARAM>(&c),
+				SMTO_ABORTIFHUNG,1000,&result);
+		}
+	}
+	else {
+		DWORD result;
+		
+		COPYDATASTRUCT c;
+		c.dwData = 9801;
+		c.cbData = str.size();
+		c.lpData = const_cast<char*>(str.c_str());
+
+		::SendMessageTimeout(reinterpret_cast<HWND>(hwnd),
+			WM_COPYDATA,
+			reinterpret_cast<WPARAM>(hwnd),
+			reinterpret_cast<LPARAM>(&c),
+			SMTO_ABORTIFHUNG,1000,&result);
 	}
 }
 

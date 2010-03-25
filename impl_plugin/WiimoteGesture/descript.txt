@@ -1,0 +1,32 @@
+//文字コード
+Charset,UTF-8
+
+//名前
+name,WiimoteGesture
+
+//作者
+//craftmanwは日本語も可、craftmanは英語のみ。どっちか片方でもOK
+craftman,SSP BUGTRAQ
+//craftmanw
+
+//Win7=0601 Vista=0600 XP=0501 2K=0500
+os_version,0500
+
+//PLUGIN DLL
+filename,WiimoteGesture.dll
+
+//オプション指定-OnSecondChangeの通知頻度
+//0で無効、標準1
+secondchangeinterval,1
+
+//オプション指定-ゴーストからのトーク通知
+//0で無効、標準0
+otherghosttalk,0
+
+//プラグインID
+//http://www.famkruithof.net/uuid/uuidgen とかで生成できます
+//一度書いたら変えないこと
+id,03D6126D-6050-49a4-BCD3-3DA729D57412
+
+//更新URL
+homeurl,http://ssp.shillest.net/plugin/WiimoteGesture/
