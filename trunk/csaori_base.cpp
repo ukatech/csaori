@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <locale>
 #include <sstream>
+#include <process.h>
 
 #include "csaori_base.h"
 
@@ -197,6 +198,31 @@ namespace SAORI_FUNC{
 		return os.str();
 	}
 
+	typedef struct tagMessageBoxInfo {
+		void *hwnd;
+		string_t message;
+		string_t title;
+		unsigned int flags;
+	} MessageBoxInfo;
+
+	static void __cdecl AsyncMessageBoxProc(void *p)
+	{
+		MessageBoxInfo *pInf = reinterpret_cast<MessageBoxInfo*>(p);
+		::MessageBoxW((HWND)pInf->hwnd,pInf->message.c_str(),pInf->title.c_str(),pInf->flags);
+		delete pInf;
+	}
+
+	void AsyncMessageBox(void *hwnd,char_t *message,char_t *title,unsigned int flags)
+	{
+		MessageBoxInfo *pMsg = new MessageBoxInfo;
+		pMsg->hwnd = hwnd;
+		pMsg->title = title ? title : L"";
+		pMsg->message = message ? message : L"";
+		pMsg->flags = flags;
+
+		_beginthread(AsyncMessageBoxProc,0,pMsg);
+	}
+
 	CCriticalSection::CCriticalSection(void) : init(false)
 	{
 		//Vista以降のメモリリークとマルチスレッドのパフォーマンス対策
@@ -208,12 +234,20 @@ namespace SAORI_FUNC{
 		static bool init = false;
 
 		if ( ! init ) {
-			init = true;
-			SInitializeCriticalSectionEx = reinterpret_cast<FInitializeCriticalSectionEx>(
-				::GetProcAddress(::GetModuleHandleA("kernel32"),"InitializeCriticalSectionEx") );
+			OSVERSIONINFO inf;
+			inf.dwOSVersionInfoSize = sizeof(inf);
+			::GetVersionEx(&inf);
 
-			SInitializeCriticalSectionAndSpinCount = reinterpret_cast<FInitializeCriticalSectionAndSpinCount>(
-				::GetProcAddress(::GetModuleHandleA("kernel32"),"InitializeCriticalSectionAndSpinCount") );
+			init = true;
+			if ( inf.dwMajorVersion >= 6 ) {
+				SInitializeCriticalSectionEx = reinterpret_cast<FInitializeCriticalSectionEx>(
+					::GetProcAddress(::GetModuleHandleA("kernel32"),"InitializeCriticalSectionEx") );
+			}
+
+			if ( inf.dwMajorVersion >= 5 ) {
+				SInitializeCriticalSectionAndSpinCount = reinterpret_cast<FInitializeCriticalSectionAndSpinCount>(
+					::GetProcAddress(::GetModuleHandleA("kernel32"),"InitializeCriticalSectionAndSpinCount") );
+			}
 		}
 
 		BOOL result;
@@ -613,7 +647,7 @@ load(HGLOBAL h, long len)
 {
 #ifdef _DEBUG
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	//_CrtSetBreakAlloc(2240);
+	//_CrtSetBreakAlloc(829);
 #endif
 	if(pSaori!=NULL){
 		unload();

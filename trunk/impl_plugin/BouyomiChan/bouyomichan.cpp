@@ -40,7 +40,7 @@ CSAORIBase* CreateInstance(void)
 	初期化(DllMain縛り)
 ===============================================================*/
 
-CBouyomiChan::CBouyomiChan(void) : thread_active(true)
+CBouyomiChan::CBouyomiChan(void) : thread_active(true), speak_type(0)
 {
 }
 
@@ -69,6 +69,13 @@ bool CBouyomiChan::load()
 	}
 	thread_active = true;
 	thread_handle = reinterpret_cast<HANDLE>(_beginthreadex(NULL,0,BYMThreadProc,this,0,NULL));
+
+	ini_file_path = SAORI_FUNC::UnicodeToMultiByte(getModulePath().c_str());
+	ini_file_path += "profile\\plugin.ini";
+
+	speak_type = ::GetPrivateProfileIntA("BouyomiChan","SpeakType",0,ini_file_path.c_str());
+	if ( speak_type > 2 ) { speak_type = 2; }
+
 	return true;
 }
 
@@ -146,10 +153,26 @@ void CBouyomiChan::ThreadProc()
 				opt->len = utf8str.length();
 
 				if ( sendstr.ctx == 0 ) {
-					opt->voice = 1;
+					if ( speak_type == 0 ) {
+						opt->voice = 1;
+					}
+					else if ( speak_type == 1 ) {
+						opt->voice = 3;
+					}
+					else /*if ( speak_type == 2 ) */ {
+						opt->voice = 7;
+					}
 				}
 				else if ( sendstr.ctx == 1 ) {
-					opt->voice = 2;
+					if ( speak_type == 0 ) {
+						opt->voice = 2;
+					}
+					else if ( speak_type == 1 ) {
+						opt->voice = 4;
+					}
+					else /*if ( speak_type == 2 ) */ {
+						opt->voice = 8;
+					}
 				}
 				else {
 					opt->voice = 5;
@@ -288,11 +311,53 @@ static void ClearTag(char_t *t)
 	}
 }
 
+void CBouyomiChan::ShowMenu(CSAORIOutput& out)
+{
+	out.result = 
+		L"\\0\\_q\\t\\f[bold,true]<棒読みちゃん送信プラグイン>\\f[bold,default]\\n\\n[half]"
+		L"発声する声質の設定\\n\\n[half]";
+
+	char_t* result[3] = {L"□",L"□",L"□"};
+	result[speak_type] = L"■";
+
+	out.result += string_t(L"\\![*]\\q[") + result[0] + L"女声優先,female]\\n";
+	out.result += string_t(L"\\![*]\\q[") + result[1] + L"男声優先,male]\\n";
+	out.result += string_t(L"\\![*]\\q[") + result[2] + L"機械声優先,machine]\\n\\n[half]";
+
+	out.result += L"\\![*]\\q[×閉じる,close]\\_q\\e";
+
+	char tmp[32];
+	sprintf(tmp,"%d",speak_type);
+	::WritePrivateProfileStringA("BouyomiChan","SpeakType",tmp,ini_file_path.c_str());
+
+	out.result_code = SAORIRESULT_OK;
+}
+
 void CBouyomiChan::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
 	//--------------------------------------------------------
 	if ( wcsicmp(in.id.c_str(),L"OnMenuExec") == 0 ) {
-		::MessageBoxW(NULL,L"棒読みちゃん\r\nhttp://chi.usamimi.info/\r\nにゴーストの喋りを送信するプラグインです。",L"棒読みちゃん送信",MB_OK);
+		ShowMenu(out);
+		return;
+	}
+	//--------------------------------------------------------
+	if ( wcsicmp(in.id.c_str(),L"OnChoiceSelect") == 0 ) {
+		if ( in.args.size() ) {
+			if ( wcsicmp(in.args[0].c_str(),L"female") == 0 ) {
+				speak_type = 0;
+			}
+			else if ( wcsicmp(in.args[0].c_str(),L"male") == 0 ) {
+				speak_type = 1;
+			}
+			else if ( wcsicmp(in.args[0].c_str(),L"machine") == 0 ) {
+				speak_type = 2;
+			}
+			else {
+				out.result = SAORIRESULT_NO_CONTENT;
+				return;
+			}
+		}
+		ShowMenu(out);
 		return;
 	}
 	//--------------------------------------------------------
@@ -309,11 +374,14 @@ void CBouyomiChan::exec(const CSAORIInput& in,CSAORIOutput& out)
 		else {
 			hMutex = ::CreateMutex(NULL,TRUE,"棒読みちゃん");
 		}
+		DWORD err = ::GetLastError();
 
 		if ( ! hMutex ) {
 			return;
 		}
-		if ( ::GetLastError() != ERROR_ALREADY_EXISTS ) {
+		::CloseHandle(hMutex);
+
+		if ( err != ERROR_ALREADY_EXISTS ) {
 			return;
 		}
 

@@ -68,6 +68,8 @@ namespace SAORI_FUNC {
 	std::wstring CodePagetoString(unsigned int cp);
 	unsigned int StringtoCodePage(const char *str);
 
+	void AsyncMessageBox(void *hwnd,char_t *message,char_t *title,unsigned int flags);
+
 	//CriticalSection
 	class CCriticalSection {
 	private:
@@ -98,6 +100,9 @@ namespace SAORI_FUNC {
 //Classes
 class CSAORIBase;
 
+typedef std::map<string_t,string_t> map_strpair;
+typedef std::vector<string_t> vector_str;
+
 class CSAORIInput{
 private:
 	const CSAORIBase &base;
@@ -110,8 +115,8 @@ public:
 	unsigned int codepage;
 	string_t cmd;
 	string_t id;
-	std::vector<string_t> args;
-	std::map<string_t,string_t> opts;
+	vector_str args;
+	map_strpair opts;
 
 	bool parseString(const string_t &src);
 };
@@ -128,8 +133,8 @@ public:
 	unsigned int codepage;
 	SAORIRESULT result_code;
 	string_t result;
-	std::vector<string_t> values;
-	std::map<string_t,string_t> opts;
+	vector_str values;
+	map_strpair opts;
 
 	string_t toString();
 	void setResultEmpty();

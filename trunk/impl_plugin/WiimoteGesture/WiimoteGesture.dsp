@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="BouyomiChan" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="WiimoteGesture" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** 編集しないでください **
 
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
-CFG=BouyomiChan - Win32 Debug
+CFG=WiimoteGesture - Win32 Debug
 !MESSAGE これは有効なﾒｲｸﾌｧｲﾙではありません。 このﾌﾟﾛｼﾞｪｸﾄをﾋﾞﾙﾄﾞするためには NMAKE を使用してください。
 !MESSAGE [ﾒｲｸﾌｧｲﾙのｴｸｽﾎﾟｰﾄ] ｺﾏﾝﾄﾞを使用して実行してください
 !MESSAGE 
-!MESSAGE NMAKE /f "BouyomiChan.mak".
+!MESSAGE NMAKE /f "WiimoteGesture.mak".
 !MESSAGE 
 !MESSAGE NMAKE の実行時に構成を指定できます
 !MESSAGE ｺﾏﾝﾄﾞ ﾗｲﾝ上でﾏｸﾛの設定を定義します。例:
 !MESSAGE 
-!MESSAGE NMAKE /f "BouyomiChan.mak" CFG="BouyomiChan - Win32 Debug"
+!MESSAGE NMAKE /f "WiimoteGesture.mak" CFG="WiimoteGesture - Win32 Debug"
 !MESSAGE 
 !MESSAGE 選択可能なﾋﾞﾙﾄﾞ ﾓｰﾄﾞ:
 !MESSAGE 
-!MESSAGE "BouyomiChan - Win32 Release" ("Win32 (x86) Dynamic-Link Library" 用)
-!MESSAGE "BouyomiChan - Win32 Debug" ("Win32 (x86) Dynamic-Link Library" 用)
+!MESSAGE "WiimoteGesture - Win32 Release" ("Win32 (x86) Dynamic-Link Library" 用)
+!MESSAGE "WiimoteGesture - Win32 Debug" ("Win32 (x86) Dynamic-Link Library" 用)
 !MESSAGE 
 
 # Begin Project
@@ -29,7 +29,7 @@ CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "BouyomiChan - Win32 Release"
+!IF  "$(CFG)" == "WiimoteGesture - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -42,8 +42,8 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "BOUYOMICHAN_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /Oy- /I "..\..\\" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D WINVER=0x400 /FD /c
+# ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "WiimoteGesture_EXPORTS" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /Oy- /I "..\..\\" /I "wiimote_lib" /I "wdk/inc" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D WINVER=0x400 /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x411 /d "NDEBUG"
@@ -53,15 +53,15 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib wsock32.lib /nologo /dll /machine:I386 /out:"D:\ssp_src_set\ssp\plugin\BouyomiChan/BouyomiChan.dll"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib setupapi.lib winmm.lib wdk/lib/hid.lib /nologo /dll /machine:I386 /out:"D:\ssp_src_set\ssp\plugin\WiimoteGesture/WiimoteGesture.dll"
 # Begin Special Build Tool
-TargetPath=\ssp_src_set\ssp\plugin\BouyomiChan\BouyomiChan.dll
+TargetPath=\ssp_src_set\ssp\plugin\WiimoteGesture\WiimoteGesture.dll
 SOURCE="$(InputPath)"
 PostBuild_Desc=Compressing...
 PostBuild_Cmds=upx -q --best --compress-icons=0 $(TargetPath)
 # End Special Build Tool
 
-!ELSEIF  "$(CFG)" == "BouyomiChan - Win32 Debug"
+!ELSEIF  "$(CFG)" == "WiimoteGesture - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -74,8 +74,8 @@ PostBuild_Cmds=upx -q --best --compress-icons=0 $(TargetPath)
 # PROP Intermediate_Dir "Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "BOUYOMICHAN_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\\" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D WINVER=0x400 /FD /GZ /c
+# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "WiimoteGesture_EXPORTS" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\\" /I "wiimote_lib" /I "wdk/inc" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D WINVER=0x400 /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -86,21 +86,17 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib wsock32.lib /nologo /dll /debug /machine:I386 /out:"D:\ssp_src_set\ssp\plugin\BouyomiChan/BouyomiChan.dll" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib setupapi.lib winmm.lib wdk/lib/hid.lib /nologo /dll /debug /machine:I386 /out:"D:\ssp_src_set\ssp\plugin\WiimoteGesture/WiimoteGesture.dll" /pdbtype:sept
 
 !ENDIF 
 
 # Begin Target
 
-# Name "BouyomiChan - Win32 Release"
-# Name "BouyomiChan - Win32 Debug"
+# Name "WiimoteGesture - Win32 Release"
+# Name "WiimoteGesture - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
-# Begin Source File
-
-SOURCE=.\bouyomichan.cpp
-# End Source File
 # Begin Source File
 
 SOURCE=..\..\cplugin.cpp
@@ -109,14 +105,22 @@ SOURCE=..\..\cplugin.cpp
 
 SOURCE=..\..\csaori_base.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\wiimote_lib\UsbHID.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\wiimote_lib\Wiimote.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\WiimoteGesture.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
-# Begin Source File
-
-SOURCE=.\bouyomichan.h
-# End Source File
 # Begin Source File
 
 SOURCE=..\..\cplugin.h
@@ -125,13 +129,25 @@ SOURCE=..\..\cplugin.h
 
 SOURCE=..\..\csaori_base.h
 # End Source File
+# Begin Source File
+
+SOURCE=.\wiimote_lib\UsbHID.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\wiimote_lib\Wiimote.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\WiimoteGesture.h
+# End Source File
 # End Group
 # Begin Group "Resource Files"
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE=.\BouyomiChan.rc
+SOURCE=.\WiimoteGesture.rc
 # End Source File
 # End Group
 # End Target
