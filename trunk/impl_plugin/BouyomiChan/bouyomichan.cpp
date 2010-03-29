@@ -264,12 +264,17 @@ static void ClearTag(char_t *t)
 			}
 			else {
 				size_t j = i+1;
-				while ( t[j] == L'_' ) { ++j; } //先行アンダースコア
+				size_t uscount = 0;
+				while ( t[j] == L'_' ) { ++j; ++uscount; } //先行アンダースコア
 
 				char_t tagc = t[j];
 				if ( iswalnum(tagc) || tagc == '!' || tagc == '?' ) { //タグ文字列
 					++j;
-					if ( t[j] == L'[' ) { //パラメータもあった
+					if ( tagc == L'q' && uscount == 1 ) { //クイック
+						char_t *last = wcsstr(t+j,L"\\_q");
+						j = last-t+3;
+					}
+					else if ( t[j] == L'[' ) { //パラメータもあった
 						++j;
 						bool in_quote = false;
 						while ( true ) {
