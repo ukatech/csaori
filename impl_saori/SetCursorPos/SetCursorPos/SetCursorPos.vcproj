@@ -185,6 +185,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\csaori_base.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SetCursorPos.cpp"
 				>
 			</File>
@@ -196,6 +200,10 @@
 			>
 			<File
 				RelativePath="..\..\..\csaori.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\csaori_base.h"
 				>
 			</File>
 			<File

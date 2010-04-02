@@ -109,7 +109,7 @@ bool CSAORI::unload(){
 }
 
 bool CSAORI::load(){
-	return _loadkeywordfile(module_path+L"keyword.txt");
+	return _loadkeywordfile(checkAndModifyPathW(L"keyword.txt"));
 }
 
 //---------------------ÉnÉìÉhÉäÉìÉO
@@ -216,7 +216,7 @@ bool _loadkeywordfile(string_t path){
 		if(strlen(buf)==0){
 			continue;
 		}
-		ucstr=SAORI_FUNC::MultiByteToUnicode(std::string(buf),SAORI_FUNC::CHARSETtoCodePage(CHARSET_Shift_JIS));
+		ucstr=SAORI_FUNC::MultiByteToUnicode(std::string(buf),SAORI_FUNC::StringtoCodePage("Shift_JIS"));
 		wcscpy_s(ucbuf,BUFLEN,ucstr.c_str());
 		if(ucbuf[0]==L'Åî'||ucbuf[0]==L'#'){
 			continue;
@@ -283,7 +283,7 @@ string_t _toHiragana(string_t input,string_t& out,std::vector<string_t> &all,boo
 		tmp_input=(void*)input.c_str();
 	}else{
 		//98ån
-		tmp_input=(void*)(SAORI_FUNC::UnicodeToMultiByte(input,SAORI_FUNC::CHARSETtoCodePage(CHARSET_Shift_JIS)).c_str());
+		tmp_input=(void*) &(SAORI_FUNC::UnicodeToMultiByte(input,SAORI_FUNC::StringtoCodePage("Shift_JIS")));
 		isWin9x=true;
 	}
 
