@@ -8,9 +8,9 @@ typedef enum {M_NOP,M_PLAYSYNC,M_CREATEWAV,M_PLAYASYNC,M_STOP,M_CHANGEVOICE} MET
 
 HMODULE hAq;
 
-bool _LoadAqLib(string_t dllname,string_t mpath);
+bool _LoadAqLib(string_t dllname);
 bool _UnloadAqLib();
-SAORIRESULT DoWav(METHOD method,string_t& errbuf,const std::vector<string_t> &arg,string_t mpath);
+SAORIRESULT DoWav(METHOD method,string_t& errbuf,const std::vector<string_t> &arg);
 void _unloadwavbuf();
 
 
@@ -57,7 +57,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 		case M_PLAYSYNC:
 		case M_CREATEWAV:
 		case M_PLAYASYNC:
-			result=DoWav(method,err,in.args,this->module_path);
+			result=DoWav(method,err,in.args);
 			out.result=err;
 			out.result_code=result;
 			return;
@@ -75,7 +75,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 				return;
 			}
 			_UnloadAqLib();
-			if(!_LoadAqLib(in.args[1],this->module_path)){
+			if(!_LoadAqLib(in.args[1])){
 				out.result=L"ERROR302：DLLファイルのロードに失敗しました（"+in.args[1]+L"）";
 				out.result_code=SAORIRESULT_INTERNAL_SERVER_ERROR;
 				return;
@@ -100,7 +100,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 bool CSAORI::load(){
 	wavbuf=NULL;
 	hAq=NULL;
-	bool result=_LoadAqLib(AQDLL,this->module_path);
+	bool result=_LoadAqLib(AQDLL);
 	return result;
 }
 
@@ -115,7 +115,7 @@ bool CSAORI::unload(){
 //-------------------------------
 
 //音声系関数
-SAORIRESULT DoWav(METHOD method,string_t& err,const std::vector<string_t> &arg,string_t mpath){
+SAORIRESULT DoWav(METHOD method,string_t& err,const std::vector<string_t> &arg){
 	int size;
 
 	if(hAq==NULL){
@@ -128,7 +128,7 @@ SAORIRESULT DoWav(METHOD method,string_t& err,const std::vector<string_t> &arg,s
 		return SAORIRESULT_BAD_REQUEST;
 	}
 
-	std::string koe=SAORI_FUNC::UnicodeToMultiByte(arg[1],SAORI_FUNC::CHARSETtoCodePage(CHARSET_Shift_JIS));
+	std::string koe=SAORI_FUNC::UnicodeToMultiByte(arg[1],SAORI_FUNC::StringtoCodePage("shift_jis"));
 	int speed=100;
 	if(arg.size()>2){
 		speed=_wtoi(arg[2].c_str());
@@ -164,9 +164,11 @@ SAORIRESULT DoWav(METHOD method,string_t& err,const std::vector<string_t> &arg,s
 				err=L"ERROR201：ファイル名が指定されていません";
 				return SAORIRESULT_BAD_REQUEST;
 			}
-			string_t filename=arg[3];
+			string_t filepath = pSaori->checkAndModifyPathW(arg[3]);
+
+			
 			FILE* outfp;
-			errno_t result=_wfopen_s(&outfp,(mpath+filename).c_str(),L"wb");
+			errno_t result=_wfopen_s(&outfp,filepath.c_str(),L"wb");
 			if(result!=0){
 				err=L"ERROR202：ファイルを開くのに失敗しました（"+SAORI_FUNC::intToString((int)result)+L"）";
 				return SAORIRESULT_INTERNAL_SERVER_ERROR;
@@ -189,9 +191,9 @@ void _unloadwavbuf(){
 	}
 }
 
-bool _LoadAqLib(string_t dllname,string_t mpath){
+bool _LoadAqLib(string_t dllname){
 	hAq=NULL;
-	string_t aqdll_path=mpath+dllname;
+	string_t aqdll_path=pSaori->getModulePath()+dllname;
 
 	hAq=::LoadLibrary(aqdll_path.c_str());
 	if(hAq==NULL){
