@@ -531,9 +531,9 @@ string_t CSAORIBase::checkAndModifyPathW(const string_t &p)
 		{
 			void *pBuf = malloc(len+1);
 #ifdef _UNICODE
-			std::string filepatha = SAORI_FUNC::UnicodeToMultiByte(p);
 			std::string::size_type realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(wchar_t*)pBuf,(DWORD)len);
 #else
+			std::string filepatha = SAORI_FUNC::UnicodeToMultiByte(p);
 			std::string::size_type realLen = ::ExpandEnvironmentStrings(filepatha.c_str(),(char*)pBuf,(DWORD)len);
 #endif
 			if ( realLen > len ) {
@@ -549,9 +549,9 @@ string_t CSAORIBase::checkAndModifyPathW(const string_t &p)
 			if ( realLen ) {
 #ifdef _UNICODE
 				filepath = (wchar_t*)pBuf;
-				filepatha = SAORI_FUNC::UnicodeToMultiByte(filepath);
 #else
-				filepath = (char*)pBuf;
+				filepatha = (char*)pBuf;
+				filepath = SAORI_FUNC::MultiByteToUnicode(filepatha);
 #endif
 			}
 			free(pBuf);
