@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib"
+				AdditionalDependencies="winmm.lib user32.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
@@ -139,7 +139,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib"
+				AdditionalDependencies="winmm.lib user32.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
@@ -190,6 +190,10 @@
 				RelativePath="..\..\..\csaori.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\csaori_base.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="ヘッダー ファイル"
@@ -198,6 +202,10 @@
 			>
 			<File
 				RelativePath="..\..\..\csaori.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\csaori_base.h"
 				>
 			</File>
 			<File
