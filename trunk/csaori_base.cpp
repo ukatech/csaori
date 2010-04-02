@@ -8,9 +8,6 @@
 
 /*
  * csaori_base.cpp
- * 
- * written by Ukiya http://ukiya.sakura.ne.jp/
- * based by Mr.EBISAWA "gethwnd.dll"
  */
 
 #ifdef _MSC_VER
@@ -51,9 +48,9 @@ extern CSAORIBase* CreateInstance(void);
 namespace SAORI_FUNC{
 	std::string UnicodeToMultiByte(const wchar_t *Source, unsigned int CodePage, DWORD Flags)
 	{
-	  if (size_t Len = ::WideCharToMultiByte(CodePage, Flags, Source, wcslen(Source), NULL, 0, NULL, NULL)) {
+	  if (int Len = ::WideCharToMultiByte(CodePage, Flags, Source, (int)wcslen(Source), NULL, 0, NULL, NULL)) {
 		std::vector<char> Dest(Len);
-		if (Len = ::WideCharToMultiByte(CodePage, Flags, Source, wcslen(Source), &Dest[0], static_cast<int>(Dest.size()), NULL, NULL)) {
+		if (Len = ::WideCharToMultiByte(CodePage, Flags, Source, (int)wcslen(Source), &Dest[0], static_cast<int>(Dest.size()), NULL, NULL)) {
 		  return std::string(Dest.begin(), Dest.begin() + Len);
 		}
 	  }
@@ -63,9 +60,9 @@ namespace SAORI_FUNC{
 
 	std::wstring MultiByteToUnicode(const char* Source, unsigned int CodePage, DWORD Flags)
 	{
-	  if (size_t Len = ::MultiByteToWideChar(CodePage, Flags, Source, strlen(Source), NULL, 0)) {
+	  if (int Len = ::MultiByteToWideChar(CodePage, Flags, Source, (int)strlen(Source), NULL, 0)) {
 		std::vector<wchar_t> Dest(Len);
-		if (Len = ::MultiByteToWideChar(CodePage, 0, Source, strlen(Source), &Dest[0], static_cast<int>(Dest.size()))) {
+		if (Len = ::MultiByteToWideChar(CodePage, 0, Source, (int)strlen(Source), &Dest[0], static_cast<int>(Dest.size()))) {
 		  return std::wstring(Dest.begin(), Dest.begin() + Len);
 		}
 	  }
@@ -521,6 +518,73 @@ void CSAORIBase::setModuleHandle(HANDLE hMod){
 	module_handle=hMod;
 }
 
+string_t CSAORIBase::checkAndModifyPathW(const string_t &p)
+{
+	string_t filepath = p;
+
+	if ( p.size() >= 3 ) {
+#ifdef _WINDOWS
+		//環境変数展開用特殊コード
+		string_t::size_type len=filepath.size() < MAX_PATH ? MAX_PATH : filepath.size();
+		len *= 2;
+
+		{
+			void *pBuf = malloc(len+1);
+#ifdef _UNICODE
+			std::string filepatha = SAORI_FUNC::UnicodeToMultiByte(p);
+			std::string::size_type realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(wchar_t*)pBuf,(DWORD)len);
+#else
+			std::string::size_type realLen = ::ExpandEnvironmentStrings(filepatha.c_str(),(char*)pBuf,(DWORD)len);
+#endif
+			if ( realLen > len ) {
+				free(pBuf);
+				pBuf = malloc(realLen+1);
+#ifdef _UNICODE
+				realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(wchar_t*)pBuf,(DWORD)realLen);
+#else
+				realLen = ::ExpandEnvironmentStrings(filepatha.c_str(),(char*)pBuf,(DWORD)realLen);
+#endif
+			}
+
+			if ( realLen ) {
+#ifdef _UNICODE
+				filepath = (wchar_t*)pBuf;
+				filepatha = SAORI_FUNC::UnicodeToMultiByte(filepath);
+#else
+				filepath = (char*)pBuf;
+#endif
+			}
+			free(pBuf);
+		}
+
+		//Windows 絶対パス
+		if ( wcsncmp(filepath.c_str(),L"\\\\",2) == 0 || wcsncmp(filepath.c_str()+1,L":\\",2) == 0 ||
+			wcsncmp(filepath.c_str(),L"//",2) == 0 || wcsncmp(filepath.c_str()+1,L":/",2) == 0 ) {
+			return filepath;
+		}
+#else
+		//Unix
+		if ( filepath[0] == L'/' ) {
+			return filepath;
+		}
+#endif
+	}
+	string_t fullpath = module_path;
+#ifdef _WINDOWS
+	if ( fullpath[fullpath.size()-1] != L'\\' ) {
+		fullpath += L"\\";
+	}
+#else
+	if ( fullpath[fullpath.size()-1] != L'/' ) {
+		fullpath += L"/";
+	}
+#endif
+	fullpath += filepath;
+	return fullpath;
+}
+
+
+
 std::string CSAORIBase::checkAndModifyPath(const std::string &p)
 {
 	std::string filepath = p;
@@ -535,17 +599,17 @@ std::string CSAORIBase::checkAndModifyPath(const std::string &p)
 			void *pBuf = malloc(len+1);
 #ifdef _UNICODE
 			string_t filepathw = SAORI_FUNC::MultiByteToUnicode(p);
-			std::string::size_type realLen = ::ExpandEnvironmentStrings(filepathw.c_str(),(wchar_t*)pBuf,len);
+			std::string::size_type realLen = ::ExpandEnvironmentStrings(filepathw.c_str(),(wchar_t*)pBuf,(DWORD)len);
 #else
-			std::string::size_type realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(char*)pBuf,len);
+			std::string::size_type realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(char*)pBuf,(DWORD)len);
 #endif
 			if ( realLen > len ) {
 				free(pBuf);
 				pBuf = malloc(realLen+1);
 #ifdef _UNICODE
-				realLen = ::ExpandEnvironmentStrings(filepathw.c_str(),(wchar_t*)pBuf,realLen);
+				realLen = ::ExpandEnvironmentStrings(filepathw.c_str(),(wchar_t*)pBuf,(DWORD)realLen);
 #else
-				realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(char*)pBuf,realLen);
+				realLen = ::ExpandEnvironmentStrings(filepath.c_str(),(char*)pBuf,(DWORD)realLen);
 #endif
 			}
 

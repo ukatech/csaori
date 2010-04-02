@@ -1,8 +1,5 @@
 /*
  * csaori_base.h
- * 
- * written by Ukiya http://ukiya.sakura.ne.jp/
- * based by Mr.EBISAWA "gethwnd.dll"
  */
 
 #pragma once
@@ -165,7 +162,9 @@ public:
 	
 	//Check relative path and convert to full path
 	std::string checkAndModifyPath(const std::string &path);
-	
+	string_t checkAndModifyPathW(const string_t &path);
+
+
 	//Interface specific constant string functions to override
 	virtual const string_t& s_saori_version(void) const = 0;
 	virtual const string_t& s_saori_def(void) const = 0;

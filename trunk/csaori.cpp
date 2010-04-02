@@ -8,9 +8,6 @@
 
 /*
  * csaori.cpp
- * 
- * written by Ukiya http://ukiya.sakura.ne.jp/
- * based by Mr.EBISAWA "gethwnd.dll"
  */
 
 #ifdef _MSC_VER
