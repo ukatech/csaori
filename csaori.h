@@ -9,6 +9,8 @@
 
 #include "csaori_base.h"
 
+extern CSAORIBase* pSaori;
+
 class CSAORI : public CSAORIBase {
 public:
 	CSAORI(){}
