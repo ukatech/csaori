@@ -7,7 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include <windows.h>
+#include "afxres.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -70,11 +70,11 @@ BEGIN
         BLOCK "041104b0"
         BEGIN
             VALUE "Comments", "お座りSAORI。"
-            VALUE "CompanyName", "やさぐれソフト"
+            VALUE "CompanyName", "Ukiya"
             VALUE "FileDescription", "お座りSAORI。"
             VALUE "FileVersion", "3, 0, 0, 0"
             VALUE "InternalName", "Osuwari"
-            VALUE "LegalCopyright", "Copyright (C) 2004,2005,2006,2007"
+            VALUE "LegalCopyright", "Copyright (C) Ukiya"
             VALUE "OriginalFilename", "Osuwari.dll"
             VALUE "ProductName", " Osuwari ダイナミック リンク ライブラリ"
             VALUE "ProductVersion", "3, 0, 0, 0"

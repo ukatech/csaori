@@ -53,8 +53,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 1,0,0,0
+ FILEVERSION 2,0,0,0
+ PRODUCTVERSION 2,0,0,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -70,12 +70,12 @@ BEGIN
         BLOCK "041104b0"
         BEGIN
             VALUE "FileDescription", "SetCursorPos SAORI"
-            VALUE "FileVersion", "1, 0, 0, 0"
+            VALUE "FileVersion", "2, 0, 0, 0"
             VALUE "InternalName", "SetCursorPos"
-            VALUE "LegalCopyright", "Copyright (C) 2008 CSAORI Project."
+            VALUE "LegalCopyright", "Copyright (C) Ukiya"
             VALUE "OriginalFilename", "SetCursorPos.dll"
             VALUE "ProductName", "SetCursorPos SAORI"
-            VALUE "ProductVersion", "1, 0, 0, 0"
+            VALUE "ProductVersion", "2, 0, 0, 0"
         END
     END
     BLOCK "VarFileInfo"
