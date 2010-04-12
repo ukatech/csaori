@@ -22,7 +22,6 @@
 #include <cstdlib>
 #include <algorithm>
 #include <locale>
-#include <sstream>
 #include <process.h>
 
 #include "csaori_base.h"
@@ -186,13 +185,6 @@ namespace SAORI_FUNC{
 		}
 		
 		return ppos;
-	}
-
-	string_t intToString(int num)
-	{
-		std::wostringstream os;
-		os << num;
-		return os.str();
 	}
 
 	typedef struct tagMessageBoxInfo {

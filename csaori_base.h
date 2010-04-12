@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <sstream>
 
 //charset hack
 #ifdef CP_UTF8
@@ -48,7 +49,13 @@ typedef enum {
 
 //global functions
 namespace SAORI_FUNC {
-	string_t intToString(int num);
+	template<typename _Type> string_t numToString(_Type num){
+		std::wostringstream os;
+		os << num;
+		return os.str();
+	}
+	string_t inline intToString(int num){return numToString(num);}
+
 	string_t::size_type  getLine(string_t &, const string_t &, string_t::size_type);
 	string_t getResultString(int);
 
