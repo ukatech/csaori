@@ -272,14 +272,21 @@ BOOL GetOSDisplayString(LPTSTR osname, LPTSTR osver, DWORD* osbuild)
 
 		else if(osvi2.dwPlatformId == 0 || osvi2.dwPlatformId == 2) { // Win NT 3.x / Win32s
 			_tcscpy(osname, TEXT("Windows "));
-			if(osvi2.dwBuildNumber == 258)
+			if(osvi2.dwBuildNumber <= 528) {
 				_tcscat(osname, TEXT("NT 3.1"));
-			else if(osvi2.dwBuildNumber == 807)
+				return TRUE;
+			}
+			else if(osvi2.dwBuildNumber <= 807) {
 				_tcscat(osname, TEXT("NT 3.5"));
-			else if(osvi2.dwBuildNumber == 1057)
+				return TRUE;
+			}
+			else if(osvi2.dwBuildNumber <= 1057) {
 				_tcscat(osname, TEXT("NT 3.51"));
-			else 
+				return TRUE;
+			}
+			else {
 				_tcscat(osname, TEXT("3.1"));
+			}
 			return TRUE;
 		}
 
