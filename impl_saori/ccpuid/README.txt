@@ -8,8 +8,10 @@ New Functions:
 cpu.features - list all CCPUID known CPU features (short name) with space separated.
 cpu.cache - return CPU caches sizes in KB with space separated, format: "L1-Data L1-Inst L2 L3"
 cpu.usage - return CPU usage (0 - 100)
+mem.viraex - return available extended virtual memory (over 4GB memory)
 
 Version History:
+	- add mem.viraex
 	- add "cpu.usage" function
 	- remove "Microsoft " from os.name
 20090903 - Release 3
@@ -42,8 +44,10 @@ ccpuid是用CSAORI把saori_cpuid的功能重寫。
 cpu.features - 列出所有CCPUID已知的CPU功能的簡寫，並以空格隔開回傳。
 cpu.cache - 回傳所有 CPU 的快取大小 (KB) 並以空格隔開，格式: "L1-Data L1-Inst L2 L3"
 cpu.usage - 回傳 CPU 使用率 (0 - 100)
+mem.viraex - 回傳可用的延伸虛擬記憶體 (超過 4GB 的虛擬記憶體)
 
 版本歷史:
+	- 新增 mem.viraex
 	- 新增 "cpu.usage" 功能
 	- 自 os.name 中移除 "Microsoft "
 20090903 - Release 3
