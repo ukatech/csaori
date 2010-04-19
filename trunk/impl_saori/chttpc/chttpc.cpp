@@ -133,12 +133,14 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		cc->url = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
 
 		if(strnicmp(cc->url.c_str(),"file:",5) == 0) {
-			cc->url = checkAndModifyPath(cc->url.substr(5));
+			string_t fileW = checkAndModifyPathW(in.args[0].substr(5));
+			cc->url = "file:"+SAORI_FUNC::UnicodeToMultiByte(fileW, CP_UTF8);
+//			cc->url = checkAndModifyPath(cc->url.substr(5));
 			cc->isLocalFile = true;
 		}
 
 		cc->codepage = in.codepage;
-		cc->module_path = module_path;
+		cc->module_path = getModulePath();
 
 		UINT idx;
 

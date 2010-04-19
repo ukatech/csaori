@@ -29,6 +29,9 @@ known bug:
 * translate can't translate nested tags correctly (e.g. <li><a>) (shoulde be fixed in beta 1)
 
 Changelog:
+20100419 - Release 6
+           fix fopen fail if wide char in module path
+           fix Status 500 when using local file and translate
 20091205 - Release 5
            add ability of opening local file with "file:" prefix
 20090829 - Release 4
