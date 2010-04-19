@@ -165,3 +165,9 @@
 == Release 3 20090903 ==
  * add fallback when branding can't be retrieved from CPUID
  * fix: don't try to retrieve CPUID information which is higher than reported highest CPUID
+
+== Release 4 20100420 ==
+ * add mem.viraex
+ * add "cpu.usage" function
+ * remove "Microsoft " from os.name
+ * fix mem.`*`(except mem.os) to match description in saori_cpuid_README.txt (All in MB, not in bytes)
