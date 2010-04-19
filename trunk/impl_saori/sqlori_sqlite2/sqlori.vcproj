@@ -149,6 +149,9 @@
 				RelativePath="..\..\csaori.cpp">
 			</File>
 			<File
+				RelativePath="..\..\csaori_base.cpp">
+			</File>
+			<File
 				RelativePath=".\csaori_interface.cpp">
 			</File>
 			<File

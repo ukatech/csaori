@@ -19,10 +19,10 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 	if (in.args[0] == L"OPEN") {
 		if (in.args.size() == 1) {
-			res = sql->open(SAORI_FUNC::UnicodeToMultiByte(module_path + L"sqlori.db", CP_UTF8));
+			res = sql->open(SAORI_FUNC::UnicodeToMultiByte(getModulePath() + L"sqlori.db", CP_UTF8));
 		}
 		else {
-			res = sql->open(SAORI_FUNC::UnicodeToMultiByte(module_path + in.args[1], CP_UTF8));
+			res = sql->open(SAORI_FUNC::UnicodeToMultiByte(getModulePath() + in.args[1], CP_UTF8));
 		}
 	}
 	else if (in.args[0] == L"EXEC") {

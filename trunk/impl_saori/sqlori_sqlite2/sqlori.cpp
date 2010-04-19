@@ -1,4 +1,4 @@
-﻿#include "csaori.h"
+#include "csaori.h"
 #include "sqlite.h"
 #include "sqlori.h"
 
