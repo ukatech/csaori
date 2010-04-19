@@ -374,7 +374,7 @@ void CSaoriTesterDlg::OnHistory()
 	RECT rect;
 	::GetWindowRect(hw,&rect);
 
-	int id = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD,
+	int id = menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON /*| TPM_NONOTIFY*/ | TPM_RETURNCMD,
 		rect.left,rect.bottom,this,NULL);
 
 	if ( id > 0 ) {
