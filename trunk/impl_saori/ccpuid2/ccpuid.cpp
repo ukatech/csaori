@@ -48,9 +48,14 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		
 		//for over 4GB(3GB?) Memory
 		//if GlobalMemoryStatusEx exists, use it otherwise use GlobalMemoryStatus
-		if(GetProcAddress(GetModuleHandle("kernel32.dll"),"GlobalMemoryStatusEx")){
+		BOOL (__stdcall*GMSEx)(LPMEMORYSTATUSEX) = 0;
+
+		HINSTANCE hIL = LoadLibrary("kernel32.dll");
+		GMSEx = (BOOL(__stdcall*)(LPMEMORYSTATUSEX))GetProcAddress(hIL, "GlobalMemoryStatusEx");
+
+		if(GMSEx){
 			meminfoex.dwLength=sizeof(meminfoex);
-			GlobalMemoryStatusEx(&meminfoex);
+			GMSEx(&meminfoex);
 			isMemoryStatusEx=true;
 		}else{
 			GlobalMemoryStatus(&meminfo);
@@ -68,58 +73,58 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		else if (in.args[0] == L"mem.phyt") {		// mem.phyt: Total Physical Memory
 			out.result_code = SAORIRESULT_OK;
 			if(isMemoryStatusEx){
-				out.result = SAORI_FUNC::numToString(meminfoex.ullTotalPhys);
+				out.result = SAORI_FUNC::numToString(meminfoex.ullTotalPhys/1048576);
 			}else{
-				out.result = SAORI_FUNC::intToString(meminfo.dwTotalPhys);
+				out.result = SAORI_FUNC::intToString(meminfo.dwTotalPhys/1048576);
 			}
 		}
 		else if (in.args[0] == L"mem.phya") {		// mem.phya: Available Physical Memory
 			out.result_code = SAORIRESULT_OK;
 			if(isMemoryStatusEx){
-				out.result = SAORI_FUNC::numToString(meminfoex.ullAvailPhys);
+				out.result = SAORI_FUNC::numToString(meminfoex.ullAvailPhys/1048576);
 			}else{
-				out.result = SAORI_FUNC::intToString(meminfo.dwAvailPhys);
+				out.result = SAORI_FUNC::intToString(meminfo.dwAvailPhys/1048576);
 			}
 		}
 		else if (in.args[0] == L"mem.pagt") {		// mem.pagt: Total Page file Size
 			out.result_code = SAORIRESULT_OK;
 			if(isMemoryStatusEx){
-				out.result = SAORI_FUNC::numToString(meminfoex.ullTotalPageFile);
+				out.result = SAORI_FUNC::numToString(meminfoex.ullTotalPageFile/1048576);
 			}else{
-				out.result = SAORI_FUNC::intToString(meminfo.dwTotalPageFile);
+				out.result = SAORI_FUNC::intToString(meminfo.dwTotalPageFile/1048576);
 			}
 		}
 		else if (in.args[0] == L"mem.paga") {		// mem.paga: Available Page file Size
 			out.result_code = SAORIRESULT_OK;
 			if(isMemoryStatusEx){
-				out.result = SAORI_FUNC::numToString(meminfoex.ullAvailPageFile);
+				out.result = SAORI_FUNC::numToString(meminfoex.ullAvailPageFile/1048576);
 			}else{
-				out.result = SAORI_FUNC::intToString(meminfo.dwAvailPageFile);
+				out.result = SAORI_FUNC::intToString(meminfo.dwAvailPageFile/1048576);
 			}
 		}
 		else if (in.args[0] == L"mem.virt") {		// mem.virt: Total Virtual Memory
 			out.result_code = SAORIRESULT_OK;
 			if(isMemoryStatusEx){
-				out.result = SAORI_FUNC::numToString(meminfoex.ullTotalVirtual);
+				out.result = SAORI_FUNC::numToString(meminfoex.ullTotalVirtual/1048576);
 			}else{
-				out.result = SAORI_FUNC::intToString(meminfo.dwTotalVirtual);
+				out.result = SAORI_FUNC::intToString(meminfo.dwTotalVirtual/1048576);
 			}
 		}
 		else if (in.args[0] == L"mem.vira") {		// mem.vira: Available Virtual Memory
 			out.result_code = SAORIRESULT_OK;
 			if(isMemoryStatusEx){
-				out.result = SAORI_FUNC::numToString(meminfoex.ullAvailVirtual);
+				out.result = SAORI_FUNC::numToString(meminfoex.ullAvailVirtual/1048576);
 			}else{
-				out.result = SAORI_FUNC::intToString(meminfo.dwAvailVirtual);
+				out.result = SAORI_FUNC::intToString(meminfo.dwAvailVirtual/1048576);
 			}
 		}
 		else if (in.args[0] == L"mem.viraex") {		// mem.vira: Available Virtual Memory
 			out.result_code = SAORIRESULT_OK;
 			if(isMemoryStatusEx){
-				out.result = SAORI_FUNC::numToString(meminfoex.ullAvailExtendedVirtual);
+				out.result = SAORI_FUNC::numToString(meminfoex.ullAvailExtendedVirtual/1048576);
 			}else{
 				out.result_code = SAORIRESULT_BAD_REQUEST;
-				out.result = L"param error";
+				out.result = L"unspported";
 			}
 		}
 		else {
