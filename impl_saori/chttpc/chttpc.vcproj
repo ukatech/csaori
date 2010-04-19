@@ -267,6 +267,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\csaori_base.cpp">
+			</File>
+			<File
 				RelativePath=".\CSAORIDSSTP.cpp">
 			</File>
 			<File

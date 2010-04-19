@@ -34,16 +34,29 @@ public:
 		int colonIdx, slashIdx, QSIdx, hashIdx, lastSlashIdx;
 		colonIdx = url.find(":");
 		scheme = url.substr(0,colonIdx);
-		slashIdx = url.find("/",colonIdx + 3/* "://" */);
-		domain = url.substr(colonIdx + 3, slashIdx - colonIdx - 3);
-		QSIdx = url.find("?", slashIdx);
-		hashIdx = url.find("#", slashIdx);
-		hash = hashIdx == string::npos ? "" : url.substr(hashIdx);
-		querystring = QSIdx == string::npos ? "" : url.substr(QSIdx, hashIdx - QSIdx);
-		fullpath = url.substr(slashIdx, QSIdx != string::npos ? QSIdx - slashIdx: hashIdx - slashIdx);
-		lastSlashIdx = fullpath.find_last_of("/");
-		path = fullpath.substr(0,lastSlashIdx+1);
-		filename = fullpath.substr(lastSlashIdx+1);
+		if( slashIdx = url.find("/",colonIdx + 3/* "://" */) != string::npos ) {
+			domain = url.substr(colonIdx + 3, slashIdx - colonIdx - 3);
+			QSIdx = url.find("?", slashIdx);
+			hashIdx = url.find("#", slashIdx);
+			hash = hashIdx == string::npos ? "" : url.substr(hashIdx);
+			querystring = QSIdx == string::npos ? "" : url.substr(QSIdx, hashIdx - QSIdx);
+			fullpath = url.substr(slashIdx, QSIdx != string::npos ? QSIdx - slashIdx: hashIdx - slashIdx);
+			lastSlashIdx = fullpath.find_last_of("/");
+			path = fullpath.substr(0,lastSlashIdx+1);
+			filename = fullpath.substr(lastSlashIdx+1);
+		} else {
+			domain = "";
+			hash = "";
+			querystring = "";
+			fullpath = url.substr(colonIdx+1);
+#ifdef _WINDOWS
+			lastSlashIdx = fullpath.find_last_of("\\");
+#else
+			lastSlashIdx = fullpath.find_last_of("/");
+#endif
+			path = fullpath.substr(0,lastSlashIdx+1);
+			filename = fullpath.substr(lastSlashIdx+1);
+		}
 	}
 
 	string toString() {

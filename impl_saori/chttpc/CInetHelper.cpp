@@ -15,7 +15,7 @@ int CInetHelper::getUrlContent(const char* url, const wchar_t* charset, wstring&
 		size_t	result;
 		long	lSize;
 
-		pFile = _wfopen(fileW.c_str(), L"rb");
+		pFile = _wfopen(fileW.substr(5).c_str(), L"rb");
 		if (pFile==NULL) {
 			out = L"fopen failed";
 			return CIH_FAIL;
