@@ -142,6 +142,10 @@
 == Release 5 20091205 ==
  * add ability of opening local file with "file:" prefix
 
+== Release 6 20100419 ==
+ * fix fopen fail if wide char in module path
+ * fix Status 500 when using local file and translate
+
 ----
 = SQLori-SQLite2 =
 
