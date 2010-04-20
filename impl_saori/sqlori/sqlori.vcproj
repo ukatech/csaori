@@ -166,6 +166,9 @@
 				RelativePath="..\..\csaori.h">
 			</File>
 			<File
+				RelativePath="..\..\csaori_base.h">
+			</File>
+			<File
 				RelativePath=".\sqlite3.h">
 			</File>
 			<File

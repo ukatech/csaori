@@ -161,6 +161,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\csaori_base.cpp">
+			</File>
+			<File
 				RelativePath="uds.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -184,6 +187,9 @@
 			Filter="h;hpp;hxx;hm;inl">
 			<File
 				RelativePath="..\..\csaori.h">
+			</File>
+			<File
+				RelativePath="..\..\csaori_base.h">
 			</File>
 		</Filter>
 		<Filter

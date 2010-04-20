@@ -52,7 +52,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			param.bMultiline= (flags==1) ? true : false;  // MULTILINE
 		}
 
-		param.hInstance = (HINSTANCE)module_handle;
+		param.hInstance = (HINSTANCE)getModuleHandle();
 		param.szPrompt = (in.args.size() >= 2) ? in.args[1].c_str() : _T("Prompt:");
 		param.szTitle = (in.args.size() >= 3) ? in.args[2].c_str() : _T("MakotoUtil");
 		TCHAR buf[MAX_PATH] = _T("");

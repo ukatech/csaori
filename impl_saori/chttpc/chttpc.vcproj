@@ -298,6 +298,9 @@
 				RelativePath="..\..\csaori.h">
 			</File>
 			<File
+				RelativePath="..\..\csaori_base.h">
+			</File>
+			<File
 				RelativePath=".\CSAORIDSSTP.h">
 			</File>
 			<File
