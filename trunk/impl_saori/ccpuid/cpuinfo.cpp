@@ -24,8 +24,13 @@
 
 int		iCPUFlagsLoaded = 0;
 CPUID_01_EAX_t	uBasicFlags;
+CPUID_01_EBX_t	uBasic2Flags;
 CPUID_01_ECX_t	uExtFlags;
 CPUID_01_EDX_t	uExt2Flags;
+CPUID_02_t	uTLBDesc1;
+CPUID_02_t	uTLBDesc2;
+CPUID_02_t	uTLBDesc3;
+CPUID_02_t	uTLBDesc4;
 CPUID_80000001_ECX_t	u8ExtFlags;
 CPUID_80000001_EDX_t	u8Ext2Flags;
 CPUID_80000005_ECX_t	uL1ICSize;
@@ -34,10 +39,112 @@ CPUID_80000006_ECX_t	uL2Size;
 CPUID_80000006_EDX_t	uL3Size;
 char		sCPUBranding[65];
 char		sCPUVendor[16];
+unsigned long uHighestCPUID;
+
+void identifyTLBDesc(unsigned char desc) {
+	switch(desc) {
+		case 0x6:
+			uL1ICSize.iL1ICSize = 8;
+			break;
+		case 0x8:
+			uL1ICSize.iL1ICSize = 16;
+			break;
+		case 0x30:
+			uL1ICSize.iL1ICSize = 32;
+			break;
+
+		case 0xA:
+		case 0x66:
+			uL1DCSize.iL1DCSize = 8;
+			break;
+		case 0xC:
+		case 0x60:
+		case 0x67:
+			uL1DCSize.iL1DCSize = 16;
+			break;
+		case 0x2C:
+		case 0x68:
+			uL1DCSize.iL1DCSize = 32;
+			break;
+
+		case 0x39:
+		case 0x3B:
+		case 0x41:
+		case 0x79:
+			uL2Size.iL2Size = 128;
+			break;
+		case 0x3A:
+			uL2Size.iL2Size = 192;
+			break;
+		case 0x3C:
+		case 0x42:
+		case 0x7A:
+		case 0x82:
+			uL2Size.iL2Size = 256;
+			break;
+		case 0x3D:
+			uL2Size.iL2Size = 384;
+			break;
+		case 0x3E:
+		case 0x43:
+		case 0x7B:
+		case 0x7F:
+		case 0x83:
+		case 0x86:
+			uL2Size.iL2Size = 512;
+			break;
+		case 0x44:
+		case 0x78:
+		case 0x7C:
+		case 0x84:
+		case 0x87:
+			uL2Size.iL2Size = 1024;
+			break;
+		case 0x45:
+		case 0x7D:
+		case 0x85:
+			uL2Size.iL2Size = 2048;
+			break;
+		case 0x48:
+			uL2Size.iL2Size = 3072;
+			break;
+		case 0x4E:
+			uL2Size.iL2Size = 6144;
+			break;
+
+		case 0x22:
+			uL3Size.iL3Size = 512;
+			break;
+		case 0x23:
+			uL3Size.iL3Size = 1024;
+			break;
+		case 0x25:
+			uL3Size.iL3Size = 2048;
+			break;
+		case 0x29:
+		case 0x46:
+		case 0x49:
+			uL3Size.iL3Size = 4096;
+			break;
+		case 0x4A:
+			uL3Size.iL3Size = 6144;
+			break;
+		case 0x47:
+		case 0x4B:
+			uL3Size.iL3Size = 8192;
+			break;
+		case 0x4C:
+			uL3Size.iL3Size = 12288;
+			break;
+		case 0x4D:
+			uL3Size.iL3Size = 16384;
+			break;
+	}
+}
 
 int identifyCPU()
 {
-	unsigned long uHighestCPUID;
+	
 
 	iCPUFlagsLoaded = 1;
 	memset(sCPUBranding,0,65);
@@ -58,8 +165,20 @@ int identifyCPU()
 		mov	eax, 01h
 		cpuid
 		mov	uBasicFlags,eax
+		mov	uBasic2Flags,ebx
 		mov	uExtFlags,ecx
 		mov	uExt2Flags,edx
+	}
+
+	if(uHighestCPUID >= 2) {
+		_asm {								  // Get the TLB descriptors
+			mov	eax, 02h
+			cpuid
+			mov	uTLBDesc1,eax
+			mov	uTLBDesc2,ebx
+			mov	uTLBDesc3,ecx
+			mov	uTLBDesc4,edx
+		}
 	}
 
 	if(uHighestCPUID >= 0x80000001) {
@@ -70,7 +189,7 @@ int identifyCPU()
 			mov	u8Ext2Flags,edx
 		}
 	}
-	
+
 	if(uHighestCPUID >= 0x80000004) {
 		_asm {								  // Get CPU Name from CPUID
 			mov eax, 80000002h
@@ -91,6 +210,54 @@ int identifyCPU()
 			mov DWORD PTR [sCPUBranding+36],ebx
 			mov DWORD PTR [sCPUBranding+40],ecx
 			mov DWORD PTR [sCPUBranding+44],edx
+		}
+	}
+	else if(uBasic2Flags.iBrandIndex) {		  // no CPU Name retrieved from CPUID, but with BrandIndex (i.e. Older Intel Processors)
+		switch (uBasic2Flags.iBrandIndex) {
+			case 1:
+			case 10:
+			case 15:
+			case 20:
+				strcpy (sCPUBranding, "Intel Celeron");
+				break;
+			case 2:
+			case 4:
+				strcpy (sCPUBranding, "Intel Pentium III");
+				break;
+			case 3:
+				strcpy (sCPUBranding, "Intel Pentium III Xeon(tm) / Celeron");
+				break;
+			case 6:
+				strcpy (sCPUBranding, "Intel Pentium III-M Mobile");
+				break;
+			case 7:
+			case 19:
+			case 23:
+				strcpy (sCPUBranding, "Intel Celeron Mobile");
+				break;
+			case 8:
+			case 9:
+				strcpy (sCPUBranding, "Intel Pentium 4");
+				break;
+			case 11:
+				strcpy (sCPUBranding, "Intel Xeon(tm) / Xeon(tm) MP");
+				break;
+			case 12:
+				strcpy (sCPUBranding, "Intel Xeon(tm) MP");
+				break;
+			case 14:
+				strcpy (sCPUBranding, "Intel Pentium 4 Mobile / Xeon(tm)");
+				break;
+			case 17:
+			case 21:
+				strcpy (sCPUBranding, "Intel Genuine Mobile");
+				break;
+			case 18:
+				strcpy (sCPUBranding, "Intel Celeron M");
+				break;
+			case 22:
+				strcpy (sCPUBranding, "Intel Pentium M");
+				break;
 		}
 	}
 	else {									  // If no CPU Name retrieved from CPUID (i.e. Old Processors),
@@ -222,22 +389,50 @@ int identifyCPU()
 			}
 		}
 	}
-	
-	if(uHighestCPUID >= 0x80000005) {		  // Get L1 Cache Sizes
-		_asm {
-			mov	eax, 80000005h
-			cpuid
-			mov	uL1ICSize,ecx
-			mov	uL1DCSize,edx
+	if (!strncmp("GenuineIntel", sCPUVendor, 12)) {
+		if(uTLBDesc1.desc[0] != 0x00) {
+		    for(int i = 1; i < 4; i++) { /* decode each descriptor */
+		        if(uTLBDesc1.desc[3] & 0x80) { /* invalid descriptors */
+		            break;
+		         } /* invalid descriptors */
+		        identifyTLBDesc(uTLBDesc1.desc[i]);
+		     } /* decode each descriptor */
+		    for(int i = 0; i < 4; i++) { /* decode each descriptor */
+		        if(uTLBDesc2.desc[3] & 0x80) { /* invalid descriptors */
+		            break;
+		         } /* invalid descriptors */
+		        identifyTLBDesc(uTLBDesc2.desc[i]);
+		     } /* decode each descriptor */
+		    for(int i = 0; i < 4; i++) { /* decode each descriptor */
+		        if(uTLBDesc3.desc[3] & 0x80) { /* invalid descriptors */
+		            break;
+		         } /* invalid descriptors */
+		        identifyTLBDesc(uTLBDesc3.desc[i]);
+		     } /* decode each descriptor */
+		    for(int i = 0; i < 4; i++) { /* decode each descriptor */
+		        if(uTLBDesc4.desc[3] & 0x80) { /* invalid descriptors */
+		            break;
+		         } /* invalid descriptors */
+		        identifyTLBDesc(uTLBDesc4.desc[i]);
+		     } /* decode each descriptor */
+       	}
+	} else {
+		if(uHighestCPUID >= 0x80000005) {		  // Get L1 Cache Sizes
+			_asm {
+				mov	eax, 80000005h
+				cpuid
+				mov	uL1ICSize,ecx
+				mov	uL1DCSize,edx
+			}
 		}
-	}
 
-	if(uHighestCPUID >= 0x80000006) {		  // Get L2/L3 Cache Sizes
-		_asm {
-			mov	eax, 80000006h
-			cpuid
-			mov	uL2Size,ecx
-			mov	uL3Size,edx
+		if(uHighestCPUID >= 0x80000006) {		  // Get L2/L3 Cache Sizes
+			_asm {
+				mov	eax, 80000006h
+				cpuid
+				mov	uL2Size,ecx
+				mov	uL3Size,edx
+			}
 		}
 	}
 
@@ -250,13 +445,17 @@ int main(int argc, char *argv[])
 
 {
 	char	sMsg[2048];
+	char	cacheinfo[256];
 
 	identifyCPU();
 
-	sprintf(sMsg,"%s %s\n\nProcessor ID Family %d Model %d Stepping %d\nFlags: ",(*sCPUVendor)?sCPUVendor:"<unknown>",(*sCPUBranding)?sCPUBranding:"<No Name>",
-								     uBasicFlags.iExtendedFamilyID<<4 | uBasicFlags.iFamilyID,
-								     uBasicFlags.iExtendedModelID<<4  | uBasicFlags.iModelID,
-								     uBasicFlags.iSteppingID);
+	sprintf(sMsg,"%s %s\n\nHighest CPUID supported: %X\nBrandID: %d, CLFLUSHLineSize: %d, LogicalProcessors: %d, InitialAPICID: %d\nProcessor ID Family %d Model %d Stepping %d\nFlags: ",
+				(*sCPUVendor)?sCPUVendor:"<unknown>",
+				(*sCPUBranding)?sCPUBranding:"<No Name>",uHighestCPUID,
+				uBasic2Flags.iBrandIndex,uBasic2Flags.iCLFLUSHLineSize,uBasic2Flags.iLogicalProcessors,uBasic2Flags.iInitialAPICID,
+				uBasicFlags.iExtendedFamilyID<<4 | uBasicFlags.iFamilyID,
+				uBasicFlags.iExtendedModelID<<4  | uBasicFlags.iModelID,
+				uBasicFlags.iSteppingID);
 
 	if( uExt2Flags.iFPU  ) strcat(sMsg, "FPU ");	// Integrated FPU
 	if( uExt2Flags.iVME  ) strcat(sMsg, "VME ");	// Virtual Memory Extensions
@@ -297,6 +496,11 @@ int main(int argc, char *argv[])
 	if( u8Ext2Flags.iLM ) strcat(sMsg, "EMT64 ");	// 64-bit technology
 	if( u8Ext2Flags.iNX ) strcat(sMsg, "NX ");	// No Execute
 	if( u8ExtFlags.iLAHF ) strcat(sMsg, "LAHF ");	// LAHF
+
+	sprintf(cacheinfo,"\n\nCache Info:\nL1 I-Cache: %d, L1 D-Cache: %d\nL2 Cache: %d, L3 Cache: %d",
+			uL1ICSize.iL1ICSize,uL1DCSize.iL1DCSize,
+			uL2Size.iL2Size,uL3Size.iL3Size);
+	strcat(sMsg,cacheinfo);
 
 	MessageBox(NULL,sMsg,"CPU Identification", MB_OK);
 	return(0);
