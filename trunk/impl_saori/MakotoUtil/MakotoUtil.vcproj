@@ -147,6 +147,9 @@
 				RelativePath="..\..\csaori.cpp">
 			</File>
 			<File
+				RelativePath="..\..\csaori_base.cpp">
+			</File>
+			<File
 				RelativePath=".\MakotoUtil.cpp">
 			</File>
 			<File
@@ -158,6 +161,9 @@
 			Filter="h;hpp;hxx;hm;inl">
 			<File
 				RelativePath="..\..\csaori.h">
+			</File>
+			<File
+				RelativePath="..\..\csaori_base.h">
 			</File>
 			<File
 				RelativePath=".\resource.h">
