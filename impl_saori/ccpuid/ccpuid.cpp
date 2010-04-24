@@ -118,7 +118,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 				out.result = SAORI_FUNC::intToString(meminfo.dwAvailVirtual/1048576);
 			}
 		}
-		else if (in.args[0] == L"mem.viraex") {		// mem.vira: Available Virtual Memory
+		else if (in.args[0] == L"mem.viraex") {		// mem.vira: Available Extended Virtual Memory
 			out.result_code = SAORIRESULT_OK;
 			if(isMemoryStatusEx){
 				out.result = SAORI_FUNC::numToString(meminfoex.ullAvailExtendedVirtual/1048576);
@@ -220,7 +220,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result_code = SAORIRESULT_OK;
 			out.result = u8Ext2Flags.i3DNEx ? L"Ready" : L"Not Ready";
 		}
-		else if (in.args[0] == L"cpu.htt") {		// cpu.mmx: If CPU support Hyper Thread Technology
+		else if (in.args[0] == L"cpu.htt") {		// cpu.htt: If CPU support Hyper Thread Technology
 			out.result_code = SAORIRESULT_OK;
 			out.result = uExt2Flags.iHTT ? L"Ready" : L"Not Ready";
 		}
@@ -285,6 +285,10 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			outtxt = tmptxt;
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(outtxt);
+		}
+		else if (in.args[0] == L"cpu.logicalprocessors") {		// cpu.logicalprocessors: CPU Logical Processors
+			out.result_code = SAORIRESULT_OK;
+			out.result = uBasic2Flags.iLogicalProcessors ? SAORI_FUNC::intToString(uBasic2Flags.iLogicalProcessors) : L"1";
 		}
 		else if (in.args[0] == L"cpu.usage") {		// cpu.usage: Return CPU Usage
 			out.result_code = SAORIRESULT_OK;
