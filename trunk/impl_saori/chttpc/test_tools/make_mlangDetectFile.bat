@@ -1,0 +1,1 @@
+cl mlangDetectFile.cpp /EHsc /link /subsystem:windows /entry:mainCRTStartup ole32.lib user32.lib
