@@ -13,27 +13,16 @@
 
 using namespace std;
 
-std::wstring MultiByteToUnicode(const char* Source, unsigned int CodePage, DWORD Flags)
-{
-  if (int Len = ::MultiByteToWideChar(CodePage, Flags, Source, strlen(Source), NULL, 0)) {
-	std::vector<wchar_t> Dest(Len);
-	if (Len = ::MultiByteToWideChar(CodePage, 0, Source, strlen(Source), &Dest[0], static_cast<int>(Dest.size()))) {
-	  return std::wstring(Dest.begin(), Dest.begin() + Len);
-	}
-  }
-  return L"";
-}
-
 int main( int argc, char * argv[] )
 {
-	if(__argc>1) {
+	if(argc>1) {
 		vector<char> theData;
 
 		FILE *	pFile;
 		size_t	result;
 		INT		lSize;
 
-		pFile = fopen(__argv[1], "rb");
+		pFile = fopen(argv[1], "rb");
 		if (pFile==NULL) {
 			printf("fopen failed");
 			return 1;
