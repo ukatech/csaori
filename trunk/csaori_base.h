@@ -50,9 +50,24 @@ typedef enum {
 //global functions
 namespace SAORI_FUNC {
 	template<typename _Type> string_t numToString(_Type num){
-		std::wostringstream os;
-		os << num;
-		return os.str();
+		char_t buf[32];
+		swprintf(buf,L"%d",num);
+		return buf;
+	}
+	template<> string_t numToString<unsigned char>(unsigned char num){
+		char_t buf[32];
+		swprintf(buf,L"%u",num);
+		return buf;
+	}
+	template<> string_t numToString<unsigned int>(unsigned int num){
+		char_t buf[32];
+		swprintf(buf,L"%u",num);
+		return buf;
+	}
+	template<> string_t numToString<unsigned long>(unsigned long num){
+		char_t buf[32];
+		swprintf(buf,L"%u",num);
+		return buf;
 	}
 	string_t inline intToString(int num){return numToString(num);}
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef __CPUUSAGE_H
 #define __CPUUSAGE_H
 #include <windows.h>
