@@ -2,7 +2,6 @@
 #include "winversion.h"
 #include "cpuinfo.h"
 #include "cpuusage.h"
-using namespace std;
 
 //------------------------------------------------------------------------------
 //CSAORI
@@ -27,7 +26,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	// saori_cpuid compatible commands
 	if (in.args[0] == L"platform") {				// platform: basename of caller exe name
 		char *czPath = new char [_MAX_DIR];
-		string platformname;
+		std::string platformname;
 		GetModuleFileName(NULL , czPath, _MAX_DIR);
 		platformname = czPath;
 		delete czPath;
@@ -37,7 +36,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		out.result_code = SAORIRESULT_OK;
 		out.result = SAORI_FUNC::MultiByteToUnicode(platformname,0);
 	}
-	else if (in.args[0].find(L"mem.") != string::npos) { // memory commands
+	else if (in.args[0].find(L"mem.") != std::string::npos) { // memory commands
 
 		bool isMemoryStatusEx=false;
 		MEMORYSTATUS	meminfo;
@@ -132,18 +131,18 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result = L"param error";
 		}
 	}
-	else if (in.args[0].find(L"os.") != string::npos) { // OS comands
+	else if (in.args[0].find(L"os.") != std::string::npos) { // OS comands
 		if(!osGot) {
 			GetOSDisplayString(osname, osver, &osbuild);
 			osGot = 1;
 		}
 		if (in.args[0] == L"os.name") {				// os.name: OS Name
-			string osn = osname;
+			std::string osn = osname;
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(osn);
 		}
 		else if (in.args[0] == L"os.version") {		// os.version: OS Version
-			string osv = osver;
+			std::string osv = osver;
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(osv);
 		}
@@ -156,7 +155,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result = L"param error";
 		}
 	}
-	else if (in.args[0].find(L"cpu.") != string::npos) { // CPU commands
+	else if (in.args[0].find(L"cpu.") != std::string::npos) { // CPU commands
 		if(!iCPUFlagsLoaded) {
 			identifyCPU();
 
@@ -171,12 +170,12 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 		// CPUID
 		else if (in.args[0] == L"cpu.vender") {		// cpu.vender: CPU Vender Name
-			string cpuv = (*sCPUVendor)?sCPUVendor:"<unknown>";
+			std::string cpuv = (*sCPUVendor)?sCPUVendor:"<unknown>";
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(cpuv);
 		}
 		else if (in.args[0] == L"cpu.name") {		// cpu.name: CPU Name
-			string cpuv = (*sCPUBranding)?sCPUBranding:"<No Name>";
+			std::string cpuv = (*sCPUBranding)?sCPUBranding:"<No Name>";
 			out.result_code = SAORIRESULT_OK;
 			out.result = SAORI_FUNC::MultiByteToUnicode(cpuv);
 		}
@@ -280,7 +279,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 		else if (in.args[0] == L"cpu.cache") {		// cpu.cache: List CPU Caches in "L1-DataCache L1-InstCache L2 L3" form (without quote)
 			char tmptxt[30];
-			string outtxt;
+			std::string outtxt;
 			sprintf(tmptxt,"%d %d %d %d",uL1DCSize.iL1DCSize,uL1ICSize.iL1ICSize,uL2Size.iL2Size,uL3Size.iL3Size);
 			outtxt = tmptxt;
 			out.result_code = SAORIRESULT_OK;
@@ -297,7 +296,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		// CPU Speed functions (saori_cpuid compatible)
 		else if (in.args[0] == L"cpu.clock") {		// cpu.clock: measure CPU speed in 100ms, return CPU speed in MHz (integer)
 			char tmptxt[10];
-			string outtxt;
+			std::string outtxt;
 			sprintf(tmptxt,"%d",(int)GetCPUSpeed(100));
 			outtxt = tmptxt;
 			out.result_code = SAORIRESULT_OK;
@@ -305,7 +304,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 		else if (in.args[0] == L"cpu.clockex") {	// cpu.clockex: measure CPU speed in 250ms, return CPU speed in MHz (3 decimal)
 			char tmptxt[10];
-			string outtxt;
+			std::string outtxt;
 			sprintf(tmptxt,"%.3f",GetCPUSpeed(250));
 			outtxt = tmptxt;
 			out.result_code = SAORIRESULT_OK;

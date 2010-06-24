@@ -391,25 +391,26 @@ int identifyCPU()
 	}
 	if (!strncmp("GenuineIntel", sCPUVendor, 12)) {
 		if(uTLBDesc1.desc[0] != 0x00) {
-		    for(int i = 1; i < 4; i++) { /* decode each descriptor */
+			int i;
+		    for(i = 1; i < 4; i++) { /* decode each descriptor */
 		        if(uTLBDesc1.desc[3] & 0x80) { /* invalid descriptors */
 		            break;
 		         } /* invalid descriptors */
 		        identifyTLBDesc(uTLBDesc1.desc[i]);
 		     } /* decode each descriptor */
-		    for(int i = 0; i < 4; i++) { /* decode each descriptor */
+		    for(i = 0; i < 4; i++) { /* decode each descriptor */
 		        if(uTLBDesc2.desc[3] & 0x80) { /* invalid descriptors */
 		            break;
 		         } /* invalid descriptors */
 		        identifyTLBDesc(uTLBDesc2.desc[i]);
 		     } /* decode each descriptor */
-		    for(int i = 0; i < 4; i++) { /* decode each descriptor */
+		    for(i = 0; i < 4; i++) { /* decode each descriptor */
 		        if(uTLBDesc3.desc[3] & 0x80) { /* invalid descriptors */
 		            break;
 		         } /* invalid descriptors */
 		        identifyTLBDesc(uTLBDesc3.desc[i]);
 		     } /* decode each descriptor */
-		    for(int i = 0; i < 4; i++) { /* decode each descriptor */
+		    for(i = 0; i < 4; i++) { /* decode each descriptor */
 		        if(uTLBDesc4.desc[3] & 0x80) { /* invalid descriptors */
 		            break;
 		         } /* invalid descriptors */

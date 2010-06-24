@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef __CPUINFO_H
 #define __CPUINFO_H
 
