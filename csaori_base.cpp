@@ -45,6 +45,22 @@ extern CSAORIBase* CreateInstance(void);
 // Utility functions
 //------------------------------------------------------------------------------
 namespace SAORI_FUNC{
+	template<> string_t numToString<unsigned char>(unsigned char num){
+		char_t buf[32];
+		swprintf(buf,L"%u",num);
+		return buf;
+	}
+	template<> string_t numToString<unsigned int>(unsigned int num){
+		char_t buf[32];
+		swprintf(buf,L"%u",num);
+		return buf;
+	}
+	template<> string_t numToString<unsigned long>(unsigned long num){
+		char_t buf[32];
+		swprintf(buf,L"%u",num);
+		return buf;
+	}
+
 	std::string UnicodeToMultiByte(const wchar_t *Source, unsigned int CodePage, DWORD Flags)
 	{
 	  if (int Len = ::WideCharToMultiByte(CodePage, Flags, Source, (int)wcslen(Source), NULL, 0, NULL, NULL)) {
