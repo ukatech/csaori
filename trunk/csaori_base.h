@@ -4,6 +4,8 @@
 
 #pragma once
 
+#pragma warning(disable : 4786)
+
 #define SAORIAPI extern "C" __declspec(dllexport)
 
 #define SAORICDECL __cdecl
@@ -54,21 +56,10 @@ namespace SAORI_FUNC {
 		swprintf(buf,L"%d",num);
 		return buf;
 	}
-	template<> string_t numToString<unsigned char>(unsigned char num){
-		char_t buf[32];
-		swprintf(buf,L"%u",num);
-		return buf;
-	}
-	template<> string_t numToString<unsigned int>(unsigned int num){
-		char_t buf[32];
-		swprintf(buf,L"%u",num);
-		return buf;
-	}
-	template<> string_t numToString<unsigned long>(unsigned long num){
-		char_t buf[32];
-		swprintf(buf,L"%u",num);
-		return buf;
-	}
+	template<> string_t numToString<unsigned char>(unsigned char num);
+	template<> string_t numToString<unsigned int>(unsigned int num);
+	template<> string_t numToString<unsigned long>(unsigned long num);
+
 	string_t inline intToString(int num){return numToString(num);}
 
 	string_t::size_type  getLine(string_t &, const string_t &, string_t::size_type);

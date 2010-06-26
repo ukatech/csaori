@@ -54,6 +54,12 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib /nologo /dll /machine:I386
+# Begin Special Build Tool
+TargetPath=.\Release\ccpuid.dll
+SOURCE="$(InputPath)"
+PostBuild_Desc=UPX
+PostBuild_Cmds=upx -q --best --compress-icons=0 $(TargetPath)
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "ccpuid - Win32 Debug"
 
