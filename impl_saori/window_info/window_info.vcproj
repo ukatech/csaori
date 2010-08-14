@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="enumwindows"
+	Name="window_info"
 	ProjectGUID="{21CDEACC-6053-4654-97C4-84BDC6F62028}"
-	RootNamespace="enumwindows"
+	RootNamespace="window_info"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -181,7 +181,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\enumwindows.cpp"
+				RelativePath=".\window_info.cpp"
 				>
 			</File>
 			<File
@@ -229,7 +229,7 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\enumwindows.rc"
+				RelativePath=".\window_info.rc"
 				>
 			</File>
 		</Filter>
