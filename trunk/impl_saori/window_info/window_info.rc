@@ -54,7 +54,7 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
+ FILEVERSION 1,1,0,0
  PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
@@ -72,14 +72,14 @@ BEGIN
         BEGIN
             VALUE "Comments", " \0"
             VALUE "CompanyName", " \0"
-            VALUE "FileDescription", "enumwindows SAORI Extension / CSaori Library Sample\0"
-            VALUE "enumwindows", "1, 0, 0, 0\0"
-            VALUE "InternalName", "enumwindows\0"
+            VALUE "FileDescription", "window_info SAORI Extension\0"
+            VALUE "FileVersion", "1, 1, 0, 0\0"
+            VALUE "InternalName", "window_info\0"
             VALUE "LegalCopyright", " \0"
             VALUE "LegalTrademarks", " \0"
-            VALUE "OriginalFilename", "enumwindows.dll\0"
+            VALUE "OriginalFilename", "window_info.dll\0"
             VALUE "PrivateBuild", " \0"
-            VALUE "ProductName", "enumwindows\0"
+            VALUE "ProductName", "window_info\0"
             VALUE "ProductVersion", "1, 0, 0, 0\0"
             VALUE "SpecialBuild", " \0"
         END

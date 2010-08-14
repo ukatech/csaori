@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Developer Studio generated include file.
-// Used by enumwindows.rc
+// Used by window_info.rc
 //
 
 // Next default values for new objects
