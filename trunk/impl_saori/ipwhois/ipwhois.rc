@@ -72,17 +72,17 @@ BEGIN
         BEGIN
             VALUE "Comments", " \0"
             VALUE "CompanyName", " \0"
-            VALUE "FileDescription", "textcopy2 SAORI Extension / CSaori Library Sample\0"
+            VALUE "FileDescription", "ipwhois SAORI Extension / CSaori Library Sample\0"
             VALUE "FileVersion", "1, 0, 0, 0\0"
-            VALUE "InternalName", "textcopy2\0"
+            VALUE "InternalName", "ipwhois\0"
             VALUE "LegalCopyright", " \0"
             VALUE "LegalTrademarks", " \0"
-            VALUE "OriginalFilename", "textcopy2.dll\0"
+            VALUE "OriginalFilename", "ipwhois.dll\0"
             VALUE "PrivateBuild", " \0"
-            VALUE "ProductName", "textcopy2\0"
+            VALUE "ProductName", "ipwhois\0"
             VALUE "ProductVersion", "1, 0, 0, 0\0"
             VALUE "SpecialBuild", " \0"
-            VALUE "textcopy2", "1, 0, 0, 0\0"
+            VALUE "ipwhois", "1, 0, 0, 0\0"
         END
     END
     BLOCK "VarFileInfo"
