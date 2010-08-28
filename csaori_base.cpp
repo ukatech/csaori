@@ -203,6 +203,15 @@ namespace SAORI_FUNC{
 		return ppos;
 	}
 
+	string_t replaceAll(string_t string, const string_t &find, const string_t &replace) {
+		unsigned int found = 0;
+		while((found = string.find(find, found)) != std::string::npos) {
+			string.replace(found, find.length(), replace);
+			found += replace.size();
+		}
+		return string;
+	}
+
 	typedef struct tagMessageBoxInfo {
 		void *hwnd;
 		string_t message;
