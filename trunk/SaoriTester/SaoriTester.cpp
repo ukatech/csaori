@@ -5,6 +5,9 @@
 #include "SaoriTester.h"
 #include "SaoriTesterDlg.h"
 
+#include <objbase.h>
+#include <objidl.h>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -41,7 +44,9 @@ CSaoriTesterApp theApp;
 
 BOOL CSaoriTesterApp::InitInstance()
 {
-	::CoInitialize(NULL);
+	AfxOleInit();
+	::CoInitializeSecurity(NULL, -1, NULL, NULL,RPC_C_AUTHN_LEVEL_DEFAULT,
+		RPC_C_IMP_LEVEL_IMPERSONATE,NULL, EOAC_NONE, NULL);
 
 	free((void*)m_pszProfileName);
 
