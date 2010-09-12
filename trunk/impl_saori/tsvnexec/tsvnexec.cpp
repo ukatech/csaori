@@ -7,6 +7,7 @@
 #include <process.h>
 #include <atlbase.h>
 #include <comdef.h>
+#include <shellapi.h>
 #include "csaori.h"
 
 #import "SubWCRevCOM.exe" named_guids
@@ -86,6 +87,31 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			}
 		}
 
+		return;
+	}
+
+	//***** helpコマンド / settingsコマンドなど *****
+	if ( wcsnicmp(cmd.c_str(),L"help",4) == 0 || wcsnicmp(cmd.c_str(),L"setting",7) == 0 ||
+		wcsnicmp(cmd.c_str(),L"about",5) == 0 || wcsnicmp(cmd.c_str(),L"rtfm",4) == 0 ) {
+		std::string path;
+		if ( GetTortoiseProcPath(path) ) {
+			std::string command;
+
+			if ( wcsnicmp(cmd.c_str(),L"help",4) == 0 ) {
+				command = "/command:help";
+			}
+			else if ( wcsnicmp(cmd.c_str(),L"about",5) == 0 ) {
+				command = "/command:about";
+			}
+			else if ( wcsnicmp(cmd.c_str(),L"rtfm",4) == 0 ) {
+				command = "/command:rtfm";
+			}
+			else {
+				command = "/command:settings";
+			}
+
+			::ShellExecuteA(NULL,"open",path.c_str(),command.c_str(),NULL,SW_SHOWNORMAL);
+		}
 		return;
 	}
 
