@@ -53,7 +53,13 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib version.lib /nologo /dll /machine:I386
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib version.lib /nologo /dll /machine:I386 /out:"D:\ssp_src_set\ssp\ghost\tortoisesvn\ghost\master\saori\tsvnexec.dll"
+# Begin Special Build Tool
+TargetPath=\ssp_src_set\ssp\ghost\tortoisesvn\ghost\master\saori\tsvnexec.dll
+SOURCE="$(InputPath)"
+PostBuild_Desc=UPX
+PostBuild_Cmds=upx -q --best $(TargetPath)
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "tsvnexec - Win32 Debug"
 
