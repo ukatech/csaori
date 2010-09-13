@@ -5,9 +5,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <process.h>
-#include <atlbase.h>
 #include <comdef.h>
 #include <shellapi.h>
+#include <mbstring.h>
+
 #include "csaori.h"
 
 #import "SubWCRevCOM.exe" named_guids
@@ -22,6 +23,17 @@ public:
 	void *hwnd;
 };
 
+#ifndef IID_PPV_ARGS
+extern "C++" {
+    template<typename T> void** IID_PPV_ARGS_Helper(T** pp) {
+        static_cast<IUnknown*>(*pp);    // make sure everyone derives from IUnknown
+        return reinterpret_cast<void**>(pp);
+    }
+}
+
+#define IID_PPV_ARGS(ppType) __uuidof(**(ppType)), IID_PPV_ARGS_Helper(ppType)
+#endif //IID_PPV_ARGS
+
 //Prototypes
 static bool GetTortoiseProcPath(std::string &path);
 static DWORD ExecuteTortoiseProc(const ExecuteTortoiseProcData &d);
@@ -29,16 +41,26 @@ static DWORD ExecuteTortoiseProc(const ExecuteTortoiseProcData &d);
 static void _cdecl ExecuteTortoiseProcThread(void *d);
 
 void *g_hwnd = NULL;
+LibSubWCRev::ISubWCRev *g_pWCRev = NULL;
 
 bool CSAORI::load()
 {
-	//CoInitialize(NULL);
+	if ( ! g_pWCRev ) {
+		HRESULT hr = ::CoCreateInstance(LibSubWCRev::CLSID_SubWCRev,NULL,CLSCTX_LOCAL_SERVER,IID_PPV_ARGS(&g_pWCRev));
+		if ( ! SUCCEEDED(hr) ) {
+			g_pWCRev = NULL;
+		}
+	}
 	return true;
 }
 
 bool CSAORI::unload()
 {
-	return false;
+	if ( g_pWCRev ) {
+		g_pWCRev->Release();
+		g_pWCRev = NULL;
+	}
+	return true;
 }
 
 void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
@@ -139,13 +161,12 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			return;
 		}
 
-		CComPtr<LibSubWCRev::ISubWCRev> pRev;
-		if ( FAILED(pRev.CoCreateInstance(LibSubWCRev::CLSID_SubWCRev,NULL,CLSCTX_LOCAL_SERVER )) || pRev == NULL ) {
+		if ( g_pWCRev == NULL ) {
 			out.result = L"!ERROR!|TSVN_NOT_FOUND|ISubWCRev";
 			return;
 		}
 
-		if ( FAILED(pRev->GetWCInfo(path.c_str(),true,true)) ) {
+		if ( FAILED(g_pWCRev->GetWCInfo(path.c_str(),true,true)) ) {
 			out.result = L"!ERROR!|PATH_INVALID|ISubWCRev";
 			return;
 		}
@@ -157,43 +178,43 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			const std::wstring &c = in.args[i];
 
 			if ( wcsicmp(c.c_str(),L"Revision") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(pRev->Revision)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->Revision)));
 			}
 			else if ( wcsicmp(c.c_str(),L"MinRev") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(pRev->MinRev)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->MinRev)));
 			}
 			else if ( wcsicmp(c.c_str(),L"MaxRev") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(pRev->MaxRev)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->MaxRev)));
 			}
 			else if ( wcsicmp(c.c_str(),L"Date") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(pRev->Date)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->Date)));
 			}
 			else if ( wcsicmp(c.c_str(),L"Url") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(pRev->Url)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->Url)));
 			}
 			else if ( wcsicmp(c.c_str(),L"Author") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(pRev->Author)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->Author)));
 			}
 			else if ( wcsicmp(c.c_str(),L"HasModifications") == 0 ) {
-				out.values.push_back(std::wstring(pRev->HasModifications ? L"true" : L"false"));
+				out.values.push_back(std::wstring(g_pWCRev->HasModifications ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"IsSvnItem") == 0 ) {
-				out.values.push_back(std::wstring(pRev->IsSvnItem ? L"true" : L"false"));
+				out.values.push_back(std::wstring(g_pWCRev->IsSvnItem ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"NeedsLocking") == 0 ) {
-				out.values.push_back(std::wstring(pRev->NeedsLocking ? L"true" : L"false"));
+				out.values.push_back(std::wstring(g_pWCRev->NeedsLocking ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"IsLocked") == 0 ) {
-				out.values.push_back(std::wstring(pRev->IsLocked ? L"true" : L"false"));
+				out.values.push_back(std::wstring(g_pWCRev->IsLocked ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockCreationDate") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(pRev->LockCreationDate)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->LockCreationDate)));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockOwner") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(pRev->LockOwner)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->LockOwner)));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockComment") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(pRev->LockComment)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->LockComment)));
 			}
 			else {
 				out.values.push_back(std::wstring(L"!ERROR!|PARAMETER_INVALID"));
@@ -306,21 +327,16 @@ void _cdecl ExecuteTortoiseProcThread(void *ptr)
 	ExecuteTortoiseProcData *pData = reinterpret_cast<ExecuteTortoiseProcData*>(ptr);
 	const ExecuteTortoiseProcData &d = *pData;
 
-	CComPtr<LibSubWCRev::ISubWCRev> pRev;
-	if ( FAILED(pRev.CoCreateInstance(LibSubWCRev::CLSID_SubWCRev,NULL,CLSCTX_LOCAL_SERVER )) || pRev == NULL ) {
-		pRev = NULL;
-	}
-
 	long before = -1;
-	if ( pRev && ! FAILED(pRev->GetWCInfo(d.path.c_str(),true,true)) ) {
-		before = pRev->Revision;
+	if ( g_pWCRev && ! FAILED(g_pWCRev->GetWCInfo(d.path.c_str(),true,true)) ) {
+		before = g_pWCRev->Revision;
 	}
 
 	DWORD result = ExecuteTortoiseProc(*pData);
 
 	long after = -1;
-	if ( pRev && ! FAILED(pRev->GetWCInfo(d.path.c_str(),true,true)) ) {
-		after = pRev->Revision;
+	if ( g_pWCRev && ! FAILED(g_pWCRev->GetWCInfo(d.path.c_str(),true,true)) ) {
+		after = g_pWCRev->Revision;
 	}
 
 	std::string sstp = "NOTIFY SSTP/1.1\r\nCharset: UTF-8\r\nSender: tsvnexec SAORI\r\n";
