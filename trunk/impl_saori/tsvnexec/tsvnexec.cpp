@@ -41,25 +41,24 @@ static DWORD ExecuteTortoiseProc(const ExecuteTortoiseProcData &d);
 static void _cdecl ExecuteTortoiseProcThread(void *d);
 
 void *g_hwnd = NULL;
-LibSubWCRev::ISubWCRev *g_pWCRev = NULL;
+
+LibSubWCRev::ISubWCRev * CoCreateWCRev(void)
+{
+	LibSubWCRev::ISubWCRev *pWCRev = NULL;
+	HRESULT hr = ::CoCreateInstance(LibSubWCRev::CLSID_SubWCRev,NULL,CLSCTX_LOCAL_SERVER,IID_PPV_ARGS(&pWCRev));
+	if ( ! SUCCEEDED(hr) ) {
+		pWCRev = NULL;
+	}
+	return pWCRev;
+}
 
 bool CSAORI::load()
 {
-	if ( ! g_pWCRev ) {
-		HRESULT hr = ::CoCreateInstance(LibSubWCRev::CLSID_SubWCRev,NULL,CLSCTX_LOCAL_SERVER,IID_PPV_ARGS(&g_pWCRev));
-		if ( ! SUCCEEDED(hr) ) {
-			g_pWCRev = NULL;
-		}
-	}
 	return true;
 }
 
 bool CSAORI::unload()
 {
-	if ( g_pWCRev ) {
-		g_pWCRev->Release();
-		g_pWCRev = NULL;
-	}
 	return true;
 }
 
@@ -161,13 +160,15 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			return;
 		}
 
-		if ( g_pWCRev == NULL ) {
+		LibSubWCRev::ISubWCRev *pWCRev = CoCreateWCRev();
+		if ( pWCRev == NULL ) {
 			out.result = L"!ERROR!|TSVN_NOT_FOUND|ISubWCRev";
 			return;
 		}
 
-		if ( FAILED(g_pWCRev->GetWCInfo(path.c_str(),true,true)) ) {
+		if ( FAILED(pWCRev->GetWCInfo(path.c_str(),true,true)) ) {
 			out.result = L"!ERROR!|PATH_INVALID|ISubWCRev";
+			pWCRev->Release();
 			return;
 		}
 		
@@ -178,48 +179,49 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			const std::wstring &c = in.args[i];
 
 			if ( wcsicmp(c.c_str(),L"Revision") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->Revision)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(pWCRev->Revision)));
 			}
 			else if ( wcsicmp(c.c_str(),L"MinRev") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->MinRev)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(pWCRev->MinRev)));
 			}
 			else if ( wcsicmp(c.c_str(),L"MaxRev") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->MaxRev)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(pWCRev->MaxRev)));
 			}
 			else if ( wcsicmp(c.c_str(),L"Date") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->Date)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(pWCRev->Date)));
 			}
 			else if ( wcsicmp(c.c_str(),L"Url") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->Url)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(pWCRev->Url)));
 			}
 			else if ( wcsicmp(c.c_str(),L"Author") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->Author)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(pWCRev->Author)));
 			}
 			else if ( wcsicmp(c.c_str(),L"HasModifications") == 0 ) {
-				out.values.push_back(std::wstring(g_pWCRev->HasModifications ? L"true" : L"false"));
+				out.values.push_back(std::wstring(pWCRev->HasModifications ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"IsSvnItem") == 0 ) {
-				out.values.push_back(std::wstring(g_pWCRev->IsSvnItem ? L"true" : L"false"));
+				out.values.push_back(std::wstring(pWCRev->IsSvnItem ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"NeedsLocking") == 0 ) {
-				out.values.push_back(std::wstring(g_pWCRev->NeedsLocking ? L"true" : L"false"));
+				out.values.push_back(std::wstring(pWCRev->NeedsLocking ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"IsLocked") == 0 ) {
-				out.values.push_back(std::wstring(g_pWCRev->IsLocked ? L"true" : L"false"));
+				out.values.push_back(std::wstring(pWCRev->IsLocked ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockCreationDate") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->LockCreationDate)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(pWCRev->LockCreationDate)));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockOwner") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->LockOwner)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(pWCRev->LockOwner)));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockComment") == 0 ) {
-				out.values.push_back(std::wstring(static_cast<_bstr_t>(g_pWCRev->LockComment)));
+				out.values.push_back(std::wstring(static_cast<_bstr_t>(pWCRev->LockComment)));
 			}
 			else {
 				out.values.push_back(std::wstring(L"!ERROR!|PARAMETER_INVALID"));
 			}
 		}
+		pWCRev->Release();
 		return;
 	}
 
@@ -257,7 +259,7 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 		for ( size_t i = 2 ; i < n ; ++i ) {
 			const std::wstring &c = in.args[i];
 
-			if ( wcsnicmp(c.c_str(),L"notify",6) || wcsnicmp(c.c_str(),L"/notify",7) ) {
+			if ( wcsnicmp(c.c_str(),L"notify",6) == 0 || wcsnicmp(c.c_str(),L"/notify",7) == 0 ) {
 				const wchar_t *pParam;
 				if ( c[0] != L'/' ) {
 					pParam = c.c_str() + 6;
@@ -278,7 +280,7 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 				}
 				SAORI_FUNC::UnicodeToMultiByte(c) + " ";
 
-				if ( wcsnicmp(c.c_str(),L"closeonend",10) || wcsnicmp(c.c_str(),L"/closeonend",11) ) {
+				if ( wcsnicmp(c.c_str(),L"closeonend",10) == 0 || wcsnicmp(c.c_str(),L"/closeonend",11) == 0 ) {
 					close_on_end_found = true;
 				}
 			}
@@ -328,15 +330,17 @@ void _cdecl ExecuteTortoiseProcThread(void *ptr)
 	const ExecuteTortoiseProcData &d = *pData;
 
 	long before = -1;
-	if ( g_pWCRev && ! FAILED(g_pWCRev->GetWCInfo(d.path.c_str(),true,true)) ) {
-		before = g_pWCRev->Revision;
+	
+	LibSubWCRev::ISubWCRev *pWCRev = CoCreateWCRev();
+	if ( pWCRev && ! FAILED(pWCRev->GetWCInfo(d.path.c_str(),true,true)) ) {
+		before = pWCRev->Revision;
 	}
 
 	DWORD result = ExecuteTortoiseProc(*pData);
 
 	long after = -1;
-	if ( g_pWCRev && ! FAILED(g_pWCRev->GetWCInfo(d.path.c_str(),true,true)) ) {
-		after = g_pWCRev->Revision;
+	if ( pWCRev && ! FAILED(pWCRev->GetWCInfo(d.path.c_str(),true,true)) ) {
+		after = pWCRev->Revision;
 	}
 
 	std::string sstp = "NOTIFY SSTP/1.1\r\nCharset: UTF-8\r\nSender: tsvnexec SAORI\r\n";
@@ -365,18 +369,51 @@ void _cdecl ExecuteTortoiseProcThread(void *ptr)
 	c.cbData = sstp.size();
 	c.lpData = const_cast<char*>(sstp.c_str());
 
-	SendMessageTimeout(reinterpret_cast<HWND>(d.hwnd),
+	::SendMessageTimeout(reinterpret_cast<HWND>(d.hwnd),
 		WM_COPYDATA,
 		reinterpret_cast<WPARAM>(d.hwnd),
 		reinterpret_cast<LPARAM>(&c),
 		SMTO_ABORTIFHUNG,1000,&sstpresult);
 
+	if ( pWCRev ) {
+		pWCRev->Release();
+	}
 	delete pData;
 }
 
 /*-----------------------------------------------------
 	TortoiseProcŽÀs•”
 ------------------------------------------------------*/
+#pragma data_seg( ".HOOKD" )
+HHOOK g_hHook = NULL;
+#pragma data_seg()
+
+LRESULT CALLBACK TSVNGetMsgProc(int nCode,WPARAM wParam,LPARAM lParam)
+{
+	if ( nCode >= 0 ) {
+		if ( wParam == PM_REMOVE ) {
+			MSG &wm = *reinterpret_cast<MSG*>(lParam);
+			if ( wm.message == WM_COMMAND ) {
+				char cls[256];
+				::GetClassName(wm.hwnd,cls,sizeof(cls)-1);
+
+				if ( stricmp(cls,"#32770") == 0 ) {
+					WORD cmd = HIWORD(wParam);
+					WORD id = LOWORD(wParam);
+
+					if ( cmd == BN_CLICKED && id == IDOK ) {
+						::MessageBox(NULL,"OK",NULL,MB_OK);
+					}
+					else if ( cmd == BN_CLICKED && id == IDCANCEL ) {
+						::MessageBox(NULL,"CANCEL",NULL,MB_OK);
+					}
+				}
+			}
+		}
+	}
+	return ::CallNextHookEx(g_hHook,nCode,wParam,lParam);
+}
+
 DWORD ExecuteTortoiseProc(const ExecuteTortoiseProcData &d)
 {
 	PROCESS_INFORMATION pi;
@@ -404,13 +441,22 @@ DWORD ExecuteTortoiseProc(const ExecuteTortoiseProcData &d)
 		::GetPriorityClass(::GetCurrentProcess()),
 		NULL,NULL,&si,&pi) ) {
 
+		if ( d.hwnd ) {
+			g_hHook = ::SetWindowsHookEx(WH_GETMESSAGE,TSVNGetMsgProc,g_hModule,pi.dwThreadId);
+		}
+
 		result = true;
 
-		::CloseHandle(pi.hThread);
 		if ( d.hwnd ) {
 			::WaitForSingleObject(pi.hProcess,INFINITE);
 			::GetExitCodeProcess(pi.hProcess,&result);
+
+			if ( g_hHook ) {
+				::UnhookWindowsHookEx(g_hHook);
+				g_hHook = NULL;
+			}
 		}
+		::CloseHandle(pi.hThread);
 		::CloseHandle(pi.hProcess);
 	}
 
