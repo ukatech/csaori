@@ -70,16 +70,16 @@ namespace SAORI_FUNC {
 	string_t replaceAll(string_t string, const string_t &find, const string_t &replace);
 
 	std::string UnicodeToMultiByte(const wchar_t *Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0);
-	inline std::string UnicodeToMultiByte(const std::wstring& Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0) {
+	inline std::string UnicodeToMultiByte(const string_t& Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0) {
 		return UnicodeToMultiByte(Source.c_str(),CodePage,Flags);
 	}
 
-	std::wstring MultiByteToUnicode(const char *Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0);
-	inline std::wstring MultiByteToUnicode(const std::string& Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0) {
+	string_t MultiByteToUnicode(const char *Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0);
+	inline string_t MultiByteToUnicode(const std::string& Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0) {
 		return MultiByteToUnicode(Source.c_str(),CodePage,Flags);
 	}
 
-	std::wstring CodePagetoString(unsigned int cp);
+	string_t CodePagetoString(unsigned int cp);
 	unsigned int StringtoCodePage(const char *str);
 
 	void AsyncMessageBox(void *hwnd,char_t *message,char_t *title,unsigned int flags);
