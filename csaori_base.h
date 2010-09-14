@@ -34,6 +34,8 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 typedef wchar_t char_t;
 typedef std::basic_string<char_t> string_t;
 
+extern HINSTANCE g_hModule;
+
 typedef enum {
 	CP_SJIS=932,
 	CP_EUCJP=20932,

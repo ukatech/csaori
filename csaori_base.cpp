@@ -37,7 +37,7 @@
 
 //global CSAORIBase object
 CSAORIBase* pSaori;
-HANDLE g_hModule;
+HINSTANCE g_hModule;
 
 extern CSAORIBase* CreateInstance(void);
 
@@ -678,7 +678,7 @@ BOOL APIENTRY DllMain(
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		g_hModule = hModule;
+		g_hModule = (HINSTANCE)hModule;
 		break;
 	case DLL_THREAD_ATTACH:
 		break;
