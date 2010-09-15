@@ -49,6 +49,7 @@ void *g_hwnd = NULL;
 LibSubWCRev::ISubWCRev *g_pWCRev = NULL;
 HANDLE g_hThread = NULL;
 HANDLE g_hThreadExitEvent = NULL;
+HWND   g_hTSVNWindow = NULL;
 
 //////////////////
 LibSubWCRev::ISubWCRev * CoCreateWCRev(void)
@@ -135,6 +136,10 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 	//***** helpコマンド / settingsコマンドなど *****
 	if ( wcsnicmp(cmd.c_str(),L"help",4) == 0 || wcsnicmp(cmd.c_str(),L"setting",7) == 0 ||
 		wcsnicmp(cmd.c_str(),L"about",5) == 0 || wcsnicmp(cmd.c_str(),L"rtfm",4) == 0 ) {
+
+		out.result_code = SAORIRESULT_OK;
+		out.result = L"";
+		
 		std::string path;
 		if ( GetTortoiseProcPath(path) ) {
 			std::string command;
@@ -156,6 +161,18 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 		}
 		return;
 	}
+
+	//***** cancel *****
+	if ( wcsnicmp(cmd.c_str(),L"cancel",6) == 0 ) {
+		out.result_code = SAORIRESULT_OK;
+		out.result = L"";
+
+		if ( g_hTSVNWindow ) {
+			::PostMessage(g_hTSVNWindow,WM_COMMAND,MAKEWPARAM(IDCANCEL,BN_CLICKED),NULL);
+		}
+		return;
+	}
+
 
 	//パラメータ必須 Arg0:コマンド Arg1:パス Arg2以降:サブコマンド
 	if ( in.args.size() < 2 ) {
@@ -420,6 +437,8 @@ void _cdecl ExecuteTortoiseProcThread(void *ptr)
 	c.lpData = const_cast<char*>(sstp.c_str());
 
 	g_hThread = NULL;
+	g_hTSVNWindow = NULL;
+
 	::SendMessageTimeout(reinterpret_cast<HWND>(d.hwnd),
 		WM_COPYDATA,
 		reinterpret_cast<WPARAM>(d.hwnd),
@@ -492,6 +511,7 @@ DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d)
 				if ( ! hWndDlg ) {
 					::EnumThreadWindows(pi.dwThreadId,EXTP_FindWindowProc,reinterpret_cast<LPARAM>(&hWndDlg));
 					if ( ! hWndDlg ) { continue; }
+					g_hTSVNWindow = hWndDlg;
 				}
 
 				if ( ! hOK ) {
