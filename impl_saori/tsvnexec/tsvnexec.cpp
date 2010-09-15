@@ -20,8 +20,8 @@ public:
 	std::string tsvn;
 	std::string arg;
 	std::string notify_event;
+	std::string msg;
 	string_t path;
-	string_t msg;
 
 	void *hwnd;
 	bool minimize;
@@ -407,26 +407,29 @@ void _cdecl ExecuteTortoiseProcThread(void *ptr)
 	char data[128];
 	sprintf(data,"Reference1: %d\r\nReference2: %d\r\nReference3: %d\r\n",static_cast<long>(result),before,after);
 	sstp += data;
+	sstp += "Reference4: ";
+	sstp += pData->msg;
 	sstp += "\r\n";
-
-	DWORD sstpresult;
+	sstp += "\r\n";
 	
+	DWORD sstpresult;
+
 	COPYDATASTRUCT c;
 	c.dwData = 9801;
 	c.cbData = sstp.size();
 	c.lpData = const_cast<char*>(sstp.c_str());
 
+	g_hThread = NULL;
 	::SendMessageTimeout(reinterpret_cast<HWND>(d.hwnd),
 		WM_COPYDATA,
 		reinterpret_cast<WPARAM>(d.hwnd),
 		reinterpret_cast<LPARAM>(&c),
-		SMTO_ABORTIFHUNG,1000,&sstpresult);
+		SMTO_ABORTIFHUNG,5000,&sstpresult);
 
 	if ( pWCRev ) {
 		pWCRev->Release();
 	}
 	delete pData;
-	g_hThread = NULL;
 }
 
 /*-----------------------------------------------------
@@ -479,28 +482,46 @@ DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d)
 		result = true;
 
 		if ( d.hwnd ) {
-			if ( d.minimize ) {
-				HWND hWndDlg = NULL;
-				HWND hOK = NULL;
+			HWND hWndDlg = NULL;
+			HWND hOK = NULL;
+			//HWND hLV = NULL;
 
-				while ( true ) {
-					::Sleep(500);
+			while ( true ) {
+				::Sleep(500);
 
-					if ( ! hWndDlg ) {
-						::EnumThreadWindows(pi.dwThreadId,EXTP_FindWindowProc,reinterpret_cast<LPARAM>(&hWndDlg));
-						if ( ! hWndDlg ) { continue; }
-					}
-
-					if ( ! hOK ) {
-						hOK = ::GetDlgItem(hWndDlg,IDOK);
-						if ( ! hOK ) { continue; }
-					}
-
-					if ( ! ::IsWindowEnabled(hOK) ) { continue; }
-
-					break;
+				if ( ! hWndDlg ) {
+					::EnumThreadWindows(pi.dwThreadId,EXTP_FindWindowProc,reinterpret_cast<LPARAM>(&hWndDlg));
+					if ( ! hWndDlg ) { continue; }
 				}
-				::Sleep(1000);
+
+				if ( ! hOK ) {
+					hOK = ::GetDlgItem(hWndDlg,IDOK);
+					if ( ! hOK ) { continue; }
+				}
+
+				if ( ! ::IsWindowEnabled(hOK) ) { continue; }
+
+				//hLV = ::FindWindowEx(hWndDlg,NULL,"SysListView32",NULL);
+				//if ( ! hLV ) {
+				//	hLV = ::FindWindowEx(hWndDlg,NULL,"SysListView64",NULL);
+				//}
+
+				char buf[512];
+				::GetWindowText(hWndDlg,buf,sizeof(buf)-1);
+				char *f = strrchr(buf,' ');
+				if ( ! f ) { f = buf; }
+				d.msg = f;
+
+				::GetWindowText(::FindWindowEx(hWndDlg,NULL,"Static",NULL),buf,sizeof(buf)-1);
+				if ( buf[0] ) {
+					d.msg += " ";
+					d.msg += buf;
+				}
+				break;
+			}
+			::Sleep(1000);
+
+			if ( d.minimize ) {
 				::SendMessage(hWndDlg,WM_COMMAND,MAKEWPARAM(IDOK,BN_CLICKED),reinterpret_cast<LPARAM>(hOK));
 			}
 
