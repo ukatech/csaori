@@ -22,7 +22,9 @@ public:
 	std::string notify_event;
 	string_t path;
 	string_t msg;
+
 	void *hwnd;
+	bool minimize;
 };
 
 #ifndef IID_PPV_ARGS
@@ -42,8 +44,13 @@ static DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d);
 
 static void _cdecl ExecuteTortoiseProcThread(void *d);
 
+//Global Variables
 void *g_hwnd = NULL;
+LibSubWCRev::ISubWCRev *g_pWCRev = NULL;
+HANDLE g_hThread = NULL;
+HANDLE g_hThreadExitEvent = NULL;
 
+//////////////////
 LibSubWCRev::ISubWCRev * CoCreateWCRev(void)
 {
 	LibSubWCRev::ISubWCRev *pWCRev = NULL;
@@ -56,11 +63,23 @@ LibSubWCRev::ISubWCRev * CoCreateWCRev(void)
 
 bool CSAORI::load()
 {
+	g_hThreadExitEvent = ::CreateEvent(NULL,TRUE,FALSE,NULL);
 	return true;
 }
 
 bool CSAORI::unload()
 {
+	::SetEvent(g_hThreadExitEvent);
+	if ( g_hThread ) {
+		::WaitForSingleObject(g_hThread,INFINITE);
+	}
+	::CloseHandle(g_hThreadExitEvent);
+
+	if ( g_pWCRev ) {
+		g_pWCRev->Release();
+		g_pWCRev = NULL;
+	}
+
 	return true;
 }
 
@@ -162,15 +181,16 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			return;
 		}
 
-		LibSubWCRev::ISubWCRev *pWCRev = CoCreateWCRev();
-		if ( pWCRev == NULL ) {
+		if ( ! g_pWCRev ) {
+			g_pWCRev = CoCreateWCRev();
+		}
+		if ( g_pWCRev == NULL ) {
 			out.result = L"!ERROR!|TSVN_NOT_FOUND|ISubWCRev";
 			return;
 		}
 
-		if ( FAILED(pWCRev->GetWCInfo(path.c_str(),true,true)) ) {
+		if ( FAILED(g_pWCRev->GetWCInfo(path.c_str(),true,true)) ) {
 			out.result = L"!ERROR!|PATH_INVALID|ISubWCRev";
-			pWCRev->Release();
 			return;
 		}
 		
@@ -181,49 +201,48 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			const string_t &c = in.args[i];
 
 			if ( wcsicmp(c.c_str(),L"Revision") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->Revision)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->Revision)));
 			}
 			else if ( wcsicmp(c.c_str(),L"MinRev") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->MinRev)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->MinRev)));
 			}
 			else if ( wcsicmp(c.c_str(),L"MaxRev") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->MaxRev)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->MaxRev)));
 			}
 			else if ( wcsicmp(c.c_str(),L"Date") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->Date)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->Date)));
 			}
 			else if ( wcsicmp(c.c_str(),L"Url") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->Url)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->Url)));
 			}
 			else if ( wcsicmp(c.c_str(),L"Author") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->Author)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->Author)));
 			}
 			else if ( wcsicmp(c.c_str(),L"HasModifications") == 0 ) {
-				out.values.push_back(string_t(pWCRev->HasModifications ? L"true" : L"false"));
+				out.values.push_back(string_t(g_pWCRev->HasModifications ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"IsSvnItem") == 0 ) {
-				out.values.push_back(string_t(pWCRev->IsSvnItem ? L"true" : L"false"));
+				out.values.push_back(string_t(g_pWCRev->IsSvnItem ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"NeedsLocking") == 0 ) {
-				out.values.push_back(string_t(pWCRev->NeedsLocking ? L"true" : L"false"));
+				out.values.push_back(string_t(g_pWCRev->NeedsLocking ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"IsLocked") == 0 ) {
-				out.values.push_back(string_t(pWCRev->IsLocked ? L"true" : L"false"));
+				out.values.push_back(string_t(g_pWCRev->IsLocked ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockCreationDate") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->LockCreationDate)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->LockCreationDate)));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockOwner") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->LockOwner)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->LockOwner)));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockComment") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->LockComment)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->LockComment)));
 			}
 			else {
 				out.values.push_back(string_t(L"!ERROR!|PARAMETER_INVALID"));
 			}
 		}
-		pWCRev->Release();
 		return;
 	}
 
@@ -256,7 +275,10 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 		bool close_on_end_found = false;
 		void *hwnd = NULL;
 		bool notify_found = false;
+		bool minimize_found = false;
+
 		std::string notify_event;
+		std::string close_on_end_arg;
 
 		for ( size_t i = 2 ; i < n ; ++i ) {
 			const string_t &c = in.args[i];
@@ -276,9 +298,16 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 					notify_event = SAORI_FUNC::UnicodeToMultiByte(pParam);
 				}
 			}
+			else if ( wcsnicmp(c.c_str(),L"minimize",8) == 0 || wcsnicmp(c.c_str(),L"/minimize",9) == 0 ) {
+				minimize_found = true;
+			}
 			else {
 				if ( wcsnicmp(c.c_str(),L"closeonend",10) == 0 || wcsnicmp(c.c_str(),L"/closeonend",11) == 0 ) {
-					; // NOOP
+					close_on_end_arg.erase();
+					if ( c[0] != L'/' ) { //スラッシュ省略されたときには補う
+						close_on_end_arg += "/";
+					}
+					close_on_end_arg += SAORI_FUNC::UnicodeToMultiByte(c);
 				}
 				else {
 					if ( c[0] != L'/' ) { //スラッシュ省略されたときには補う
@@ -289,17 +318,33 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			}
 		}
 
-		arg += "/closeonend:0 ";
+		if ( minimize_found ) {
+			arg += "/closeonend:0 ";
+		}
+		else {
+			if ( close_on_end_arg.size() ) {
+				arg += close_on_end_arg;
+			}
+		}
 
 		if ( g_hwnd && notify_found ) {
-			ExecuteTortoiseProcData *pData = new ExecuteTortoiseProcData;
-			pData->arg = arg;
-			pData->hwnd = g_hwnd;
-			pData->tsvn = tsvn;
-			pData->path = path;
-			pData->notify_event = notify_event;
+			if ( g_hThread ) {
+				out.result = L"!ERROR!|TSVN_DOUBLE_EXEC|TortoiseProc";
+			}
+			else {
+				ExecuteTortoiseProcData *pData = new ExecuteTortoiseProcData;
+				pData->arg = arg;
+				pData->hwnd = g_hwnd;
+				pData->tsvn = tsvn;
+				pData->path = path;
+				pData->notify_event = notify_event;
+				pData->minimize = minimize_found;
 
-			_beginthread(ExecuteTortoiseProcThread,0,pData);
+				unsigned long result = _beginthread(ExecuteTortoiseProcThread,0,pData);
+				if ( result != static_cast<unsigned long>(-1) ) {
+					g_hThread = reinterpret_cast<HANDLE>(result);
+				}
+			}
 		}
 		else {
 			ExecuteTortoiseProcData data;
@@ -308,6 +353,7 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			data.tsvn = tsvn;
 			data.path = path;
 			data.notify_event = notify_event;
+			data.minimize = false;
 
 			if ( ExecuteTortoiseProc(data) == 0 ) {
 				out.result = L"OK";
@@ -380,6 +426,7 @@ void _cdecl ExecuteTortoiseProcThread(void *ptr)
 		pWCRev->Release();
 	}
 	delete pData;
+	g_hThread = NULL;
 }
 
 /*-----------------------------------------------------
@@ -405,6 +452,11 @@ DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d)
 	ZeroMemory(&si,sizeof(si));
 	si.cb=sizeof(si);
 
+	if ( d.hwnd && d.minimize ) {
+		si.dwFlags = STARTF_USESHOWWINDOW;
+		si.wShowWindow = SW_SHOWMINNOACTIVE;
+	}
+
 	const char *pAppName = (const char*)_mbsrchr((const unsigned char*)d.tsvn.c_str(),'\\');
 	std::string param;
 	if ( pAppName ) {
@@ -427,28 +479,41 @@ DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d)
 		result = true;
 
 		if ( d.hwnd ) {
-			::WaitForInputIdle(pi.hProcess,INFINITE);
+			if ( d.minimize ) {
+				HWND hWndDlg = NULL;
+				HWND hOK = NULL;
 
-			HWND hWndDlg = NULL;
-			::EnumThreadWindows(pi.dwThreadId,EXTP_FindWindowProc,reinterpret_cast<LPARAM>(&hWndDlg));
+				while ( true ) {
+					::Sleep(500);
 
-			HWND hOK = ::GetDlgItem(hWndDlg,IDOK);
+					if ( ! hWndDlg ) {
+						::EnumThreadWindows(pi.dwThreadId,EXTP_FindWindowProc,reinterpret_cast<LPARAM>(&hWndDlg));
+						if ( ! hWndDlg ) { continue; }
+					}
 
-			while ( true ) {
-				if ( ::IsWindowEnabled(hOK) ) {
+					if ( ! hOK ) {
+						hOK = ::GetDlgItem(hWndDlg,IDOK);
+						if ( ! hOK ) { continue; }
+					}
+
+					if ( ! ::IsWindowEnabled(hOK) ) { continue; }
+
 					break;
 				}
-				::Sleep(500);
+				::Sleep(1000);
+				::SendMessage(hWndDlg,WM_COMMAND,MAKEWPARAM(IDOK,BN_CLICKED),reinterpret_cast<LPARAM>(hOK));
 			}
-			::Sleep(1000);
 
-			::PostMessage(hWndDlg,WM_COMMAND,MAKEWPARAM(IDOK,BN_CLICKED),reinterpret_cast<LPARAM>(hOK));
+			HANDLE ha[] = {pi.hProcess,g_hThreadExitEvent};
+			::WaitForMultipleObjects(sizeof(ha)/sizeof(ha[0]),ha,FALSE,INFINITE);
 
-			::WaitForSingleObject(pi.hProcess,INFINITE);
 			::GetExitCodeProcess(pi.hProcess,&result);
 		}
 		::CloseHandle(pi.hThread);
 		::CloseHandle(pi.hProcess);
+	}
+	else {
+		result = 0;
 	}
 
 	free(paramptr);
