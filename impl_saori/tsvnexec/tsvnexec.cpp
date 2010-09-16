@@ -470,10 +470,13 @@ DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d)
 
 	ZeroMemory(&si,sizeof(si));
 	si.cb=sizeof(si);
+	si.dwFlags = STARTF_USESHOWWINDOW;
 
 	if ( d.hwnd && d.minimize ) {
-		si.dwFlags = STARTF_USESHOWWINDOW;
 		si.wShowWindow = SW_SHOWMINNOACTIVE;
+	}
+	else {
+		si.wShowWindow = SW_SHOWNORMAL;
 	}
 
 	const char *pAppName = (const char*)_mbsrchr((const unsigned char*)d.tsvn.c_str(),'\\');
