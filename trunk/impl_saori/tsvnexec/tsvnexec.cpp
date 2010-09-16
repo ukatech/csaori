@@ -46,7 +46,6 @@ static void _cdecl ExecuteTortoiseProcThread(void *d);
 
 //Global Variables
 void *g_hwnd = NULL;
-LibSubWCRev::ISubWCRev *g_pWCRev = NULL;
 HANDLE g_hThread = NULL;
 HANDLE g_hThreadExitEvent = NULL;
 HWND   g_hTSVNWindow = NULL;
@@ -55,7 +54,9 @@ HWND   g_hTSVNWindow = NULL;
 LibSubWCRev::ISubWCRev * CoCreateWCRev(void)
 {
 	LibSubWCRev::ISubWCRev *pWCRev = NULL;
-	HRESULT hr = ::CoCreateInstance(LibSubWCRev::CLSID_SubWCRev,NULL,CLSCTX_LOCAL_SERVER,IID_PPV_ARGS(&pWCRev));
+	HRESULT hr = ::CoCreateInstance(LibSubWCRev::CLSID_SubWCRev,NULL,
+		CLSCTX_LOCAL_SERVER|CLSCTX_INPROC_HANDLER|CLSCTX_INPROC_SERVER ,IID_PPV_ARGS(&pWCRev));
+
 	if ( ! SUCCEEDED(hr) ) {
 		pWCRev = NULL;
 	}
@@ -75,11 +76,6 @@ bool CSAORI::unload()
 		::WaitForSingleObject(g_hThread,INFINITE);
 	}
 	::CloseHandle(g_hThreadExitEvent);
-
-	if ( g_pWCRev ) {
-		g_pWCRev->Release();
-		g_pWCRev = NULL;
-	}
 
 	return true;
 }
@@ -198,15 +194,15 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			return;
 		}
 
-		if ( ! g_pWCRev ) {
-			g_pWCRev = CoCreateWCRev();
-		}
-		if ( g_pWCRev == NULL ) {
+		LibSubWCRev::ISubWCRev *pWCRev = CoCreateWCRev();
+
+		if ( pWCRev == NULL ) {
 			out.result = L"!ERROR!|TSVN_NOT_FOUND|ISubWCRev";
 			return;
 		}
 
-		if ( FAILED(g_pWCRev->GetWCInfo(path.c_str(),true,true)) ) {
+		if ( FAILED(pWCRev->GetWCInfo(path.c_str(),true,true)) ) {
+			pWCRev->Release();
 			out.result = L"!ERROR!|PATH_INVALID|ISubWCRev";
 			return;
 		}
@@ -218,48 +214,49 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			const string_t &c = in.args[i];
 
 			if ( wcsicmp(c.c_str(),L"Revision") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->Revision)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->Revision)));
 			}
 			else if ( wcsicmp(c.c_str(),L"MinRev") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->MinRev)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->MinRev)));
 			}
 			else if ( wcsicmp(c.c_str(),L"MaxRev") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->MaxRev)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->MaxRev)));
 			}
 			else if ( wcsicmp(c.c_str(),L"Date") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->Date)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->Date)));
 			}
 			else if ( wcsicmp(c.c_str(),L"Url") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->Url)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->Url)));
 			}
 			else if ( wcsicmp(c.c_str(),L"Author") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->Author)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->Author)));
 			}
 			else if ( wcsicmp(c.c_str(),L"HasModifications") == 0 ) {
-				out.values.push_back(string_t(g_pWCRev->HasModifications ? L"true" : L"false"));
+				out.values.push_back(string_t(pWCRev->HasModifications ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"IsSvnItem") == 0 ) {
-				out.values.push_back(string_t(g_pWCRev->IsSvnItem ? L"true" : L"false"));
+				out.values.push_back(string_t(pWCRev->IsSvnItem ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"NeedsLocking") == 0 ) {
-				out.values.push_back(string_t(g_pWCRev->NeedsLocking ? L"true" : L"false"));
+				out.values.push_back(string_t(pWCRev->NeedsLocking ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"IsLocked") == 0 ) {
-				out.values.push_back(string_t(g_pWCRev->IsLocked ? L"true" : L"false"));
+				out.values.push_back(string_t(pWCRev->IsLocked ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockCreationDate") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->LockCreationDate)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->LockCreationDate)));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockOwner") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->LockOwner)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->LockOwner)));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockComment") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(g_pWCRev->LockComment)));
+				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->LockComment)));
 			}
 			else {
 				out.values.push_back(string_t(L"!ERROR!|PARAMETER_INVALID"));
 			}
 		}
+		pWCRev->Release();
 		return;
 	}
 
