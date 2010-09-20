@@ -15,6 +15,8 @@
 #import "SubWCRevCOM.exe" named_guids
 
 //data struct
+class CTSVNSAORI;
+
 class ExecuteTortoiseProcData {
 public:
 	std::string tsvn;
@@ -24,7 +26,41 @@ public:
 	string_t path;
 
 	void *hwnd;
+	CTSVNSAORI *saori;
 	bool minimize;
+};
+
+class SubWCRevData {
+public:
+    bool     HasModifications;
+    bool     IsSvnItem;
+    bool     NeedsLocking;
+    bool     IsLocked;
+    DWORD    Revision;
+    DWORD    MinRev;
+    DWORD    MaxRev;
+    string_t Date;
+    string_t Url;
+    string_t Author;
+    string_t LockCreationDate;
+    string_t LockOwner;
+    string_t LockComment;
+
+	SubWCRevData(LibSubWCRev::ISubWCRev *i) {
+		HasModifications = i->HasModifications != 0;
+		IsSvnItem = i->IsSvnItem != 0;
+		NeedsLocking = i->NeedsLocking != 0;
+		IsLocked = i->IsLocked != 0;
+		Revision = wcstoul(static_cast<_bstr_t>(i->Revision),NULL,10);
+		MinRev = wcstoul(static_cast<_bstr_t>(i->MinRev),NULL,10);
+		MaxRev = wcstoul(static_cast<_bstr_t>(i->MaxRev),NULL,10);
+		Date = static_cast<_bstr_t>(i->Date);
+		Url = static_cast<_bstr_t>(i->Url);
+		Author = static_cast<_bstr_t>(i->Author);
+		LockCreationDate = static_cast<_bstr_t>(i->LockCreationDate);
+		LockOwner = static_cast<_bstr_t>(i->LockOwner);
+		LockComment = static_cast<_bstr_t>(i->LockComment);
+	}
 };
 
 #ifndef IID_PPV_ARGS
@@ -39,16 +75,36 @@ extern "C++" {
 #endif //IID_PPV_ARGS
 
 //Prototypes
-static bool GetTortoiseProcPath(std::string &path);
-static DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d);
+static void _cdecl ExecuteTortoiseProcThreadFunc(void *d);
 
-static void _cdecl ExecuteTortoiseProcThread(void *d);
+//Class Definitions
+class CTSVNSAORI : public CSAORI {
+private:
+	void  *m_hwnd;
+	HANDLE m_hThread;
+	HANDLE m_hThreadExitEvent;
+	HWND   m_hTSVNWindow;
 
-//Global Variables
-void *g_hwnd = NULL;
-HANDLE g_hThread = NULL;
-HANDLE g_hThreadExitEvent = NULL;
-HWND   g_hTSVNWindow = NULL;
+public:
+	CTSVNSAORI() : m_hwnd(NULL) , m_hThread(NULL) , m_hThreadExitEvent(NULL) , m_hTSVNWindow(NULL) {}
+	virtual ~CTSVNSAORI(){}
+
+	//以下が実装すべき関数
+	virtual void exec(const CSAORIInput& in,CSAORIOutput& out);
+	virtual bool unload();
+	virtual bool load();
+
+	bool GetTortoiseProcPath(std::string &path);
+	DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d);
+	void  ExecuteTortoiseProcThread(ExecuteTortoiseProcData *d);
+
+};
+
+//CreateInstance
+CSAORIBase* CreateInstance(void)
+{
+	return new CTSVNSAORI();
+}
 
 //////////////////
 LibSubWCRev::ISubWCRev * CoCreateWCRev(void)
@@ -63,24 +119,24 @@ LibSubWCRev::ISubWCRev * CoCreateWCRev(void)
 	return pWCRev;
 }
 
-bool CSAORI::load()
+bool CTSVNSAORI::load()
 {
-	g_hThreadExitEvent = ::CreateEvent(NULL,TRUE,FALSE,NULL);
+	m_hThreadExitEvent = ::CreateEvent(NULL,TRUE,FALSE,NULL);
 	return true;
 }
 
-bool CSAORI::unload()
+bool CTSVNSAORI::unload()
 {
-	::SetEvent(g_hThreadExitEvent);
-	if ( g_hThread ) {
-		::WaitForSingleObject(g_hThread,INFINITE);
+	::SetEvent(m_hThreadExitEvent);
+	if ( m_hThread ) {
+		::WaitForSingleObject(m_hThread,INFINITE);
 	}
-	::CloseHandle(g_hThreadExitEvent);
+	::CloseHandle(m_hThreadExitEvent);
 
 	return true;
 }
 
-void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
+void CTSVNSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 {
 	//パラメータ必須 Arg0:コマンド
 	if ( in.args.size() < 1 ) {
@@ -163,8 +219,8 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 		out.result_code = SAORIRESULT_OK;
 		out.result = L"";
 
-		if ( g_hTSVNWindow ) {
-			::PostMessage(g_hTSVNWindow,WM_COMMAND,MAKEWPARAM(IDCANCEL,BN_CLICKED),NULL);
+		if ( m_hTSVNWindow ) {
+			::PostMessage(m_hTSVNWindow,WM_COMMAND,MAKEWPARAM(IDCANCEL,BN_CLICKED),NULL);
 		}
 		return;
 	}
@@ -183,7 +239,7 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 	//***** hwndコマンド *****
 	if ( wcsnicmp(cmd.c_str(),L"hwnd",4) == 0 ) {
 		//このコマンドのみ特殊：Arg1はhwnd
-		g_hwnd = reinterpret_cast<void*>(wcstoul(path.c_str(),NULL,10));
+		m_hwnd = reinterpret_cast<void*>(wcstoul(path.c_str(),NULL,10));
 		return;
 	}
 
@@ -341,22 +397,23 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			}
 		}
 
-		if ( g_hwnd && notify_found ) {
-			if ( g_hThread ) {
+		if ( m_hwnd && notify_found ) {
+			if ( m_hThread ) {
 				out.result = L"!ERROR!|TSVN_DOUBLE_EXEC|TortoiseProc";
 			}
 			else {
 				ExecuteTortoiseProcData *pData = new ExecuteTortoiseProcData;
 				pData->arg = arg;
-				pData->hwnd = g_hwnd;
+				pData->hwnd = m_hwnd;
 				pData->tsvn = tsvn;
 				pData->path = path;
 				pData->notify_event = notify_event;
 				pData->minimize = minimize_found;
+				pData->saori = this;
 
-				unsigned long result = _beginthread(ExecuteTortoiseProcThread,0,pData);
+				unsigned long result = _beginthread(ExecuteTortoiseProcThreadFunc,0,pData);
 				if ( result != static_cast<unsigned long>(-1) ) {
-					g_hThread = reinterpret_cast<HANDLE>(result);
+					m_hThread = reinterpret_cast<HANDLE>(result);
 				}
 			}
 		}
@@ -368,6 +425,7 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			data.path = path;
 			data.notify_event = notify_event;
 			data.minimize = false;
+			data.saori = this;
 
 			if ( ExecuteTortoiseProc(data) == 0 ) {
 				out.result = L"OK";
@@ -383,11 +441,16 @@ void CSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 /*-----------------------------------------------------
 	スレッドによるTortoiseProc実行部
 ------------------------------------------------------*/
-void _cdecl ExecuteTortoiseProcThread(void *ptr)
+void _cdecl ExecuteTortoiseProcThreadFunc(void *ptr)
+{
+	ExecuteTortoiseProcData *pData = reinterpret_cast<ExecuteTortoiseProcData*>(ptr);
+	pData->saori->ExecuteTortoiseProcThread(pData);
+}
+
+void CTSVNSAORI::ExecuteTortoiseProcThread(ExecuteTortoiseProcData *pData)
 {
 	::CoInitialize(NULL);
 
-	ExecuteTortoiseProcData *pData = reinterpret_cast<ExecuteTortoiseProcData*>(ptr);
 	const ExecuteTortoiseProcData &d = *pData;
 
 	long before = -1;
@@ -397,7 +460,7 @@ void _cdecl ExecuteTortoiseProcThread(void *ptr)
 		before = pWCRev->Revision;
 	}
 
-	DWORD result = ExecuteTortoiseProc(*pData);
+	DWORD result = pData->saori->ExecuteTortoiseProc(*pData);
 
 	long after = -1;
 	if ( pWCRev && ! FAILED(pWCRev->GetWCInfo(d.path.c_str(),true,true)) ) {
@@ -433,8 +496,8 @@ void _cdecl ExecuteTortoiseProcThread(void *ptr)
 	c.cbData = sstp.size();
 	c.lpData = const_cast<char*>(sstp.c_str());
 
-	g_hThread = NULL;
-	g_hTSVNWindow = NULL;
+	m_hThread = NULL;
+	m_hTSVNWindow = NULL;
 
 	::SendMessageTimeout(reinterpret_cast<HWND>(d.hwnd),
 		WM_COPYDATA,
@@ -463,7 +526,7 @@ BOOL CALLBACK EXTP_FindWindowProc(HWND hWnd,LPARAM lParam)
 	return true;
 }
 
-DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d)
+DWORD CTSVNSAORI::ExecuteTortoiseProc(ExecuteTortoiseProcData &d)
 {
 	PROCESS_INFORMATION pi;
 	STARTUPINFO si;
@@ -511,7 +574,7 @@ DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d)
 				if ( ! hWndDlg ) {
 					::EnumThreadWindows(pi.dwThreadId,EXTP_FindWindowProc,reinterpret_cast<LPARAM>(&hWndDlg));
 					if ( ! hWndDlg ) { continue; }
-					g_hTSVNWindow = hWndDlg;
+					m_hTSVNWindow = hWndDlg;
 				}
 
 				if ( ! hOK ) {
@@ -545,7 +608,7 @@ DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d)
 				::SendMessage(hWndDlg,WM_COMMAND,MAKEWPARAM(IDOK,BN_CLICKED),reinterpret_cast<LPARAM>(hOK));
 			}
 
-			HANDLE ha[] = {pi.hProcess,g_hThreadExitEvent};
+			HANDLE ha[] = {pi.hProcess,m_hThreadExitEvent};
 			::WaitForMultipleObjects(sizeof(ha)/sizeof(ha[0]),ha,FALSE,INFINITE);
 
 			::GetExitCodeProcess(pi.hProcess,&result);
@@ -564,7 +627,7 @@ DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d)
 /*-----------------------------------------------------
 	SVNのパスを取る
 ------------------------------------------------------*/
-bool GetTortoiseProcPath(std::string &path)
+bool CTSVNSAORI::GetTortoiseProcPath(std::string &path)
 {
 	HKEY hKeyTSVN;
 	int result = ::RegOpenKeyEx(HKEY_LOCAL_MACHINE,"Software\\TortoiseSVN",0,KEY_READ,&hKeyTSVN);
