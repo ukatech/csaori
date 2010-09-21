@@ -52,8 +52,32 @@ const string_t& CSAORI::s_saori_result(void) const
 	return s;
 }
 
+//CUSTOM_CREATE_INSTANCEを定義すると、CreateInstanceを自前で
+//用意しなければならない代わりに、派生クラスによるデータの整理などを
+//自由に行うことができるようになります。
+
+#ifndef CUSTOM_CREATE_INSTANCE
+
+//互換用：CSAORIファクトリー関数
+
 CSAORIBase* CreateInstance(void)
 {
 	return new CSAORI();
 }
+
+#else //CUSTOM_CREATE_INSTANCE
+
+//派生クラスにてオーバーロードするためのダミー関数
+
+void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out) {
+	return;
+}
+bool CSAORI::unload() {
+	return true;
+}
+bool CSAORI::load() {
+	return true;
+}
+
+#endif //CUSTOM_CREATE_INSTANCE
 
