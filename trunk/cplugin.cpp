@@ -199,9 +199,13 @@ void CPLUGIN::exec(const CSAORIInput &in, CSAORIOutput &out)
 }
 
 //CreateInstanceÇÕÇªÇÍÇºÇÍÇ™íËã`ÇµÇƒÇ≠ÇæÇ≥Ç¢ÅB
-/*CSAORIBase* CreateInstance(void)
+/*
+#ifndef CUSTOM_CREATE_INSTANCE
+CSAORIBase* CreateInstance(void)
 {
 	return new CPLUGIN();
-}*/
+}
+#endif //CUSTOM_CREATE_INSTANCE
+*/
 
 

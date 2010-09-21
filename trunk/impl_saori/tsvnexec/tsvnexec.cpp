@@ -46,7 +46,7 @@ public:
     string_t LockOwner;
     string_t LockComment;
 
-	std::string path;
+	string_t path;
 
 	SubWCRevData(void) {
 		HasModifications = false;
@@ -94,14 +94,16 @@ class CTSVNSAORI : public CSAORI {
 private:
 	void  *m_hwnd;
 
-	HANDLE m_hThread;
+	volatile HANDLE m_hThread;
 	HANDLE m_hThreadExitEvent;
 
-	HANDLE m_hRevThread;
-	DWORD  m_hRevThreadID;
+	volatile HANDLE m_hRevThread;
+	volatile DWORD m_hRevThreadID;
 	HANDLE m_hRevThreadSyncEvent;
 
 	HWND   m_hTSVNWindow;
+
+	SubWCRevData *m_pRev;
 
 public:
 	CTSVNSAORI();
@@ -118,7 +120,7 @@ public:
 	void  ExecuteTortoiseProcThread(ExecuteTortoiseProcData *d);
 
 	void  SubWCRevThread(void);
-	SubWCRevData* SubWCRev(const char* path);
+	SubWCRevData* SubWCRev(const string_t& path);
 };
 
 //CreateInstance
@@ -140,14 +142,17 @@ LibSubWCRev::ISubWCRev * CoCreateWCRev(void)
 	return pWCRev;
 }
 
-CTSVNSAORI::CTSVNSAORI(void) : m_hwnd(NULL) , m_hThread(NULL) , m_hTSVNWindow(NULL)
+CTSVNSAORI::CTSVNSAORI(void) : m_hwnd(NULL) , m_hThread(NULL) , m_hTSVNWindow(NULL) , m_pRev(NULL) , m_hRevThread(NULL) , m_hRevThreadID(0)
 {
 	m_hThreadExitEvent = ::CreateEvent(NULL,TRUE,FALSE,NULL);
-	m_hRevThreadSyncEvent = ::CreateEvent(NULL,FALSE,FALSE,NULL);
+	m_hRevThreadSyncEvent = ::CreateEvent(NULL,TRUE,FALSE,NULL);
 }
 
 CTSVNSAORI::~CTSVNSAORI()
 {
+	if ( m_pRev ) {
+		delete m_pRev;
+	}
 	::CloseHandle(m_hThreadExitEvent);
 	::CloseHandle(m_hRevThreadSyncEvent);
 }
@@ -286,42 +291,39 @@ void CTSVNSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 			return;
 		}
 
-		LibSubWCRev::ISubWCRev *pWCRev = CoCreateWCRev();
-
+		SubWCRevData *pWCRev = SubWCRev(path);
 		if ( pWCRev == NULL ) {
 			out.result = L"!ERROR!|TSVN_NOT_FOUND|ISubWCRev";
 			return;
 		}
-
-		if ( FAILED(pWCRev->GetWCInfo(path.c_str(),true,true)) ) {
-			pWCRev->Release();
-			out.result = L"!ERROR!|PATH_INVALID|ISubWCRev";
-			return;
-		}
 		
 		out.result = L"OK";
+		char_t buffer[32];
 
 		size_t n = in.args.size();
 		for ( size_t i = 2 ; i < n ; ++i ) {
 			const string_t &c = in.args[i];
 
 			if ( wcsicmp(c.c_str(),L"Revision") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->Revision)));
+				swprintf(buffer,L"%d",pWCRev->Revision);
+				out.values.push_back(buffer);
 			}
 			else if ( wcsicmp(c.c_str(),L"MinRev") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->MinRev)));
+				swprintf(buffer,L"%d",pWCRev->MinRev);
+				out.values.push_back(buffer);
 			}
 			else if ( wcsicmp(c.c_str(),L"MaxRev") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->MaxRev)));
+				swprintf(buffer,L"%d",pWCRev->MaxRev);
+				out.values.push_back(buffer);
 			}
 			else if ( wcsicmp(c.c_str(),L"Date") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->Date)));
+				out.values.push_back(pWCRev->Date);
 			}
 			else if ( wcsicmp(c.c_str(),L"Url") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->Url)));
+				out.values.push_back(pWCRev->Url);
 			}
 			else if ( wcsicmp(c.c_str(),L"Author") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->Author)));
+				out.values.push_back(pWCRev->Author);
 			}
 			else if ( wcsicmp(c.c_str(),L"HasModifications") == 0 ) {
 				out.values.push_back(string_t(pWCRev->HasModifications ? L"true" : L"false"));
@@ -336,19 +338,18 @@ void CTSVNSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 				out.values.push_back(string_t(pWCRev->IsLocked ? L"true" : L"false"));
 			}
 			else if ( wcsicmp(c.c_str(),L"LockCreationDate") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->LockCreationDate)));
+				out.values.push_back(pWCRev->LockCreationDate);
 			}
 			else if ( wcsicmp(c.c_str(),L"LockOwner") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->LockOwner)));
+				out.values.push_back(pWCRev->LockOwner);
 			}
 			else if ( wcsicmp(c.c_str(),L"LockComment") == 0 ) {
-				out.values.push_back(string_t(static_cast<_bstr_t>(pWCRev->LockComment)));
+				out.values.push_back(pWCRev->LockComment);
 			}
 			else {
 				out.values.push_back(string_t(L"!ERROR!|PARAMETER_INVALID"));
 			}
 		}
-		pWCRev->Release();
 		return;
 	}
 
@@ -479,21 +480,25 @@ void CTSVNSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 ------------------------------------------------------*/
 void _cdecl SubWCRevThreadFunc(void *d)
 {
-	//QueueÇã≠êßìIÇ…çÏê¨
-	MSG msg;
-	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	::CoInitialize(NULL);
 
 	CTSVNSAORI *p = reinterpret_cast<CTSVNSAORI*>(d);
 	p->SubWCRevThread();
+
+	::CoUninitialize();
 }
 
 #define SUBWCREV_MESSAGE WM_APP+10
 
 void CTSVNSAORI::SubWCRevThread(void)
 {
-	m_hRevThreadID = ::GetCurrentThreadId();
-
+	//QueueÇã≠êßìIÇ…çÏê¨
 	MSG msg;
+	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+
+	m_hRevThreadID = ::GetCurrentThreadId();
+	BOOL r = ::SetEvent(m_hRevThreadSyncEvent);
+
 	LibSubWCRev::ISubWCRev *pWCRev = NULL;
 
 	while ( true ) {
@@ -513,23 +518,32 @@ void CTSVNSAORI::SubWCRevThread(void)
 			::SetEvent(m_hRevThreadSyncEvent);
 		}
 	}
-	//Ç±Ç±Ç…ÇÕÇΩÇ‘ÇÒÇ±Ç»Ç¢ÅI
 	return;
 }
 
-SubWCRevData* CTSVNSAORI::SubWCRev(const char* path)
+SubWCRevData* CTSVNSAORI::SubWCRev(const string_t& path)
 {
 	SubWCRevData *pData = new SubWCRevData;
 	pData->path = path;
 
-	unsigned long result = _beginthread(SubWCRevThreadFunc,0,reinterpret_cast<void*>(pData));
-	if ( result != static_cast<unsigned long>(-1) ) {
-		m_hRevThread = reinterpret_cast<HANDLE>(result);
+	if ( ! m_hRevThread ) {
+		unsigned long result = _beginthread(SubWCRevThreadFunc,0,reinterpret_cast<void*>(this));
+		if ( result != static_cast<unsigned long>(-1) ) {
+			m_hRevThread = reinterpret_cast<HANDLE>(result);
+		}
+		::WaitForSingleObject(m_hRevThreadSyncEvent,INFINITE);
+		::ResetEvent(m_hRevThreadSyncEvent);
 	}
 
 	::PostThreadMessage(m_hRevThreadID,SUBWCREV_MESSAGE,NULL,reinterpret_cast<LPARAM>(pData));
-	::WaitForSingleObject(m_hRevThreadSyncEvent,INFINITE);
 
+	::WaitForSingleObject(m_hRevThreadSyncEvent,INFINITE);
+	::ResetEvent(m_hRevThreadSyncEvent);
+
+	if ( m_pRev ) {
+		delete m_pRev;
+	}
+	m_pRev = pData;
 	return pData;
 }
 
@@ -544,21 +558,21 @@ void _cdecl ExecuteTortoiseProcThreadFunc(void *ptr)
 
 void CTSVNSAORI::ExecuteTortoiseProcThread(ExecuteTortoiseProcData *pData)
 {
-	::CoInitialize(NULL);
-
 	const ExecuteTortoiseProcData &d = *pData;
 
 	long before = -1;
 	
-	LibSubWCRev::ISubWCRev *pWCRev = CoCreateWCRev();
-	if ( pWCRev && ! FAILED(pWCRev->GetWCInfo(d.path.c_str(),true,true)) ) {
+	SubWCRevData *pWCRev = pData->saori->SubWCRev(d.path.c_str());
+	if ( pWCRev ) {
 		before = pWCRev->Revision;
 	}
 
 	DWORD result = pData->saori->ExecuteTortoiseProc(*pData);
 
 	long after = -1;
-	if ( pWCRev && ! FAILED(pWCRev->GetWCInfo(d.path.c_str(),true,true)) ) {
+
+	pWCRev = pData->saori->SubWCRev(d.path.c_str());
+	if ( pWCRev ) {
 		after = pWCRev->Revision;
 	}
 
@@ -600,9 +614,6 @@ void CTSVNSAORI::ExecuteTortoiseProcThread(ExecuteTortoiseProcData *pData)
 		reinterpret_cast<LPARAM>(&c),
 		SMTO_ABORTIFHUNG,5000,&sstpresult);
 
-	if ( pWCRev ) {
-		pWCRev->Release();
-	}
 	delete pData;
 }
 
@@ -670,6 +681,10 @@ DWORD CTSVNSAORI::ExecuteTortoiseProc(ExecuteTortoiseProcData &d)
 					::EnumThreadWindows(pi.dwThreadId,EXTP_FindWindowProc,reinterpret_cast<LPARAM>(&hWndDlg));
 					if ( ! hWndDlg ) { continue; }
 					m_hTSVNWindow = hWndDlg;
+				}
+
+				if ( ! ::IsWindow(hWndDlg) ) {
+					break;
 				}
 
 				if ( ! hOK ) {
