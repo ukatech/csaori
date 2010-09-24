@@ -11,8 +11,18 @@
 #include <commctrl.h>
 
 #include "csaori.h"
+#include "util/cs_threadcall.h"
 
 #import "SubWCRevCOM.exe" named_guids
+
+//////////WINDOWS DEFINE///////////////////////////
+#ifdef _WINDOWS
+#ifdef _DEBUG
+#include <crtdbg.h>
+#define new new( _NORMAL_BLOCK, __FILE__, __LINE__)
+#endif
+#endif
+///////////////////////////////////////////////////
 
 //data struct
 class CTSVNSAORI;
@@ -90,37 +100,38 @@ static void _cdecl ExecuteTortoiseProcThreadFunc(void *d);
 static void _cdecl SubWCRevThreadFunc(void *d);
 
 //Class Definitions
-class CTSVNSAORI : public CSAORI {
+class CTSVNSAORI : public CSAORI, public CSThreadCallBase {
 private:
 	void  *m_hwnd;
 
 	volatile HANDLE m_hThread;
 	HANDLE m_hThreadExitEvent;
 
-	volatile HANDLE m_hRevThread;
-	volatile DWORD m_hRevThreadID;
-	HANDLE m_hRevThreadSyncEvent;
-
 	HWND   m_hTSVNWindow;
 
 	SubWCRevData *m_pRev;
+	LibSubWCRev::ISubWCRev *m_pSubWCRev;
+
+protected:
+	virtual void CSTC_Start(void);
+	virtual void CSTC_Exit(void);
+	virtual void CSTC_Call(void *p1,void *p2);
 
 public:
 	CTSVNSAORI();
 	virtual ~CTSVNSAORI();
-
-	//à»â∫Ç™é¿ëïÇ∑Ç◊Ç´ä÷êî
-	virtual void exec(const CSAORIInput& in,CSAORIOutput& out);
-	virtual bool unload();
-	virtual bool load();
 
 	bool GetTortoiseProcPath(std::string &path);
 
 	DWORD ExecuteTortoiseProc(ExecuteTortoiseProcData &d);
 	void  ExecuteTortoiseProcThread(ExecuteTortoiseProcData *d);
 
-	void  SubWCRevThread(void);
 	SubWCRevData* SubWCRev(const string_t& path);
+
+	//à»â∫Ç™é¿ëïÇ∑Ç◊Ç´ä÷êî
+	virtual void exec(const CSAORIInput& in,CSAORIOutput& out);
+	virtual bool unload();
+	virtual bool load();
 };
 
 //CreateInstance
@@ -129,23 +140,9 @@ CSAORIBase* CreateInstance(void)
 	return new CTSVNSAORI();
 }
 
-//////////////////
-LibSubWCRev::ISubWCRev * CoCreateWCRev(void)
-{
-	LibSubWCRev::ISubWCRev *pWCRev = NULL;
-	HRESULT hr = ::CoCreateInstance(LibSubWCRev::CLSID_SubWCRev,NULL,
-		CLSCTX_LOCAL_SERVER|CLSCTX_INPROC_HANDLER|CLSCTX_INPROC_SERVER ,IID_PPV_ARGS(&pWCRev));
-
-	if ( ! SUCCEEDED(hr) ) {
-		pWCRev = NULL;
-	}
-	return pWCRev;
-}
-
-CTSVNSAORI::CTSVNSAORI(void) : m_hwnd(NULL) , m_hThread(NULL) , m_hTSVNWindow(NULL) , m_pRev(NULL) , m_hRevThread(NULL) , m_hRevThreadID(0)
+CTSVNSAORI::CTSVNSAORI(void) : m_hwnd(NULL) , m_hThread(NULL) , m_hTSVNWindow(NULL) , m_pRev(NULL) , m_pSubWCRev(NULL)
 {
 	m_hThreadExitEvent = ::CreateEvent(NULL,TRUE,FALSE,NULL);
-	m_hRevThreadSyncEvent = ::CreateEvent(NULL,TRUE,FALSE,NULL);
 }
 
 CTSVNSAORI::~CTSVNSAORI()
@@ -154,11 +151,11 @@ CTSVNSAORI::~CTSVNSAORI()
 		delete m_pRev;
 	}
 	::CloseHandle(m_hThreadExitEvent);
-	::CloseHandle(m_hRevThreadSyncEvent);
 }
 
 bool CTSVNSAORI::load()
 {
+	GetCSThreadCall().Set(this);
 	return true;
 }
 
@@ -169,11 +166,7 @@ bool CTSVNSAORI::unload()
 		::WaitForSingleObject(m_hThread,INFINITE);
 	}
 
-	::PostThreadMessage(m_hRevThreadID,WM_QUIT,0,0);
-	if ( m_hRevThread ) {
-		::WaitForSingleObject(m_hRevThread,INFINITE);
-	}
-
+	GetCSThreadCall().Exit();
 	return true;
 }
 
@@ -478,47 +471,43 @@ void CTSVNSAORI::exec(const CSAORIInput &in, CSAORIOutput &out)
 /*-----------------------------------------------------
 	COMó·äOìfÇ´ëŒçÙ
 ------------------------------------------------------*/
-void _cdecl SubWCRevThreadFunc(void *d)
+void CTSVNSAORI::CSTC_Start(void)
 {
-	::CoInitialize(NULL);
-
-	CTSVNSAORI *p = reinterpret_cast<CTSVNSAORI*>(d);
-	p->SubWCRevThread();
-
-	::CoUninitialize();
+	; //NOOP
 }
-
-#define SUBWCREV_MESSAGE WM_APP+10
-
-void CTSVNSAORI::SubWCRevThread(void)
+void CTSVNSAORI::CSTC_Exit(void)
 {
-	//QueueÇã≠êßìIÇ…çÏê¨
-	MSG msg;
-	::PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
-
-	m_hRevThreadID = ::GetCurrentThreadId();
-	BOOL r = ::SetEvent(m_hRevThreadSyncEvent);
-
-	LibSubWCRev::ISubWCRev *pWCRev = NULL;
-
-	while ( true ) {
-		if ( ::GetMessage(&msg,NULL,0,0) <= 0 ) {
-			return;
-		}
-		if ( msg.message == SUBWCREV_MESSAGE ) {
-			if ( ! pWCRev ) {
-				pWCRev = CoCreateWCRev();
-			}
-			if ( pWCRev ) {
-				SubWCRevData *pData = reinterpret_cast<SubWCRevData*>(msg.lParam);
-				if ( SUCCEEDED(pWCRev->GetWCInfo(pData->path.c_str(),true,true)) ) {
-					pData->Set(*pWCRev);
-				}
-			}
-			::SetEvent(m_hRevThreadSyncEvent);
+	try {
+		if ( m_pSubWCRev ) {
+			m_pSubWCRev->Release();
+			m_pSubWCRev = NULL;
 		}
 	}
-	return;
+	catch ( ... ) {
+		; //NOOP
+	}
+}
+void CTSVNSAORI::CSTC_Call(void *p1,void *p2)
+{
+	try {
+		if ( ! m_pSubWCRev ) {
+			HRESULT hr = ::CoCreateInstance(LibSubWCRev::CLSID_SubWCRev,NULL,
+				CLSCTX_LOCAL_SERVER|CLSCTX_INPROC_HANDLER|CLSCTX_INPROC_SERVER ,IID_PPV_ARGS(&m_pSubWCRev));
+
+			if ( ! SUCCEEDED(hr) ) {
+				m_pSubWCRev = NULL;
+			}
+		}
+		if ( m_pSubWCRev ) {
+			SubWCRevData *pData = reinterpret_cast<SubWCRevData*>(p1);
+			if ( SUCCEEDED(m_pSubWCRev->GetWCInfo(pData->path.c_str(),true,true)) ) {
+				pData->Set(*m_pSubWCRev);
+			}
+		}
+	}
+	catch ( ... ) {
+		; //NOOP
+	}
 }
 
 SubWCRevData* CTSVNSAORI::SubWCRev(const string_t& path)
@@ -526,19 +515,7 @@ SubWCRevData* CTSVNSAORI::SubWCRev(const string_t& path)
 	SubWCRevData *pData = new SubWCRevData;
 	pData->path = path;
 
-	if ( ! m_hRevThread ) {
-		unsigned long result = _beginthread(SubWCRevThreadFunc,0,reinterpret_cast<void*>(this));
-		if ( result != static_cast<unsigned long>(-1) ) {
-			m_hRevThread = reinterpret_cast<HANDLE>(result);
-		}
-		::WaitForSingleObject(m_hRevThreadSyncEvent,INFINITE);
-		::ResetEvent(m_hRevThreadSyncEvent);
-	}
-
-	::PostThreadMessage(m_hRevThreadID,SUBWCREV_MESSAGE,NULL,reinterpret_cast<LPARAM>(pData));
-
-	::WaitForSingleObject(m_hRevThreadSyncEvent,INFINITE);
-	::ResetEvent(m_hRevThreadSyncEvent);
+	GetCSThreadCall().Call(pData,NULL,true);
 
 	if ( m_pRev ) {
 		delete m_pRev;
