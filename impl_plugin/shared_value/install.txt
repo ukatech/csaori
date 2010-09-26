@@ -1,0 +1,6 @@
+charset,UTF-8
+type,plugin
+name,–_“Ç‚İ‚¿‚á‚ñ‘—M
+directory,shared_value
+//Win7=0601 Vista=0600 XP=0501 2K=0500
+//os_version,0601

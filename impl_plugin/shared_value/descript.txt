@@ -1,0 +1,19 @@
+Charset,UTF-8
+name,共有変数プラグイン
+craftman,SSP BUGTRAQ
+
+//Win7=0601 Vista=0600 XP=0501 2K=0500
+//os_version,0601
+
+//PLUGIN DLL
+filename,shared_value.dll
+
+//OnSecondChangeがいるかどうか
+secondchangeinterval,0
+
+//OtherGhostTalkがいるかどうか
+otherghosttalk,0
+
+id,ABED14AF-F34B-4ff2-95B7-30ED37D5802D
+
+homeurl,http://ssp.shillest.net/plugin/shared_value/
