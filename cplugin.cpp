@@ -57,6 +57,7 @@ const string_t& CPLUGIN::s_saori_result(void) const
 
 void CPLUGIN::exec_before(const CSAORIInput& in,CSAORIOutput& out)
 {
+	//----------変数群初期化----------
 	script.erase();
 	script_option.erase();
 	event.erase();
@@ -76,32 +77,8 @@ void CPLUGIN::exec_before(const CSAORIInput& in,CSAORIOutput& out)
 	if ( itr != in.opts.end() ) {
 		sender = itr->second;
 	}
-}
-
-void CPLUGIN::exec_after(const CSAORIInput& in,CSAORIOutput& out)
-{
-	if ( script.length() ) {
-		out.result = script;
-	}
-	if ( script_option.length() ) {
-		out.opts[L"ScriptOption"] = script_option;
-	}
-	if ( event.length() ) {
-		out.opts[L"Event"] = event;
-	}
-	if ( event_option.length() ) {
-		out.opts[L"EventOption"] = event_option;
-	}
-	if ( target.length() ) {
-		out.opts[L"Target"] = target;
-	}
-	if ( marker.length() ) {
-		out.opts[L"Marker"] = marker;
-	}
-	if ( security_level.length() ) {
-		out.opts[L"SecurityLevel"] = security_level;
-	}
-
+	
+	//----------ゴーストリスト更新----------
 	if ( in.args.size() >= 5 ) {
 		if ( wcsicmp(in.id.c_str(),L"OnGhostBoot") == 0 || wcsicmp(in.id.c_str(),L"OnGhostInfoUpdate") == 0 ) {
 			string_t path = in.args[4];
@@ -140,6 +117,32 @@ void CPLUGIN::exec_after(const CSAORIInput& in,CSAORIOutput& out)
 				ghost_map.erase(itr);
 			}
 		}
+	}
+}
+
+void CPLUGIN::exec_after(const CSAORIInput& in,CSAORIOutput& out)
+{
+	//----------変数群をヘッダに適用----------
+	if ( script.length() ) {
+		out.result = script;
+	}
+	if ( script_option.length() ) {
+		out.opts[L"ScriptOption"] = script_option;
+	}
+	if ( event.length() ) {
+		out.opts[L"Event"] = event;
+	}
+	if ( event_option.length() ) {
+		out.opts[L"EventOption"] = event_option;
+	}
+	if ( target.length() ) {
+		out.opts[L"Target"] = target;
+	}
+	if ( marker.length() ) {
+		out.opts[L"Marker"] = marker;
+	}
+	if ( security_level.length() ) {
+		out.opts[L"SecurityLevel"] = security_level;
 	}
 }
 
