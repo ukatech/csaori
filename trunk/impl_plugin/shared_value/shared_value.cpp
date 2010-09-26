@@ -249,6 +249,7 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 		if ( in.args.size() >= 3 ) {
 			CSharedValueGhost *pG = FindGhost(in.args[0]);
 			if ( pG ) {
+
 			}
 		}
 	}
