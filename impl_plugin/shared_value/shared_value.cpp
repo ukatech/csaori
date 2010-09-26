@@ -236,10 +236,21 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
 	//--------------------------------------------------------
 	if ( wcsicmp(in.id.c_str(),L"OnSharedValueWrite") == 0 ) {
+		if ( in.args.size() >= 2 ) {
+			CSharedValueGhost *pG = FindGhost(sender);
+			if ( pG ) {
+				pG->Add(in.args[0],in.args[1]);
+			}
+		}
 	}
 
 	//--------------------------------------------------------
 	if ( wcsicmp(in.id.c_str(),L"OnSharedValueRead") == 0 ) {
+		if ( in.args.size() >= 3 ) {
+			CSharedValueGhost *pG = FindGhost(in.args[0]);
+			if ( pG ) {
+			}
+		}
 	}
 
 }
