@@ -19,28 +19,26 @@
 
 　実行タグ：
 
-　　\![raiseplugin,ABED14AF-F34B-4ff2-95B7-30ED37D5802D,OnSharedValueRead,(ゴースト名),(変数名)]
+　　\![raiseplugin,ABED14AF-F34B-4ff2-95B7-30ED37D5802D,OnSharedValueRead,(ゴースト名),(変数名1),(変数名2)...]
 　　「ゴースト名」はフルネーム(descriptのname)で指定してください。
+　　取得したい変数名は複数指定できます。複数指定した場合は下記の通りR1から順に変数名・値と交互に通知されます。
 
 　タグへの返信イベント：
 
-　　成功した場合
-　　　イベント　＝OnSharedValueReadComplete
+　　イベント　＝OnSharedValueRead
 　　　Reference0＝(ゴースト名)
-　　　Reference1＝(変数名)
-　　　Reference2＝(変数の値)
-
-　　失敗した場合
-　　　イベント　＝OnSharedValueReadFailure
-　　　Reference0＝(ゴースト名)
-　　　Reference1＝(変数名)
+　　　Reference1＝(変数名1)
+　　　Reference2＝(変数1の値/存在しない場合はからっぽ)
+　　　Reference3＝(変数名2)
+　　　Reference4＝(変数2の値/存在しない場合はからっぽ)
+　　　以下指定した分だけ続く
 
 
 ・値を書き込む
 
 　実行タグ：
 
-　　\![raiseplugin,ABED14AF-F34B-4ff2-95B7-30ED37D5802D,OnSharedValueRead,(変数名),(変数の値)]
+　　\![raiseplugin,ABED14AF-F34B-4ff2-95B7-30ED37D5802D,OnSharedValueRead,(変数名1),(変数1の値),(変数名2),(変数2の値)...]
 　　「ゴースト名」を指定することはできません。必ず自分のゴースト名領域への保存となります。
 　　これは、別ゴースト領域への書き込みを防ぎ、予期しない問題を防ぐための仕様となります。
 　　（例：別のゴーストに勝手に好感度を書き換えられた、など）
@@ -53,10 +51,12 @@
 　イベント：
 
 　　イベント　＝OnSharedValueReadNotify
-　　　Reference0＝(変数名)
-　　　Reference1＝(変数の値)
-　　　Reference2＝(変数名)
-　　　Reference3＝(変数の値)
+　　　Reference0＝(ゴースト名)
+　　　Reference1＝(変数名1)
+　　　Reference2＝(変数1の値)
+　　　Reference3＝(変数名2)
+　　　Reference4＝(変数2の値)
+　　　以下データのある限り続く
 
 　　・ゴーストが起動されたタイミングで自動通知されます
 　　・以降、格納されている変数が交互に続く
