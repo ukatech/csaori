@@ -106,11 +106,19 @@ bool CSharedValueGhost::Add(const string_t& name,const string_t& value)
 {
 	int idx = Find(name);
 	if ( idx < 0 ) {
-		m_element.push_back(new CSharedValueElement(name,value));
+		if ( value.size() > 0 ) {
+			m_element.push_back(new CSharedValueElement(name,value));
+		}
 		return true;
 	}
 	else {
-		m_element[idx]->m_value = value;
+		if ( value.size() > 0 ) {
+			m_element[idx]->m_value = value;
+		}
+		else {
+			delete m_element[idx];
+			m_element.erase(m_element.begin()+idx);
+		}
 		return false;
 	}
 }
