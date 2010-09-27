@@ -287,8 +287,11 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result_code = SAORIRESULT_NO_CONTENT;
 			CSharedValueGhost *pG = FindGhost(in.args[1]);
 			if ( pG ) {
+				out.result_code = SAORIRESULT_OK;
 				event = L"OnSharedValueReadNotify";
 				event_option = L"notify";
+
+				out.values.push_back(in.args[1]);
 				pG->PushBack(out.values);
 			}
 		}
@@ -298,13 +301,19 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 	//--------------------------------------------------------
 	if ( wcsicmp(in.id.c_str(),L"OnSharedValueWrite") == 0 ) {
 		if ( in.args.size() >= 2 ) {
+			out.result_code = SAORIRESULT_NO_CONTENT;
+
 			CSharedValueGhost *pG = FindGhost(sender);
 			if ( ! pG ) {
 				pG = new CSharedValueGhost(sender);
 				m_ghost_values.push_back(pG);
 			}
-			pG->Add(in.args[0],in.args[1]);
-			out.result_code = SAORIRESULT_NO_CONTENT;
+
+			size_t m = in.args.size();
+
+			for ( size_t j = 0 ; j < m ; j+=2 ) {
+				pG->Add(in.args[j],in.args[j+1]);
+			}
 		}
 		return;
 	}
@@ -312,24 +321,30 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 	//--------------------------------------------------------
 	if ( wcsicmp(in.id.c_str(),L"OnSharedValueRead") == 0 ) {
 		if ( in.args.size() >= 2 ) {
+			event = L"OnSharedValueRead";
+			out.values.push_back(in.args[0]);
+			out.result_code = SAORIRESULT_OK;
+
 			CSharedValueGhost *pG = FindGhost(in.args[0]);
-			if ( pG ) {
-				string_t v = pG->Get(in.args[1]);
-				if ( v.size() ) {
-					event = L"OnSharedValueReadComplete";
-					out.values.push_back(in.args[0]);
-					out.values.push_back(in.args[1]);
-					out.values.push_back(v);
-					out.result_code = SAORIRESULT_OK;
-					return;
+
+			if ( wcsicmp(in.args[1].c_str(),L"__SYSTEM_ALL_DATA__") == 0 ) {
+				if ( pG ) {
+					pG->PushBack(out.values);
 				}
 			}
+			else {
+				string_t v;
+				size_t m = in.args.size();
 
-			event = L"OnSharedValueReadFailure";
-			out.values.push_back(in.args[0]);
-			out.values.push_back(in.args[1]);
-			out.values.push_back(L"");
-			out.result_code = SAORIRESULT_OK;
+				for ( size_t j = 1 ; j < m ; ++j ) {
+					v = L"";
+					if ( pG ) {
+						v = pG->Get(in.args[j]);
+					}
+					out.values.push_back(in.args[j]);
+					out.values.push_back(v);
+				}
+			}
 		}
 		return;
 	}
