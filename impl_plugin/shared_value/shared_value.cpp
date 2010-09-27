@@ -349,6 +349,17 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
+	//--------------------------------------------------------
+	if ( wcsicmp(in.id.c_str(),L"OnSharedValueGhostList") == 0 ) {
+		event = L"OnSharedValueGhostList";
+		out.result_code = SAORIRESULT_OK;
+
+		size_t n = m_ghost_values.size();
+		for ( size_t i = 0 ; i < n ; ++i ) {
+			out.values.push_back(m_ghost_values[i]->GetGhost());
+		}
+		return;
+	}
 }
 
 
