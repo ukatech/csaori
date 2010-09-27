@@ -1,5 +1,5 @@
 Charset,UTF-8
-name,‹¤—L•Ï”ƒvƒ‰ƒOƒCƒ“
+name,å…±æœ‰å¤‰æ•°ãƒ—ãƒ©ã‚°ã‚¤ãƒ³
 craftman,SSP BUGTRAQ
 
 //Win7=0601 Vista=0600 XP=0501 2K=0500
@@ -8,10 +8,10 @@ craftman,SSP BUGTRAQ
 //PLUGIN DLL
 filename,shared_value.dll
 
-//OnSecondChange‚ª‚¢‚é‚©‚Ç‚¤‚©
+//OnSecondChangeãŒã„ã‚‹ã‹ã©ã†ã‹
 secondchangeinterval,0
 
-//OtherGhostTalk‚ª‚¢‚é‚©‚Ç‚¤‚©
+//OtherGhostTalkãŒã„ã‚‹ã‹ã©ã†ã‹
 otherghosttalk,0
 
 id,ABED14AF-F34B-4ff2-95B7-30ED37D5802D

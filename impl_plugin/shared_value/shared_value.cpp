@@ -27,7 +27,17 @@
 #endif
 ///////////////////////////////////////////////////
 
-#define MAX_VALUE_LENGTH 32768
+#define MAX_VALUE_LENGTH 32760
+#define HEADER_LENGTH    6
+#define FILE_NAME "values.dat"
+
+void EncodeDecodeBuffer(char *buf)
+{
+	while ( *buf ) {
+		*buf = static_cast<char>(static_cast<unsigned int>(*buf) ^ 0xFFU);
+		++buf;
+	}
+}
 
 /*===============================================================
 	ï‚èïÉNÉâÉXíËã`
@@ -49,7 +59,8 @@ public:
 	void SetGhost(const string_t& n) { m_ghost = n; }
 
 	void Save(std::ostream &f);
-	void Load(std::istream &f);
+
+	void PushBack(std::vector<string_t> &vec);
 
 	CSharedValueGhost(const string_t &n) : m_ghost(n) { }
 	~CSharedValueGhost();
@@ -106,44 +117,42 @@ bool CSharedValueGhost::Add(const string_t& name,const string_t& value)
 
 void CSharedValueGhost::Save(std::ostream &f)
 {
+	std::string save;
+
+	char buf[MAX_VALUE_LENGTH+HEADER_LENGTH+1];
+	buf[MAX_VALUE_LENGTH+HEADER_LENGTH+1] = 0;
+
+	save =  "GHOST*";
+	save += SAORI_FUNC::UnicodeToMultiByte(GetGhost(),CP_UTF8);
+
+	strncpy(buf,save.c_str(),MAX_VALUE_LENGTH+HEADER_LENGTH);
+	EncodeDecodeBuffer(buf);
+	f << buf << std::endl;
+
 	size_t n = m_element.size();
 	for ( size_t i = 0 ; i < n ; ++i ) {
-		f << "-**" << SAORI_FUNC::UnicodeToMultiByte(m_element[i]->m_name,CP_UTF8) << std::endl;
-		f << "--*" << SAORI_FUNC::UnicodeToMultiByte(m_element[i]->m_value,CP_UTF8) << std::endl;
+		save =  "NAME_*";
+		save += SAORI_FUNC::UnicodeToMultiByte(m_element[i]->m_name,CP_UTF8);
+
+		strncpy(buf,save.c_str(),MAX_VALUE_LENGTH+HEADER_LENGTH);
+		EncodeDecodeBuffer(buf);
+		f << buf << std::endl;
+
+		save =  "VALUE*";
+		save += SAORI_FUNC::UnicodeToMultiByte(m_element[i]->m_value,CP_UTF8);
+
+		strncpy(buf,save.c_str(),MAX_VALUE_LENGTH+HEADER_LENGTH);
+		EncodeDecodeBuffer(buf);
+		f << buf << std::endl;
 	}
 }
 
-void CSharedValueGhost::Load(std::istream &f)
+void CSharedValueGhost::PushBack(std::vector<string_t> &vec)
 {
-	char buf[MAX_VALUE_LENGTH+5];
-	buf[MAX_VALUE_LENGTH+4] = 0;
-
-	string_t name;
-	string_t value;
-
-	while ( true ) {
-		f.getline(buf,MAX_VALUE_LENGTH+4);
-		if ( f.fail() ) {
-			break;
-		}
-
-		if ( strncmp(buf,"-**",3) == 0 ) {
-			if ( name == L"" ) {
-				name = SAORI_FUNC::MultiByteToUnicode(buf+3,CP_UTF8);
-			}
-			else {
-				m_element.push_back(new CSharedValueElement(name,L""));
-				name = L"";
-			}
-		}
-		else if ( strncmp(buf,"--*",3) == 0 ) {
-			value = SAORI_FUNC::MultiByteToUnicode(buf+3,CP_UTF8);
-
-			m_element.push_back(new CSharedValueElement(name,value));
-
-			name = L"";
-			value = L"";
-		}
+	size_t n = m_element.size();
+	for ( size_t i = 0 ; i < n ; ++i ) {
+		vec.push_back(m_element[i]->m_name);
+		vec.push_back(m_element[i]->m_value);
 	}
 }
 
@@ -185,12 +194,22 @@ CSharedValue::~CSharedValue()
 bool CSharedValue::load()
 {
 	std::ifstream strm;
-	strm.open(checkAndModifyPath("values.txt").c_str());
+	strm.open(checkAndModifyPath(FILE_NAME).c_str());
 
-	char buf[MAX_VALUE_LENGTH+5];
-	buf[MAX_VALUE_LENGTH+4] = 0;
+	char buf[MAX_VALUE_LENGTH+HEADER_LENGTH+2];
+	buf[MAX_VALUE_LENGTH+HEADER_LENGTH+1] = 0;
+
+	strm.getline(buf,MAX_VALUE_LENGTH+HEADER_LENGTH);
+	if ( strm.fail() ) {
+		return false;
+	}
+	if ( strcmp(buf,"SVD1") != 0 ) {
+		return false;
+	}
 
 	CSharedValueGhost *pGhost = NULL;
+	string_t name;
+	string_t value;
 
 	while ( true ) {
 		strm.getline(buf,sizeof(buf));
@@ -198,12 +217,29 @@ bool CSharedValue::load()
 			break;
 		}
 
-		if ( strncmp(buf,"***",3) == 0 ) {
-			pGhost = new CSharedValueGhost(SAORI_FUNC::MultiByteToUnicode(buf+3,CP_UTF8));
+		EncodeDecodeBuffer(buf);
+
+		if ( strncmp(buf,"GHOST*",HEADER_LENGTH) == 0 ) {
+			string_t gname = SAORI_FUNC::MultiByteToUnicode(buf+HEADER_LENGTH,CP_UTF8);
+			pGhost = FindGhost(gname);
+			if ( ! pGhost ) {
+				pGhost = new CSharedValueGhost(gname);
+				m_ghost_values.push_back(pGhost);
+			}
 		}
-		else {
-			if ( pGhost ) {
-				pGhost->Load(strm);
+		else if ( strncmp(buf,"NAME_*",HEADER_LENGTH) == 0 ) {
+			if ( pGhost && name.size() ) {
+				pGhost->Add(name,L"");
+				name = L"";
+			}
+			name = SAORI_FUNC::MultiByteToUnicode(buf+HEADER_LENGTH,CP_UTF8);
+		}
+		else if ( strncmp(buf,"VALUE*",HEADER_LENGTH) == 0 ) {
+			if ( pGhost && name.size() ) {
+				value = SAORI_FUNC::MultiByteToUnicode(buf+HEADER_LENGTH,CP_UTF8);
+				pGhost->Add(name,value);
+				name = L"";
+				value = L"";
 			}
 		}
 	}
@@ -216,11 +252,12 @@ bool CSharedValue::load()
 bool CSharedValue::unload()
 {
 	std::ofstream strm;
-	strm.open(checkAndModifyPath("values.txt").c_str());
+	strm.open(checkAndModifyPath(FILE_NAME).c_str());
+
+	strm << "SVD1" << std::endl;
 
 	size_t n = m_ghost_values.size();
 	for ( size_t i = 0 ; i < n ; ++i ) {
-		strm << "***" << SAORI_FUNC::UnicodeToMultiByte(m_ghost_values[i]->GetGhost(),CP_UTF8) << std::endl;
 		m_ghost_values[i]->Save(strm);
 
 		delete m_ghost_values[i];
@@ -234,24 +271,59 @@ bool CSharedValue::unload()
 
 void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
+	out.result_code = SAORIRESULT_BAD_REQUEST;
+
+	//--------------------------------------------------------
+	if ( wcsicmp(in.id.c_str(),L"OnGhostBoot") == 0 ) {
+		if ( in.args.size() >= 2 ) {
+			out.result_code = SAORIRESULT_NO_CONTENT;
+			CSharedValueGhost *pG = FindGhost(in.args[1]);
+			if ( pG ) {
+				event = L"OnSharedValueReadNotify";
+				event_option = L"notify";
+				pG->PushBack(out.values);
+			}
+		}
+		return;
+	}
+
 	//--------------------------------------------------------
 	if ( wcsicmp(in.id.c_str(),L"OnSharedValueWrite") == 0 ) {
 		if ( in.args.size() >= 2 ) {
 			CSharedValueGhost *pG = FindGhost(sender);
-			if ( pG ) {
-				pG->Add(in.args[0],in.args[1]);
+			if ( ! pG ) {
+				pG = new CSharedValueGhost(sender);
+				m_ghost_values.push_back(pG);
 			}
+			pG->Add(in.args[0],in.args[1]);
+			out.result_code = SAORIRESULT_NO_CONTENT;
 		}
+		return;
 	}
 
 	//--------------------------------------------------------
 	if ( wcsicmp(in.id.c_str(),L"OnSharedValueRead") == 0 ) {
-		if ( in.args.size() >= 3 ) {
+		if ( in.args.size() >= 2 ) {
 			CSharedValueGhost *pG = FindGhost(in.args[0]);
 			if ( pG ) {
-
+				string_t v = pG->Get(in.args[1]);
+				if ( v.size() ) {
+					event = L"OnSharedValueReadComplete";
+					out.values.push_back(in.args[0]);
+					out.values.push_back(in.args[1]);
+					out.values.push_back(v);
+					out.result_code = SAORIRESULT_OK;
+					return;
+				}
 			}
+
+			event = L"OnSharedValueReadFailure";
+			out.values.push_back(in.args[0]);
+			out.values.push_back(in.args[1]);
+			out.values.push_back(L"");
+			out.result_code = SAORIRESULT_OK;
 		}
+		return;
 	}
 
 }
