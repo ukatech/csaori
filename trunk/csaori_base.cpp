@@ -421,6 +421,12 @@ string_t CSAORIOutput::toString()
 //	if (!result.empty()) { //‹ó•¶Žš—ñ‚Å‚àŒ‹‰Ê‚Í•Ô‚·‚×‚«
 	dest += base.s_saori_result() + L": " + result + L"\r\n";
 //	}
+	if (!opts.empty()) {
+		std::map<string_t,string_t>::iterator i;
+		for(i=opts.begin(); i != opts.end(); i++) {
+			dest += i->first + L": " + i->second + L"\r\n";
+		}
+	}
 	if (!values.empty()) {
 		int i, n = (int)(values.size());
 		string_t tmp;
@@ -444,12 +450,6 @@ string_t CSAORIOutput::toString()
 			}
 
 			dest += tmp + L"\r\n";
-		}
-	}
-	if (!opts.empty()) {
-		std::map<string_t,string_t>::iterator i;
-		for(i=opts.begin(); i != opts.end(); i++) {
-			dest += i->first + L": " + i->second + L"\r\n";
 		}
 	}
 	

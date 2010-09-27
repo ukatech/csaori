@@ -99,15 +99,15 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\shared_value.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\cplugin.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\csaori_base.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\shared_value.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -115,15 +115,15 @@ SOURCE=..\..\csaori_base.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\shared_value.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\cplugin.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\csaori_base.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\shared_value.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
