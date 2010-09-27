@@ -25,7 +25,7 @@
 
 　タグへの返信イベント：
 
-　　イベント　＝OnSharedValueRead
+　　イベント　　＝OnSharedValueRead
 　　　Reference0＝(ゴースト名)
 　　　Reference1＝(変数名1)
 　　　Reference2＝(変数1の値/存在しない場合はからっぽ)
@@ -46,11 +46,23 @@
 　タグへの返信イベントはありません。
 
 
+・値を格納しているゴーストのリスト
+
+　実行タグ：\![raiseplugin,ABED14AF-F34B-4ff2-95B7-30ED37D5802D,OnSharedValueGhostList]
+
+　タグへの返信イベント：
+
+　　イベント　　＝OnSharedValueGhostList
+　　　Reference0＝(ゴースト名1)
+　　　Reference1＝(ゴースト名2)
+　　　以下データのある限り続く
+
+
 ・起動時の自分自身への通知
 
 　イベント：
 
-　　イベント　＝OnSharedValueReadNotify
+　　イベント　　＝OnSharedValueReadNotify
 　　　Reference0＝(ゴースト名)
 　　　Reference1＝(変数名1)
 　　　Reference2＝(変数1の値)
