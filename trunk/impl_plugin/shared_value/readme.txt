@@ -48,7 +48,9 @@
 
 ・値を格納しているゴーストのリスト
 
-　実行タグ：\![raiseplugin,ABED14AF-F34B-4ff2-95B7-30ED37D5802D,OnSharedValueGhostList]
+　実行タグ：
+
+　　\![raiseplugin,ABED14AF-F34B-4ff2-95B7-30ED37D5802D,OnSharedValueGhostList]
 
 　タグへの返信イベント：
 
