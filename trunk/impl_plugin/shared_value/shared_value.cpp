@@ -31,10 +31,47 @@
 #define HEADER_LENGTH    6
 #define FILE_NAME "values.dat"
 
-void EncodeDecodeBuffer(char *buf)
+void EncodeBuffer(char *buf)
 {
+	int c;
 	while ( *buf ) {
-		*buf = static_cast<char>(static_cast<unsigned int>(*buf) ^ 0xFFU);
+		c = *buf;
+
+		if ( c >= 0x11 && c <= 0x12 ) { //0x11～12は制御シーケンスに使う
+			c = 0xDF; //0x20 XOR 0xFF
+		}
+		else if ( c == 0xF5 ) { //0x0a XOR 0xFF
+			c = 0xEE; //0x11 XOR 0xFF
+		}
+		else if ( c == 0xF2 ) { //0x0d XOR 0xFF
+			c = 0xED; //0x12 XOR 0xFF
+		}
+		else {
+			c = c ^ 0xFFU;
+		}
+
+		*buf = c;
+		++buf;
+	}
+}
+
+void DecodeBuffer(char *buf)
+{
+	int c;
+	while ( *buf ) {
+		c = *buf;
+
+		if ( c == 0xEE ) { //0x11 XOR 0xFF
+			c = 0xF5; //0x0a XOR 0xFF
+		}
+		else if ( c == 0xED ) { //0x12 XOR 0xFF
+			c = 0xF2; //0x0d XOR 0xFF
+		}
+		else {
+			c = c ^ 0xFFU;
+		}
+
+		*buf = c;
 		++buf;
 	}
 }
@@ -134,7 +171,7 @@ void CSharedValueGhost::Save(std::ostream &f)
 	save += SAORI_FUNC::UnicodeToMultiByte(GetGhost(),CP_UTF8);
 
 	strncpy(buf,save.c_str(),MAX_VALUE_LENGTH+HEADER_LENGTH);
-	EncodeDecodeBuffer(buf);
+	EncodeBuffer(buf);
 	f << buf << std::endl;
 
 	size_t n = m_element.size();
@@ -143,14 +180,14 @@ void CSharedValueGhost::Save(std::ostream &f)
 		save += SAORI_FUNC::UnicodeToMultiByte(m_element[i]->m_name,CP_UTF8);
 
 		strncpy(buf,save.c_str(),MAX_VALUE_LENGTH+HEADER_LENGTH);
-		EncodeDecodeBuffer(buf);
+		EncodeBuffer(buf);
 		f << buf << std::endl;
 
 		save =  "VALUE*";
 		save += SAORI_FUNC::UnicodeToMultiByte(m_element[i]->m_value,CP_UTF8);
 
 		strncpy(buf,save.c_str(),MAX_VALUE_LENGTH+HEADER_LENGTH);
-		EncodeDecodeBuffer(buf);
+		EncodeBuffer(buf);
 		f << buf << std::endl;
 	}
 }
@@ -225,7 +262,7 @@ bool CSharedValue::load()
 			break;
 		}
 
-		EncodeDecodeBuffer(buf);
+		DecodeBuffer(buf);
 
 		if ( strncmp(buf,"GHOST*",HEADER_LENGTH) == 0 ) {
 			string_t gname = SAORI_FUNC::MultiByteToUnicode(buf+HEADER_LENGTH,CP_UTF8);
