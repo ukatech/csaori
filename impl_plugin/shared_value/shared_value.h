@@ -1,6 +1,8 @@
 #include "cplugin.h"
 #include <deque>
 
+#include <time.h>
+
 #pragma once
 
 #ifndef SHARED_VALUE_INCLUDED
@@ -13,6 +15,7 @@ class CSharedValue : public CPLUGIN
 {
 private:
 	std::vector<CSharedValueGhost*> m_ghost_values;
+	time_t m_last_time;
 
 public:
 	CSharedValue(void);
@@ -23,6 +26,8 @@ public:
 	virtual void exec(const CSAORIInput& in,CSAORIOutput& out);
 	virtual bool unload();
 	virtual bool load();
+
+	void Save(void);
 };
 
 #endif //SHARED_VALUE_INCLUDED
