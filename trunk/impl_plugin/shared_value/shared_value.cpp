@@ -227,6 +227,7 @@ CSAORIBase* CreateInstance(void)
 ---------------------------------------------------------------*/
 CSharedValue::CSharedValue(void)
 {
+	m_last_time = 0;
 }
 
 CSharedValue::~CSharedValue()
@@ -238,6 +239,8 @@ CSharedValue::~CSharedValue()
 ---------------------------------------------------------------*/
 bool CSharedValue::load()
 {
+	m_last_time = time(NULL);
+
 	std::ifstream strm;
 	strm.open(checkAndModifyPath(FILE_NAME).c_str());
 
@@ -294,22 +297,31 @@ bool CSharedValue::load()
 	return true;
 }
 
-bool CSharedValue::unload()
+void CSharedValue::Save(void)
 {
 	std::ofstream strm;
 	strm.open(checkAndModifyPath(FILE_NAME).c_str());
 
 	strm << "SVD1" << std::endl;
+	size_t n = m_ghost_values.size();
+
+	for ( size_t i = 0 ; i < n ; ++i ) {
+		m_ghost_values[i]->Save(strm);
+	}
+
+	strm.close();
+}
+
+
+bool CSharedValue::unload(void)
+{
+	Save();
 
 	size_t n = m_ghost_values.size();
 	for ( size_t i = 0 ; i < n ; ++i ) {
-		m_ghost_values[i]->Save(strm);
-
 		delete m_ghost_values[i];
 	}
 	m_ghost_values.clear();
-
-	strm.close();
 
 	return true;
 }
@@ -317,6 +329,18 @@ bool CSharedValue::unload()
 void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
 	out.result_code = SAORIRESULT_BAD_REQUEST;
+
+	//--------------------------------------------------------
+	if ( wcsicmp(in.id.c_str(),L"OnSecondChange") == 0 ) {
+		time_t t = time(NULL);
+
+		if ( (t - m_last_time) >= 55 ) { //60ちょっとマイナス
+			Save();
+			m_last_time = t;
+		}
+
+		return;
+	}
 
 	//--------------------------------------------------------
 	if ( wcsicmp(in.id.c_str(),L"OnGhostBoot") == 0 ) {
