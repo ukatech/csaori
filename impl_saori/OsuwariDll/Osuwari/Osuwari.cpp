@@ -1,5 +1,19 @@
+#ifdef _MSC_VER
+#pragma warning( disable : 4786 )
+#pragma warning( disable : 4996 )
+#endif
+
 #include "stdafx.h"
 #include "csaori.h"
+
+//////////WINDOWS DEFINE///////////////////////////
+#ifdef _WINDOWS
+#ifdef _DEBUG
+#include <crtdbg.h>
+#define new new( _NORMAL_BLOCK, __FILE__, __LINE__)
+#endif
+#endif
+///////////////////////////////////////////////////
 
 using namespace std;
 
@@ -234,7 +248,8 @@ bool CSAORI::unload(){
 bool CSAORI::load(){
 	g_hThread=NULL;
 #ifdef _DEBUG
-	fopen_s(&fp,"d:\\saori.log","at+");//C4996
+	//s_fopen(&fp,"d:\\saori.log","at+");//C4996
+	fp = fopen(&"d:\\saori.log","at+");
 #endif
 	g_cex_left=g_cex_right=g_cex_top=g_cex_bottom=0;
 	return true;
@@ -466,7 +481,9 @@ bool _isEnableWindow(HWND hwnd){
 		return false;
 	}
 	if(::GetParent(hwnd)!=NULL){
-		return false;
+		if( (::GetWindowLong(hwnd,GWL_STYLE) & WS_CHILD) != 0 ) { //本当の子ウインドウかどうか判定
+			return false;
+		}
 	}
 	return true;
 }
