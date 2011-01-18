@@ -10,6 +10,8 @@ cpu.cache - return CPU caches sizes in KB with space separated, format: "L1-Data
 cpu.usage - return CPU usage (0 - 100)
 mem.viraex - return available extended virtual memory (over 4GB memory) (by ukiya)
 cpu.logicalprocessors - return logical processor count
+cpu.vmguest - return if it is in Virtual Machine or not. (Supports VMWare 7, KVM, Xen HVM)
+cpu.vmbrand - return brand name of Virtual Machine
 
 cpu.ptype return value supplementation:
 0: Original OEM processor
@@ -18,6 +20,7 @@ cpu.ptype return value supplementation:
 3: Intel(R) reserved
 
 Version History:
+	- add cpu.vmguest, cpu.vmbrand
 	- add cpu.logicalprocessors
 	- add Intel Brand Index detection
 	- add Cache size detection of Intel CPUs
