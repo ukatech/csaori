@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef __CPUINFO_H
 #define __CPUINFO_H
 
@@ -32,7 +30,8 @@ typedef struct CPUID_01_ValuesInEBX
 typedef struct CPUID_01_ValuesInECX
 {
 	unsigned int	iSSE3       : 1;
-	unsigned int	iReserved_1 : 2;
+	unsigned int	iPCLMULDQ   : 1;
+	unsigned int	iDTES64     : 1;
 	unsigned int	iMWAIT      : 1;
 	unsigned int	iQDS        : 1;
 	unsigned int	iVMX        : 1;
@@ -46,19 +45,21 @@ typedef struct CPUID_01_ValuesInECX
 	unsigned int	iCHG16B     : 1;
 	unsigned int	ixTPRUpd    : 1;
 	unsigned int	iPDMSR      : 1;
-	unsigned int	Reserved_16 : 2;
+	unsigned int	Reserved_16 : 1;
+	unsigned int	iPCID       : 1;
 	unsigned int	iDCA        : 1;
 	unsigned int	iSSE41      : 1;
 	unsigned int	iSSE42      : 1;
 	unsigned int	ix2APIC     : 1;
 	unsigned int	iMOVBE      : 1;
 	unsigned int	iPOPCNT     : 1;
-	unsigned int	Reserved_23 : 1;
+	unsigned int	iTSCDEADLINE: 1;
 	unsigned int	iAES        : 1;
 	unsigned int	iXSAVE      : 1;
 	unsigned int	iOSXSAVE    : 1;
-	unsigned int	iIAV256     : 1;
-	unsigned int	Reserved_28 : 3;
+	unsigned int	iAVX        : 1;
+	unsigned int	Reserved_28 : 2;
+	unsigned int	iVirt       : 1;
 } CPUID_01_ECX_t;
 
 typedef struct CPUID_02_Values
@@ -198,6 +199,7 @@ extern	CPUID_80000006_ECX_t	uL2Size;
 extern	CPUID_80000006_EDX_t	uL3Size;
 extern	char		sCPUBranding[65];
 extern	char		sCPUVendor[16];
+extern  char		sVMBranding[16];
 
 int identifyCPU();
 ULONGLONG GetCycleCount();
