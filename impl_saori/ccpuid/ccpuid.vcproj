@@ -161,6 +161,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\cphymem.cpp">
+			</File>
+			<File
 				RelativePath=".\cpuinfo.cpp">
 			</File>
 			<File
@@ -195,6 +198,9 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
+				RelativePath=".\cphymem.h">
+			</File>
+			<File
 				RelativePath=".\cpuinfo.h">
 			</File>
 			<File
@@ -205,6 +211,9 @@
 			</File>
 			<File
 				RelativePath="..\..\csaori_base.h">
+			</File>
+			<File
+				RelativePath=".\native.h">
 			</File>
 			<File
 				RelativePath=".\winversion.h">

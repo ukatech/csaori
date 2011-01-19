@@ -2,6 +2,7 @@
 #include "winversion.h"
 #include "cpuinfo.h"
 #include "cpuusage.h"
+#include "cphymem.h"
 
 //------------------------------------------------------------------------------
 //CSAORI
@@ -63,6 +64,24 @@ bool GetInfoFromString(const string_t &in,string_t &out)
 	static short osGot = 0;
 	// CPU
 	static unsigned long dwNumberOfProcessors = 0;
+	// DMI
+	static short dmiGot = 0;
+	static char dmiBIOSVendor[128];
+	static char dmiBIOSVersion[64];
+	static char dmiBIOSReleaseDate[64];
+	static char dmiSysManufacturer[128];
+	static char dmiSysProductName[128];
+	static char dmiSysVersion[64];
+	static char dmiSysSerialNumber[64];
+	static char dmiMBManufacturer[128];
+	static char dmiMBProduct[128];
+	static char dmiMBVersion[64];
+	static char dmiMBSerialNumber[64];
+	static char dmiChassisManufacturer[128];
+	static char dmiChassisVersion[64];
+	static char dmiChassisSerialNumber[128];
+	static char dmiChassisAssetTagNumber[128];
+
 
 	// saori_cpuid compatible commands
 	if (in == L"platform") {				// platform: basename of caller exe name
@@ -78,7 +97,7 @@ bool GetInfoFromString(const string_t &in,string_t &out)
 		return true;
 	}
 
-	if (in.find(L"mem.") != std::string::npos) { // memory commands
+	if (in.find(L"mem.") == 0) { // memory commands
 		MEMORYSTATUSEX	meminfoex;
 		ZeroMemory(&meminfoex,sizeof(meminfoex));
 		meminfoex.dwLength=sizeof(meminfoex);
@@ -145,7 +164,7 @@ bool GetInfoFromString(const string_t &in,string_t &out)
 		return false;
 	}
 
-	if (in.find(L"os.") != std::string::npos) { // OS comands
+	if (in.find(L"os.") == 0) { // OS comands
 		if(!osGot) {
 			GetOSDisplayString(osname, osver, &osbuild);
 			osGot = 1;
@@ -167,7 +186,7 @@ bool GetInfoFromString(const string_t &in,string_t &out)
 		return false;
 	}
 
-	if (in.find(L"cpu.") != std::string::npos) { // CPU commands
+	if (in.find(L"cpu.") == 0) { // CPU commands
 		if(!iCPUFlagsLoaded) {
 			identifyCPU();
 
@@ -358,6 +377,81 @@ bool GetInfoFromString(const string_t &in,string_t &out)
 			outtxt = tmptxt;
 
 			out = SAORI_FUNC::MultiByteToUnicode(outtxt);
+			return true;
+		}
+
+		out = L"!param error";
+		return false;
+	}
+
+	if (in.find(L"dmi.") == 0) {	// DMI commands
+		if(!dmiGot) {
+			GetDMIInfo(dmiBIOSVendor, dmiBIOSVersion, dmiBIOSReleaseDate,
+				dmiSysManufacturer, dmiSysProductName, dmiSysVersion,
+				dmiSysSerialNumber, dmiMBManufacturer, dmiMBProduct,
+				dmiMBVersion, dmiMBSerialNumber, dmiChassisManufacturer,
+				dmiChassisVersion, dmiChassisSerialNumber, dmiChassisAssetTagNumber);
+			dmiGot = 1;
+		}
+
+		if (in == L"dmi.bios.vendor") {		// dmi.bios.vendor: DMI BIOS Vendor string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiBIOSVendor);
+			return true;
+		}
+		if (in == L"dmi.bios.version") {		// dmi.bios.version: DMI BIOS Version string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiBIOSVersion);
+			return true;
+		}
+		if (in == L"dmi.bios.releasedate") {		// dmi.bios.releasedate: DMI BIOS Release Date string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiBIOSReleaseDate);
+			return true;
+		}
+		if (in == L"dmi.system.manufacturer") {		// dmi.system.manufacturer: DMI System Manufacturer string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiSysManufacturer);
+			return true;
+		}
+		if (in == L"dmi.system.productname") {		// dmi.system.productname: DMI System Product Name string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiSysProductName);
+			return true;
+		}
+		if (in == L"dmi.system.version") {		// dmi.system.version: DMI System Version string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiSysVersion);
+			return true;
+		}
+		if (in == L"dmi.system.sn") {		// dmi.system.sn: DMI System Serial Number string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiSysSerialNumber);
+			return true;
+		}
+		if (in == L"dmi.mb.manufacturer") {		// dmi.mb.manufacturer: DMI Mainboard Manufacturer string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiMBManufacturer);
+			return true;
+		}
+		if (in == L"dmi.mb.product") {		// dmi.mb.product: DMI Mainboard Product Name string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiMBProduct);
+			return true;
+		}
+		if (in == L"dmi.mb.version") {		// dmi.mb.version: DMI Mainboard Version string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiMBVersion);
+			return true;
+		}
+		if (in == L"dmi.mb.sn") {		// dmi.mb.sn: DMI Mainboard Serial Number string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiMBSerialNumber);
+			return true;
+		}
+		if (in == L"dmi.chassis.manufacturer") {		// dmi.chassis.manufacturer: DMI Chassis Manufacturer string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiChassisManufacturer);
+			return true;
+		}
+		if (in == L"dmi.chassis.version") {		// dmi.chassis.version: DMI Chassis Version string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiChassisVersion);
+			return true;
+		}
+		if (in == L"dmi.chassis.sn") {		// dmi.chassis.sn: DMI Chassis Serial Number string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiChassisSerialNumber);
+			return true;
+		}
+		if (in == L"dmi.chassis.assettag") {		// dmi.chassis.product: DMI Chassis Asset Tag string
+			out = SAORI_FUNC::MultiByteToUnicode(dmiChassisAssetTagNumber);
 			return true;
 		}
 
