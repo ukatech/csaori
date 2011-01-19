@@ -334,7 +334,7 @@ bool GetInfoFromString(const string_t &in,string_t &out)
 			return true;
 		}
 		if (in == L"cpu.vmbrand") {		// cpu.vmbrand: Virtualized environment brand name
-			std::string vmbrand = (*sVMBranding)?sVMBranding:(uExtFlags.iVirt ? "Not in VM" : "<No Name>");
+			std::string vmbrand = (*sVMBranding)?sVMBranding:(uExtFlags.iVirt ? "<No Name>" : "Not in VM");
 
 			out = SAORI_FUNC::MultiByteToUnicode(vmbrand);
 			return true;
