@@ -12,6 +12,21 @@ mem.viraex - return available extended virtual memory (over 4GB memory) (by ukiy
 cpu.logicalprocessors - return logical processor count
 cpu.vmguest - return if it is in Virtual Machine or not. (Supports VMWare 7, KVM, Xen HVM)
 cpu.vmbrand - return brand name of Virtual Machine
+dmi.bios.vendor - return DMI BIOS Vendor string
+dmi.bios.version - return DMI BIOS Version string
+dmi.bios.releasedate - return DMI BIOS Release Date string
+dmi.system.manufacturer - return DMI System Manufacturer string
+dmi.system.productname - return DMI System Product Name string
+dmi.system.version - return DMI System Version string
+dmi.system.sn - return DMI System Serial Number string
+dmi.mb.manufacturer - return DMI Mainboard Manufacturer string
+dmi.mb.product - return DMI Mainboard Product Name string
+dmi.mb.version - return DMI Mainboard Version string
+dmi.mb.sn - return DMI Mainboard Serial Number string
+dmi.chassis.manufacturer - return DMI Chassis Manufacturer string
+dmi.chassis.version - return DMI Chassis Version string
+dmi.chassis.sn - return DMI Chassis Serial Number string
+dmi.chassis.product - return DMI Chassis Asset Tag string
 
 cpu.ptype return value supplementation:
 0: Original OEM processor
@@ -19,7 +34,12 @@ cpu.ptype return value supplementation:
 2: Dual processor(Not applicable to Intel486 processors)
 3: Intel(R) reserved
 
+dmi.* functions supplementation:
+They will work in NT based systems (NT/2000/XP/2003/Vista/7) only.
+Win9X is not supported. It may require Administrator right in order to access physical menory.
+
 Version History:
+	- add dmi.* functions
 	- add cpu.vmguest, cpu.vmbrand
 	- add cpu.logicalprocessors
 	- add Intel Brand Index detection
