@@ -1,5 +1,6 @@
 #include "cphymem.h"
 
+//#include <stdio.h>
 // Non Object C functions
 
 extern "C" {
@@ -153,7 +154,7 @@ BOOLEAN LocateNtdllEntryPoints()
 // Non Object C functions Ends
 
 //#define bsize 1024*64
-const int CPhyMem::bsize = 1024*64*3;
+const int CPhyMem::bsize = 1024*64*4;
 
 PBYTE CPhyMem::MemSearch(PBYTE ToSearch,long size,const PBYTE StartAddr,const PBYTE endAddr)
 {
@@ -163,8 +164,9 @@ PBYTE CPhyMem::MemSearch(PBYTE ToSearch,long size,const PBYTE StartAddr,const PB
 	for(addr;addr<endAddr;addr++)
 	{
 		for(i=0;i<size;i++) if(*(addr+i)!=*(ToSearch+i)) break;
+//if(i==size)printf("CPhyMem::MemSearch() - sig matched - %08X\n", addr);
 		if((i==size)&&(*(addr+0x10)=='_')
-			&&(*(addr+0x11)=='D')) 
+			&&(*(addr+0x11)=='D')&&(*(addr+0x12)=='M')&&(*(addr+0x13)=='I')&&(*(addr+0x14)=='_')) 
 			return addr;
 	}
 	return NULL;
@@ -200,26 +202,34 @@ CPhyMem::CPhyMem()
 	paddress=(DWORD)0x000d0000;	// Real Physical Address
 
 	if(LocateNtdllEntryPoints()) {
+
+//printf("CPhyMem::CPhyMem()\n");
+
 		bResult=CopyDmiMemory((PBYTE)buf,paddress,bsize);
 
 		ii=MemSearch((PBYTE)sm,4,(PBYTE)buf,(PBYTE)(buf+bsize-1));
 		unsigned int *tableaddress=(unsigned int *)(ii+0x18);
+
+//printf("CPhyMem::CPhyMem() - base = %08X, len = %d, num = %d, length = %d, addr = %08X\n",tableaddress, (*(unsigned short*)(ii+0x16)), (*(unsigned short*)(ii+0x1C)), (*(unsigned char*)(ii+0x19)), (*(unsigned long*)(ii+0x18)));
 //		bResult=CopyDmiMemory((PBYTE)buf,(PBYTE)(*tableaddress),bsize);
 //		bResult=CopyDmiMemory((PBYTE)buf,(PBYTE)0xf5a60,1024*64);
 //		type[0]=(PBYTE)buf;
 
-		type[0]=(PBYTE)buf+(*tableaddress-0x000d0000);
-		PBYTE p=type[0]+*(type[0]+1);
-		for(i=1;i<4;i++)
+		if(*tableaddress-0x000d0000 < bsize && *tableaddress-0x000d0000>=0)	// prevent invalid pointer
 		{
-			while(1) 
+			type[0]=(PBYTE)buf+(*tableaddress-0x000d0000);
+			PBYTE p=type[0]+*(type[0]+1);
+			for(i=1;i<4;i++)
 			{
-				p++;
-				if((*p==0)&&(*(p+1)==0)&&*(p+2)==i)
-					break;
+				while(1) 
+				{
+					p++;
+					if((*p==0)&&(*(p+1)==0)&&*(p+2)==i)
+						break;
+				}
+				type[i]=p+2;
+				p=type[i]+*(type[i]+1);
 			}
-			type[i]=p+2;
-			p=type[i]+*(type[i]+1);
 		}
 	}
 }
@@ -246,39 +256,59 @@ BOOL GetDMIInfo(LPSTR dmiBIOSVendor, LPSTR dmiBIOSVersion, LPSTR dmiBIOSReleaseD
 
 	CPhyMem ptr;
 
-	PBYTE p=ptr.GetType(0)+*(ptr.GetType(0)+0x1); 
-	strcat(dmiBIOSVendor,(char*)p);
-	p+=strlen((char*)p)+1;
-	strcat(dmiBIOSVersion,(char*)p);
-	p+=strlen((char*)p)+1;
-	strcat(dmiBIOSReleaseDate,(char*)p);
+	PBYTE p=ptr.GetType(0);
 
-	p=ptr.GetType(1)+*(ptr.GetType(1)+0x1);
-	strcat(dmiSysManufacturer,(char*)p);
-	p+=strlen((char*)p)+1;
-	strcat(dmiSysProductName,(char*)p);
-	p+=strlen((char*)p)+1;
-	strcat(dmiSysVersion,(char*)p);
-	p+=strlen((char*)p)+1;
-	strcat(dmiSysSerialNumber,(char*)p);
+	if(p==0)	// failed
+		return FALSE;
 
-	p=ptr.GetType(2)+*(ptr.GetType(2)+0x1);
-	strcat(dmiMBManufacturer,(char*)p);
-	p+=strlen((char*)p)+1;
-	strcat(dmiMBProduct,(char*)p);
-	p+=strlen((char*)p)+1;
-	strcat(dmiMBVersion,(char*)p);
-	p+=strlen((char*)p)+1;
-	strcat(dmiMBSerialNumber,(char*)p);
+	if(*p == 0)	// valid section
+	{
+		p+=+*(p+0x1); 
+		strcat(dmiBIOSVendor,(char*)p);
+		p+=strlen((char*)p)+1;
+		strcat(dmiBIOSVersion,(char*)p);
+		p+=strlen((char*)p)+1;
+		strcat(dmiBIOSReleaseDate,(char*)p);
+	}
 
-	p=ptr.GetType(3)+*(ptr.GetType(3)+0x1);
-	strcat(dmiChassisManufacturer,(char*)p);
-	p+=strlen((char*)p)+1;
-	strcat(dmiChassisVersion,(char*)p);
-	p+=strlen((char*)p)+1;
-	strcat(dmiChassisSerialNumber,(char*)p);
-	p+=strlen((char*)p)+1;
-	strcat(dmiChassisAssetTagNumber,(char*)p);
+	p=ptr.GetType(1);
+	if(*p == 1)	// valid section
+	{
+		p+=*(p+0x1);
+		strcat(dmiSysManufacturer,(char*)p);
+		p+=strlen((char*)p)+1;
+		strcat(dmiSysProductName,(char*)p);
+		p+=strlen((char*)p)+1;
+		strcat(dmiSysVersion,(char*)p);
+		p+=strlen((char*)p)+1;
+		strcat(dmiSysSerialNumber,(char*)p);
+	}
+
+	p=ptr.GetType(2);
+	if(*p == 2)	// valid section
+	{
+		p+=*(p+0x1);
+		strcat(dmiMBManufacturer,(char*)p);
+		p+=strlen((char*)p)+1;
+		strcat(dmiMBProduct,(char*)p);
+		p+=strlen((char*)p)+1;
+		strcat(dmiMBVersion,(char*)p);
+		p+=strlen((char*)p)+1;
+		strcat(dmiMBSerialNumber,(char*)p);
+	}
+
+	p=ptr.GetType(3);
+	if(*p == 3)	// valid section
+	{
+		p+=*(p+0x1);
+		strcat(dmiChassisManufacturer,(char*)p);
+		p+=strlen((char*)p)+1;
+		strcat(dmiChassisVersion,(char*)p);
+		p+=strlen((char*)p)+1;
+		strcat(dmiChassisSerialNumber,(char*)p);
+		p+=strlen((char*)p)+1;
+		strcat(dmiChassisAssetTagNumber,(char*)p);
+	}
 
 	return TRUE;
 }

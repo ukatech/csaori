@@ -4,6 +4,8 @@
 #include "cpuusage.h"
 #include "cphymem.h"
 
+//#include <stdio.h>
+
 //------------------------------------------------------------------------------
 //CSAORI
 //------------------------------------------------------------------------------
@@ -385,73 +387,83 @@ bool GetInfoFromString(const string_t &in,string_t &out)
 	}
 
 	if (in.find(L"dmi.") == 0) {	// DMI commands
+#define GETDMI(x) ((*x) ? x : (dmiGot == 2 ? "<failed>" : "<empty>"))
+//#define GETDMI(x) (x)
 		if(!dmiGot) {
-			GetDMIInfo(dmiBIOSVendor, dmiBIOSVersion, dmiBIOSReleaseDate,
+			dmiGot = GetDMIInfo(dmiBIOSVendor, dmiBIOSVersion, dmiBIOSReleaseDate,
 				dmiSysManufacturer, dmiSysProductName, dmiSysVersion,
 				dmiSysSerialNumber, dmiMBManufacturer, dmiMBProduct,
 				dmiMBVersion, dmiMBSerialNumber, dmiChassisManufacturer,
 				dmiChassisVersion, dmiChassisSerialNumber, dmiChassisAssetTagNumber);
-			dmiGot = 1;
+			if(dmiGot == FALSE)
+				dmiGot = 2;
+			
+/*printf("dmiGot = %d\n dmiBIOSVendor=%s\n dmiBIOSVersion=%s\n dmiBIOSReleaseDate=%s\n dmiSysManufacturer=%s\n dmiSysProductName=%s\n dmiSysVersion=%s\n dmiSysSerialNumber=%s\n dmiMBManufacturer=%s\n dmiMBProduct=%s\n dmiMBVersion=%s\n dmiMBSerialNumber=%s\n dmiChassisManufacturer=%s\n dmiChassisVersion=%s\n dmiChassisSerialNumber=%s\n dmiChassisAssetTagNumber=%s\n",
+				dmiGot, dmiBIOSVendor, dmiBIOSVersion, dmiBIOSReleaseDate,
+				dmiSysManufacturer, dmiSysProductName, dmiSysVersion,
+				dmiSysSerialNumber, dmiMBManufacturer, dmiMBProduct,
+				dmiMBVersion, dmiMBSerialNumber, dmiChassisManufacturer,
+				dmiChassisVersion, dmiChassisSerialNumber, dmiChassisAssetTagNumber);*/
 		}
 
 		if (in == L"dmi.bios.vendor") {		// dmi.bios.vendor: DMI BIOS Vendor string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiBIOSVendor);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiBIOSVendor));
 			return true;
 		}
 		if (in == L"dmi.bios.version") {		// dmi.bios.version: DMI BIOS Version string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiBIOSVersion);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiBIOSVersion));
 			return true;
 		}
 		if (in == L"dmi.bios.releasedate") {		// dmi.bios.releasedate: DMI BIOS Release Date string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiBIOSReleaseDate);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiBIOSReleaseDate));
 			return true;
 		}
 		if (in == L"dmi.system.manufacturer") {		// dmi.system.manufacturer: DMI System Manufacturer string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiSysManufacturer);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiSysManufacturer));
 			return true;
 		}
 		if (in == L"dmi.system.productname") {		// dmi.system.productname: DMI System Product Name string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiSysProductName);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiSysProductName));
 			return true;
 		}
 		if (in == L"dmi.system.version") {		// dmi.system.version: DMI System Version string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiSysVersion);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiSysVersion));
 			return true;
 		}
 		if (in == L"dmi.system.sn") {		// dmi.system.sn: DMI System Serial Number string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiSysSerialNumber);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiSysSerialNumber));
 			return true;
 		}
 		if (in == L"dmi.mb.manufacturer") {		// dmi.mb.manufacturer: DMI Mainboard Manufacturer string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiMBManufacturer);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiMBManufacturer));
 			return true;
 		}
 		if (in == L"dmi.mb.product") {		// dmi.mb.product: DMI Mainboard Product Name string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiMBProduct);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiMBProduct));
 			return true;
 		}
 		if (in == L"dmi.mb.version") {		// dmi.mb.version: DMI Mainboard Version string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiMBVersion);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiMBVersion));
 			return true;
 		}
 		if (in == L"dmi.mb.sn") {		// dmi.mb.sn: DMI Mainboard Serial Number string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiMBSerialNumber);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiMBSerialNumber));
 			return true;
 		}
 		if (in == L"dmi.chassis.manufacturer") {		// dmi.chassis.manufacturer: DMI Chassis Manufacturer string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiChassisManufacturer);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiChassisManufacturer));
 			return true;
 		}
 		if (in == L"dmi.chassis.version") {		// dmi.chassis.version: DMI Chassis Version string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiChassisVersion);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiChassisVersion));
 			return true;
 		}
 		if (in == L"dmi.chassis.sn") {		// dmi.chassis.sn: DMI Chassis Serial Number string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiChassisSerialNumber);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiChassisSerialNumber));
 			return true;
 		}
 		if (in == L"dmi.chassis.assettag") {		// dmi.chassis.product: DMI Chassis Asset Tag string
-			out = SAORI_FUNC::MultiByteToUnicode(dmiChassisAssetTagNumber);
+			out = SAORI_FUNC::MultiByteToUnicode(GETDMI(dmiChassisAssetTagNumber));
 			return true;
 		}
 
