@@ -9,7 +9,7 @@ class CPhyMem
 private:
 	PBYTE	type[4];
 	PBYTE	ii;
-	char	buf[1024*64*3];
+	char	buf[1024*64*4];
 	HANDLE	physmem;
 	DWORD	vaddress, paddress, length;
 	PBYTE MemSearch(PBYTE ToSearch,long size,const PBYTE StartAddr,const PBYTE endAddr);
