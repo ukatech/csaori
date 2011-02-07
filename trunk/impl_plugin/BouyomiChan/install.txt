@@ -1,6 +1,6 @@
 charset,UTF-8
 type,plugin
-name,�_�ǂ݂���񑗐M
+name,棒読みちゃん送信
 directory,BouyomiChan
 //Win7=0601 Vista=0600 XP=0501 2K=0500
 //os_version,0601
