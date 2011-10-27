@@ -8,6 +8,7 @@
 #include <commctrl.h>
 #include <shlobj.h>
 #include <shellapi.h>
+#include <shlwapi.h>
 #include <process.h>
 
 #include "csaori.h"
@@ -60,8 +61,18 @@ static HWND GetDesktopListView(void)
 
 HWND g_hWnd = NULL;
 
+class WindowIconInfo {
+public:
+	unsigned int m_index;
+	string_t m_name;
+	POINT m_pt;
+};
+
 static void __cdecl EmptyTrashThread(void*);
 static void QueryTrash(DWORD &size,DWORD &item);
+
+static unsigned int GetDesktopIconInfoListW4(std::vector<WindowIconInfo> &vec);
+static unsigned int GetDesktopIconInfoListW5(std::vector<WindowIconInfo> &vec);
 
 void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
@@ -78,10 +89,6 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 	else if ( wcsicmp(in.args[0].c_str(),L"get") == 0 ) {
 		out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
-
-		//デスクトップウインドウ (左上0,0)
-		HWND hWnd = GetDesktopListView();
-		if ( ! hWnd ) { return; }
 
 		//検索対象と検索結果
 		string_t find_string;
@@ -106,103 +113,68 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 				::SHGetMalloc( &pMalloc );
 				::SHGetSpecialFolderLocation(NULL,nFolder,&pidl);
 
-				SHFILEINFOW fileinfo;
-				::SHGetFileInfoW(reinterpret_cast<wchar_t*>(pidl),0,&fileinfo,sizeof(fileinfo),SHGFI_PIDL|SHGFI_DISPLAYNAME);
+				SHFILEINFOA fileinfo;
+				::SHGetFileInfoA(reinterpret_cast<char*>(pidl),0,&fileinfo,sizeof(fileinfo),SHGFI_PIDL|SHGFI_DISPLAYNAME);
 
 				pMalloc->Free(pidl);
 				pMalloc->Release();
 
-				find_string = fileinfo.szDisplayName;
+				find_string = SAORI_FUNC::MultiByteToUnicode(fileinfo.szDisplayName);
 			}
 		}
-		int find_pos = -1;
-		POINT find_point;
-		RECT find_rect;
-		string_t find_text;
 
-		//PIDを取って、内部に領域確保
-		DWORD pid;  
-		::GetWindowThreadProcessId(hWnd,&pid);
+		WindowIconInfo *pFound = NULL;
 
-		HANDLE ph = ::OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE, false, pid);
-		if ( ! ph ) { return; }
+		std::vector<WindowIconInfo> vec;
 
-		void *ptr = ::VirtualAllocEx(ph,NULL,BUFFER_SIZE,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE);
-		if ( ! ptr ) {
-			::CloseHandle(ph);
-			return;
+		OSVERSIONINFO osvi;
+		ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		::GetVersionEx( &osvi );
+
+		unsigned int count;
+		if ( osvi.dwMajorVersion >= 6 ) {
+			count = GetDesktopIconInfoListW5(vec);
+		}
+		else if ( osvi.dwMajorVersion >= 5 ) {
+			if ( osvi.dwMinorVersion >= 1 ) {
+				count = GetDesktopIconInfoListW5(vec);
+			}
+			else {
+				count = GetDesktopIconInfoListW4(vec);
+			}
+		}
+		else {
+			count = GetDesktopIconInfoListW4(vec);
 		}
 
-		//要素取得ループ
-		int count = ListView_GetItemCount(hWnd);
+		for ( unsigned int i = 0 ; i < count ; ++i ) {
+			string_t item = vec[i].m_name;
 
-		for ( int i = 0 ; i < count ; ++i ) {
-			//プロセス内メモリにLVITEMを書いて取得、残りの領域に文字列を書いてもらう
-			LVITEM li;
-			ZeroMemory(&li,sizeof(li));
-			li.mask = LVIF_TEXT;  
-			li.iItem = i;
-			li.iSubItem = 0;
-			li.cchTextMax = BUFFER_SIZE-sizeof(LVITEM)-1;
-			li.pszText = reinterpret_cast<char*>(ptr)+sizeof(LVITEM);
-			
-			DWORD numRead;
-			char text_buffer[BUFFER_SIZE-sizeof(LVITEM)];
-
-			::WriteProcessMemory(ph, ptr, &li, sizeof(LVITEM), &numRead );
-			::SendMessage(hWnd, LVM_GETITEM , 0, (LPARAM)ptr);
-			::ReadProcessMemory(ph, reinterpret_cast<char*>(ptr)+sizeof(LVITEM), text_buffer, BUFFER_SIZE-sizeof(LVITEM)-1, &numRead );
-			
-			string_t text = SAORI_FUNC::MultiByteToUnicode(text_buffer);
-			string_t item = text;
-
-			ListView_GetItemPosition(hWnd,i,ptr);
-
-			int cmd = LVIR_ICON;
-			::WriteProcessMemory(ph,reinterpret_cast<char*>(ptr)+sizeof(POINT),&cmd,sizeof(cmd),&numRead);
-			::SendMessage(hWnd,LVM_GETITEMRECT,i,reinterpret_cast<LPARAM>(reinterpret_cast<char*>(ptr)+sizeof(POINT)));
-
-			POINT pt;
-			RECT rect;
-			::ReadProcessMemory(ph, ptr, &pt, sizeof(POINT), &numRead );
-			::ReadProcessMemory(ph, reinterpret_cast<char*>(ptr)+sizeof(POINT), &rect, sizeof(RECT), &numRead );
-
-			if ( find_pos < 0 ) {
-				if ( wcsstr(text.c_str(),find_string.c_str()) ) {
-					find_pos = i;
-					find_point = pt;
-					find_rect = rect;
-					find_text = text;
+			if ( ! pFound ) {
+				if ( wcsstr(vec[i].m_name.c_str(),find_string.c_str()) ) {
+					pFound = &(vec[i]);
 				}
 			}
 
 			char_t rect_text[128];
-			swprintf(rect_text,L"\1%d,%d",pt.x,pt.y);
-			item += rect_text;
-
-			swprintf(rect_text,L"\1%d,%d,%d,%d",rect.left,rect.top,rect.right,rect.bottom);
+			swprintf(rect_text,L"\1%d,%d",vec[i].m_pt.x,vec[i].m_pt.y);
 			item += rect_text;
 
 			out.values.push_back(item);
 		}
 
-		::VirtualFreeEx(ph,ptr,0,MEM_RELEASE);
-		::CloseHandle(ph);
-
 		out.result_code = SAORIRESULT_OK;
 
-		if ( find_pos >= 0 ) {
+		if ( pFound ) {
 			char_t rect_text[128];
 
-			swprintf(rect_text,L"%d\1",find_pos);
+			swprintf(rect_text,L"%d\1",pFound->m_index);
 			out.result = rect_text;
 
-			out.result += find_text;
+			out.result += pFound->m_name;
 
-			swprintf(rect_text,L"\1%d,%d",find_point.x,find_point.y);
-			out.result += rect_text;
-
-			swprintf(rect_text,L"\1%d,%d,%d,%d",find_rect.left,find_rect.top,find_rect.right,find_rect.bottom);
+			swprintf(rect_text,L"\1%d,%d",pFound->m_pt.x,pFound->m_pt.y);
 			out.result += rect_text;
 		}
 		else {
@@ -231,6 +203,206 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		out.result_code = SAORIRESULT_OK;
 	}
 }
+
+/*====================================================================================
+	Windows 2000より前
+====================================================================================*/
+
+typedef LPVOID (WINAPI *PF_VIRTUALALLOCEX)(HANDLE,LPVOID,DWORD,DWORD,DWORD);
+typedef BOOL   (WINAPI *PF_VIRTUALFREEEX)(HANDLE,LPVOID,DWORD,DWORD);
+
+static unsigned int GetDesktopIconInfoListW4(std::vector<WindowIconInfo> &vec)
+{
+    OSVERSIONINFO osvi;
+    ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    ::GetVersionEx( &osvi );
+
+	bool isNT = (osvi.dwPlatformId == VER_PLATFORM_WIN32_NT);
+
+	// Windows NT系でしか利用できない関数を、Windows 95系に感知させない形で
+	// 呼び出すための工夫
+	HMODULE hDLL = GetModuleHandle("kernel32");
+	PF_VIRTUALALLOCEX pVirtualAllocEx = (PF_VIRTUALALLOCEX)GetProcAddress(hDLL,"VirtualAllocEx");
+	PF_VIRTUALFREEEX  pVirtualFreeEx  = (PF_VIRTUALFREEEX)GetProcAddress(hDLL, "VirtualFreeEx");
+
+	//デスクトップウインドウ (左上0,0)
+	HWND hWnd = GetDesktopListView();
+	if ( ! hWnd ) { return 0; }
+
+	//PIDを取って、内部に領域確保
+	DWORD pid;  
+	::GetWindowThreadProcessId(hWnd,&pid);
+
+	HANDLE ph;
+	void *ptr;
+	
+	if ( isNT ) {
+		ph = ::OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE, false, pid);
+		if ( ! ph ) { return 0; }
+
+		ptr = pVirtualAllocEx(ph,NULL,BUFFER_SIZE,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE);
+		if ( ! ptr ) {
+			::CloseHandle(ph);
+			return 0;
+		}
+	}
+	else {
+        ph = ::CreateFileMapping((HANDLE)0xFFFFFFFF, NULL, PAGE_READWRITE, 0, BUFFER_SIZE,NULL);
+        ptr = ::MapViewOfFile(ph, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+	}
+
+	//要素取得ループ
+	unsigned int count = ListView_GetItemCount(hWnd);
+
+	WindowIconInfo info;
+
+	for ( int i = 0 ; i < count ; ++i ) {
+		//プロセス内メモリにLVITEMを書いて取得、残りの領域に文字列を書いてもらう
+		LVITEM li;
+		ZeroMemory(&li,sizeof(li));
+		li.mask = LVIF_TEXT;  
+		li.iItem = i;
+		li.iSubItem = 0;
+		li.cchTextMax = BUFFER_SIZE-sizeof(LVITEM)-1;
+		li.pszText = reinterpret_cast<char*>(ptr)+sizeof(LVITEM);
+		
+		DWORD numRead;
+		char text_buffer[BUFFER_SIZE-sizeof(LVITEM)];
+
+		if ( isNT ) {
+			::WriteProcessMemory(ph, ptr, &li, sizeof(LVITEM), &numRead );
+		}
+		else {
+			memcpy(ptr, &li, sizeof(LVITEM) );
+		}
+
+		::SendMessage(hWnd, LVM_GETITEM , 0, (LPARAM)ptr);
+
+		if ( isNT ) {
+			::ReadProcessMemory(ph, reinterpret_cast<char*>(ptr)+sizeof(LVITEM), text_buffer, BUFFER_SIZE-sizeof(LVITEM)-1, &numRead );
+		}
+		else {
+			memcpy(text_buffer, reinterpret_cast<char*>(ptr)+sizeof(LVITEM), BUFFER_SIZE-sizeof(LVITEM)-1);
+		}
+		
+		info.m_name = SAORI_FUNC::MultiByteToUnicode(text_buffer);
+
+		ListView_GetItemPosition(hWnd,i,ptr);
+
+		if ( isNT ) {
+			::ReadProcessMemory(ph, ptr, &info.m_pt, sizeof(POINT), &numRead );
+		}
+		else {
+			memcpy(&info.m_pt, ptr, sizeof(POINT) );
+		}
+
+		info.m_index = i;
+
+		vec.push_back(info);
+	}
+
+	if ( isNT ) {
+		pVirtualFreeEx(ph,ptr,0,MEM_RELEASE);
+		::CloseHandle(ph);
+	}
+	else {
+		::UnmapViewOfFile(ptr);
+		::CloseHandle(ph);
+	}
+
+	return count;
+}
+
+/*====================================================================================
+	Windows XPより後
+====================================================================================*/
+
+#ifndef IID_PPV_ARGS
+template<typename T> void** IID_PPV_ARGS_Helper(T** pp) 
+{
+    static_cast<IUnknown*>(*pp);    // make sure everyone derives from IUnknown
+    return reinterpret_cast<void**>(pp);
+}
+
+#define IID_PPV_ARGS(ppType) __uuidof(**(ppType)), IID_PPV_ARGS_Helper(ppType)
+#endif //IID_PPV_ARGS
+
+static unsigned int GetDesktopIconInfoListW5(std::vector<WindowIconInfo> &vec)
+{
+	HRESULT result;
+	
+	IShellWindows *shellWindows = NULL;
+	result = ::CoCreateInstance(CLSID_ShellWindows, NULL, CLSCTX_ALL, IID_PPV_ARGS(&shellWindows) );
+	
+	VARIANT var;
+	VariantInit(&var);
+	IDispatch *dispatch = NULL;
+	long hwnd;
+	result = shellWindows->FindWindowSW(&var,&var,/*SWC_DESKTOP*/0x8,&hwnd,SWFO_NEEDDISPATCH,&dispatch);
+	
+	/*IWebBrowserApp *webBrowserApp = NULL;
+	result = dispatch->QueryInterface(IID_IWebBrowserApp,(void**)&webBrowserApp);*/
+
+	IServiceProvider *serviceProvider = NULL;
+	result = dispatch->QueryInterface(IID_PPV_ARGS(&serviceProvider));
+
+	IShellBrowser *shellBrowser = NULL;
+	result = serviceProvider->QueryService(SID_STopLevelBrowser,IID_PPV_ARGS(&shellBrowser));
+
+	IShellView *shellView = NULL;
+	result = shellBrowser->QueryActiveShellView(&shellView);
+
+	IFolderView *folderView = NULL;
+	result = shellView->QueryInterface(IID_PPV_ARGS(&folderView));
+
+	IShellFolder *shellFolder = NULL;
+	folderView->GetFolder(IID_PPV_ARGS(&shellFolder));
+	
+	IEnumIDList *enumIDList = NULL;
+	result = folderView->Items(SVGIO_FLAG_VIEWORDER,IID_PPV_ARGS(&enumIDList));
+	
+	ITEMIDLIST *childpidl = NULL;
+	unsigned int count = 0;
+
+	WindowIconInfo info;
+
+	while ( enumIDList->Next(1,&childpidl,NULL) == S_OK ) {
+		POINT pos;
+		result = folderView->GetItemPosition(childpidl,&pos);
+
+		STRRET strret;
+		shellFolder->GetDisplayNameOf(childpidl, SHGDN_NORMAL, &strret);
+
+		wchar_t szDisplayName[256];
+		::StrRetToBufW(&strret, childpidl, szDisplayName, sizeof(szDisplayName));
+
+		info.m_index = count;
+		info.m_pt = pos;
+		info.m_name = szDisplayName;
+
+		vec.push_back(info);
+
+		ILFree(childpidl);
+		++count;
+	}
+
+	enumIDList->Release();
+	shellFolder->Release();
+	folderView->Release();
+	shellView->Release();
+	shellBrowser->Release();
+	serviceProvider->Release();
+	//webBrowserApp->Release();
+	dispatch->Release();
+	shellWindows->Release();
+
+	return count;
+}
+
+/*====================================================================================
+	ごみばこ操作
+====================================================================================*/
 
 static void QueryTrash(DWORD &totalSize,DWORD &totalItems)
 {
