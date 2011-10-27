@@ -443,7 +443,7 @@ void __cdecl EmptyTrashThread(void*)
 	}
 
 	if ( g_hWnd && ::IsWindow(g_hWnd) ) {
-		string_t sstp(L"NOTIFY SSTP/1.1\r\nEvent: OnRecycleBinEmptied\r\nCharset: UTF-8\r\nHWnd: 0\r\n");
+		string_t sstp(L"NOTIFY SSTP/1.1\r\nEvent: OnRecycleBinEmptied\r\nCharset: UTF-8\r\nSender: GetDesktopIconRect SAORI\r\nHWnd: 0\r\n");
 
 		char_t tmp[256];
 
