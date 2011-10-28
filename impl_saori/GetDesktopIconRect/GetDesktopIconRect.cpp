@@ -10,6 +10,7 @@
 #include <shellapi.h>
 #include <shlwapi.h>
 #include <process.h>
+#include <comdef.h>
 
 #include "csaori.h"
 
@@ -328,38 +329,40 @@ template<typename T> void** IID_PPV_ARGS_Helper(T** pp)
 #define IID_PPV_ARGS(ppType) __uuidof(**(ppType)), IID_PPV_ARGS_Helper(ppType)
 #endif //IID_PPV_ARGS
 
+#define COM_PTR_DEF(type) _com_ptr_t<_com_IIID<type,&__uuidof(type)> >
+
 static unsigned int GetDesktopIconInfoListW5(std::vector<WindowIconInfo> &vec)
 {
 	HRESULT result;
 	
-	IShellWindows *shellWindows = NULL;
+	COM_PTR_DEF(IShellWindows) shellWindows = NULL;
 	result = ::CoCreateInstance(CLSID_ShellWindows, NULL, CLSCTX_ALL, IID_PPV_ARGS(&shellWindows) );
 	
 	VARIANT var;
 	VariantInit(&var);
-	IDispatch *dispatch = NULL;
+	COM_PTR_DEF(IDispatch) dispatch = NULL;
 	long hwnd;
 	result = shellWindows->FindWindowSW(&var,&var,/*SWC_DESKTOP*/0x8,&hwnd,SWFO_NEEDDISPATCH,&dispatch);
 	
-	/*IWebBrowserApp *webBrowserApp = NULL;
-	result = dispatch->QueryInterface(IID_IWebBrowserApp,(void**)&webBrowserApp);*/
+	COM_PTR_DEF(IWebBrowserApp) webBrowserApp = NULL;
+	result = dispatch->QueryInterface(IID_PPV_ARGS(&webBrowserApp));
 
-	IServiceProvider *serviceProvider = NULL;
+	COM_PTR_DEF(IServiceProvider) serviceProvider = NULL;
 	result = dispatch->QueryInterface(IID_PPV_ARGS(&serviceProvider));
 
-	IShellBrowser *shellBrowser = NULL;
+	COM_PTR_DEF(IShellBrowser) shellBrowser = NULL;
 	result = serviceProvider->QueryService(SID_STopLevelBrowser,IID_PPV_ARGS(&shellBrowser));
 
-	IShellView *shellView = NULL;
+	COM_PTR_DEF(IShellView) shellView = NULL;
 	result = shellBrowser->QueryActiveShellView(&shellView);
 
-	IFolderView *folderView = NULL;
+	COM_PTR_DEF(IFolderView) folderView = NULL;
 	result = shellView->QueryInterface(IID_PPV_ARGS(&folderView));
 
-	IShellFolder *shellFolder = NULL;
+	COM_PTR_DEF(IShellFolder) shellFolder = NULL;
 	folderView->GetFolder(IID_PPV_ARGS(&shellFolder));
 	
-	IEnumIDList *enumIDList = NULL;
+	COM_PTR_DEF(IEnumIDList) enumIDList = NULL;
 	result = folderView->Items(SVGIO_FLAG_VIEWORDER,IID_PPV_ARGS(&enumIDList));
 	
 	ITEMIDLIST *childpidl = NULL;
@@ -383,19 +386,19 @@ static unsigned int GetDesktopIconInfoListW5(std::vector<WindowIconInfo> &vec)
 
 		vec.push_back(info);
 
-		ILFree(childpidl);
+		::ILFree(childpidl);
 		++count;
 	}
 
-	enumIDList->Release();
+	/*enumIDList->Release();
 	shellFolder->Release();
 	folderView->Release();
 	shellView->Release();
 	shellBrowser->Release();
 	serviceProvider->Release();
-	//webBrowserApp->Release();
+	webBrowserApp->Release();
 	dispatch->Release();
-	shellWindows->Release();
+	shellWindows->Release();*/
 
 	return count;
 }
