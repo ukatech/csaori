@@ -72,8 +72,8 @@ public:
 static void __cdecl EmptyTrashThread(void*);
 static void QueryTrash(DWORD &size,DWORD &item);
 
-static unsigned int GetDesktopIconInfoListW4(std::vector<WindowIconInfo> &vec);
-static unsigned int GetDesktopIconInfoListW5(std::vector<WindowIconInfo> &vec);
+static unsigned int GetDesktopIconInfoListW4(std::vector<WindowIconInfo> &vec,CSAORIOutput& out);
+static unsigned int GetDesktopIconInfoListW5(std::vector<WindowIconInfo> &vec,CSAORIOutput& out);
 
 void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
@@ -135,18 +135,18 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 		unsigned int count;
 		if ( osvi.dwMajorVersion >= 6 ) {
-			count = GetDesktopIconInfoListW5(vec);
+			count = GetDesktopIconInfoListW5(vec,out);
 		}
-		else if ( osvi.dwMajorVersion >= 5 ) {
+		/*else if ( osvi.dwMajorVersion >= 5 ) {
 			if ( osvi.dwMinorVersion >= 1 ) {
-				count = GetDesktopIconInfoListW5(vec);
+				count = GetDesktopIconInfoListW5(vec,out);
 			}
 			else {
-				count = GetDesktopIconInfoListW4(vec);
+				count = GetDesktopIconInfoListW4(vec,out);
 			}
-		}
+		}*/
 		else {
-			count = GetDesktopIconInfoListW4(vec);
+			count = GetDesktopIconInfoListW4(vec,out);
 		}
 
 		for ( unsigned int i = 0 ; i < count ; ++i ) {
@@ -212,7 +212,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 typedef LPVOID (WINAPI *PF_VIRTUALALLOCEX)(HANDLE,LPVOID,DWORD,DWORD,DWORD);
 typedef BOOL   (WINAPI *PF_VIRTUALFREEEX)(HANDLE,LPVOID,DWORD,DWORD);
 
-static unsigned int GetDesktopIconInfoListW4(std::vector<WindowIconInfo> &vec)
+static unsigned int GetDesktopIconInfoListW4(std::vector<WindowIconInfo> &vec,CSAORIOutput& out)
 {
     OSVERSIONINFO osvi;
     ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
@@ -331,40 +331,76 @@ template<typename T> void** IID_PPV_ARGS_Helper(T** pp)
 
 #define COM_PTR_DEF(type) _com_ptr_t<_com_IIID<type,&__uuidof(type)> >
 
-static unsigned int GetDesktopIconInfoListW5(std::vector<WindowIconInfo> &vec)
+static unsigned int GetDesktopIconInfoListW5(std::vector<WindowIconInfo> &vec,CSAORIOutput& out)
 {
 	HRESULT result;
 	
 	COM_PTR_DEF(IShellWindows) shellWindows = NULL;
 	result = ::CoCreateInstance(CLSID_ShellWindows, NULL, CLSCTX_ALL, IID_PPV_ARGS(&shellWindows) );
+	if ( ! SUCCEEDED(result) ) {
+		out.opts.insert(map_strpair::value_type(L"X-Error-Reason",L"IShellWindows"));
+		return 0;
+	}
 	
 	VARIANT var;
 	VariantInit(&var);
 	COM_PTR_DEF(IDispatch) dispatch = NULL;
 	long hwnd;
 	result = shellWindows->FindWindowSW(&var,&var,/*SWC_DESKTOP*/0x8,&hwnd,SWFO_NEEDDISPATCH,&dispatch);
+	if ( ! SUCCEEDED(result) ) {
+		out.opts.insert(map_strpair::value_type(L"X-Error-Reason",L"IDispatch"));
+		return 0;
+	}
 	
 	COM_PTR_DEF(IWebBrowserApp) webBrowserApp = NULL;
 	result = dispatch->QueryInterface(IID_PPV_ARGS(&webBrowserApp));
+	if ( ! SUCCEEDED(result) ) {
+		out.opts.insert(map_strpair::value_type(L"X-Error-Reason",L"IWebBrowserApp"));
+		return 0;
+	}
 
 	COM_PTR_DEF(IServiceProvider) serviceProvider = NULL;
-	result = dispatch->QueryInterface(IID_PPV_ARGS(&serviceProvider));
+	result = webBrowserApp->QueryInterface(IID_PPV_ARGS(&serviceProvider));
+	if ( ! SUCCEEDED(result) ) {
+		out.opts.insert(map_strpair::value_type(L"X-Error-Reason",L"IServiceProvider"));
+		return 0;
+	}
 
 	COM_PTR_DEF(IShellBrowser) shellBrowser = NULL;
 	result = serviceProvider->QueryService(SID_STopLevelBrowser,IID_PPV_ARGS(&shellBrowser));
+	if ( ! SUCCEEDED(result) ) {
+		out.opts.insert(map_strpair::value_type(L"X-Error-Reason",L"IShellBrowser"));
+		return 0;
+	}
 
 	COM_PTR_DEF(IShellView) shellView = NULL;
 	result = shellBrowser->QueryActiveShellView(&shellView);
+	if ( ! SUCCEEDED(result) ) {
+		out.opts.insert(map_strpair::value_type(L"X-Error-Reason",L"IShellView"));
+		return 0;
+	}
 
 	COM_PTR_DEF(IFolderView) folderView = NULL;
 	result = shellView->QueryInterface(IID_PPV_ARGS(&folderView));
+	if ( ! SUCCEEDED(result) ) {
+		out.opts.insert(map_strpair::value_type(L"X-Error-Reason",L"IFolderView"));
+		return 0;
+	}
 
 	COM_PTR_DEF(IShellFolder) shellFolder = NULL;
 	folderView->GetFolder(IID_PPV_ARGS(&shellFolder));
-	
+	if ( ! SUCCEEDED(result) ) {
+		out.opts.insert(map_strpair::value_type(L"X-Error-Reason",L"IShellFolder"));
+		return 0;
+	}
+
 	COM_PTR_DEF(IEnumIDList) enumIDList = NULL;
 	result = folderView->Items(SVGIO_FLAG_VIEWORDER,IID_PPV_ARGS(&enumIDList));
-	
+	if ( ! SUCCEEDED(result) ) {
+		out.opts.insert(map_strpair::value_type(L"X-Error-Reason",L"IEnumIDList"));
+		return 0;
+	}
+
 	ITEMIDLIST *childpidl = NULL;
 	unsigned int count = 0;
 
