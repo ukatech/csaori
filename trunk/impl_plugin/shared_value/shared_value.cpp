@@ -29,37 +29,41 @@
 
 #define MAX_VALUE_LENGTH 32760
 #define HEADER_LENGTH    6
+#define BUFFER_ENCODE ((MAX_VALUE_LENGTH+HEADER_LENGTH)*2)
+#define BUFFER_DECODE (MAX_VALUE_LENGTH+HEADER_LENGTH)
 #define FILE_NAME "values.dat"
 
-void EncodeBuffer(char *buf)
+void EncodeBuffer2(const char *buf_from,char *buf_to)
 {
-	int c;
-	while ( *buf ) {
-		c = *buf;
+	const unsigned char *buf_from2 = reinterpret_cast<const unsigned char*>(buf_from);
 
-		if ( c >= 0x11 && c <= 0x12 ) { //0x11～12は制御シーケンスに使う
-			c = 0xDF; //0x20 XOR 0xFF
-		}
-		else if ( c == 0xF5 ) { //0x0a XOR 0xFF
-			c = 0xEE; //0x11 XOR 0xFF
-		}
-		else if ( c == 0xF2 ) { //0x0d XOR 0xFF
-			c = 0xED; //0x12 XOR 0xFF
-		}
-		else {
-			c = c ^ 0xFFU;
-		}
+	unsigned int c;
+	char asc[3];
 
-		*buf = c;
-		++buf;
+	while ( *buf_from2 ) {
+		c = *buf_from2;
+		c = c ^ 0xFFU;
+
+		sprintf(asc,"%02x",c);
+
+		buf_to[0] = asc[0];
+		buf_to[1] = asc[1];
+
+		buf_from2 += 1;
+		buf_to += 2;
 	}
+
+	*buf_to = 0;
 }
 
-void DecodeBuffer(char *buf)
+void DecodeBuffer1(const char *buf_from,char *buf_to)
 {
-	int c;
-	while ( *buf ) {
-		c = *buf;
+	const unsigned char *buf_from2 = reinterpret_cast<const unsigned char*>(buf_from);
+	unsigned char *buf_to2 = reinterpret_cast<unsigned char*>(buf_to);
+
+	unsigned int c;
+	while ( *buf_from2 ) {
+		c = *buf_from2;
 
 		if ( c == 0xEE ) { //0x11 XOR 0xFF
 			c = 0xF5; //0x0a XOR 0xFF
@@ -71,9 +75,37 @@ void DecodeBuffer(char *buf)
 			c = c ^ 0xFFU;
 		}
 
-		*buf = c;
-		++buf;
+		*buf_to2 = static_cast<unsigned char>(c);
+		
+		buf_from2 += 1;
+		buf_to2 += 1;
 	}
+
+	*buf_to2 = 0;
+}
+
+void DecodeBuffer2(const char *buf_from,char *buf_to)
+{
+	unsigned char *buf_to2 = reinterpret_cast<unsigned char*>(buf_to);
+
+	unsigned int c;
+	char asc[3];
+	asc[2] = 0;
+
+	while ( *buf_from ) {
+		asc[0] = buf_from[0];
+		asc[1] = buf_from[1];
+
+		c = strtoul(asc,NULL,16);
+		c = c ^ 0xFFU;
+
+		*buf_to2 = static_cast<unsigned char>(c);
+
+		buf_from += 2;
+		buf_to2 += 1;
+	}
+
+	*buf_to2 = 0;
 }
 
 /*===============================================================
@@ -162,33 +194,40 @@ bool CSharedValueGhost::Add(const string_t& name,const string_t& value)
 
 void CSharedValueGhost::Save(std::ostream &f)
 {
+	size_t n = m_element.size();
+	if ( n == 0 ) {
+		return;
+	}
+
 	std::string save;
 
-	char buf[MAX_VALUE_LENGTH+HEADER_LENGTH+1];
-	buf[MAX_VALUE_LENGTH+HEADER_LENGTH+1] = 0;
+	char buf_decode[BUFFER_DECODE+1];
+	buf_decode[BUFFER_DECODE] = 0;
+
+	char buf_encode[BUFFER_ENCODE+1];
+	buf_encode[BUFFER_ENCODE] = 0;
 
 	save =  "GHOST*";
 	save += SAORI_FUNC::UnicodeToMultiByte(GetGhost(),CP_UTF8);
 
-	strncpy(buf,save.c_str(),MAX_VALUE_LENGTH+HEADER_LENGTH);
-	EncodeBuffer(buf);
-	f << buf << std::endl;
+	strncpy(buf_decode,save.c_str(),BUFFER_DECODE);
+	EncodeBuffer2(buf_decode,buf_encode);
+	f << buf_encode << std::endl;
 
-	size_t n = m_element.size();
 	for ( size_t i = 0 ; i < n ; ++i ) {
 		save =  "NAME_*";
 		save += SAORI_FUNC::UnicodeToMultiByte(m_element[i]->m_name,CP_UTF8);
 
-		strncpy(buf,save.c_str(),MAX_VALUE_LENGTH+HEADER_LENGTH);
-		EncodeBuffer(buf);
-		f << buf << std::endl;
+		strncpy(buf_decode,save.c_str(),BUFFER_DECODE);
+		EncodeBuffer2(buf_decode,buf_encode);
+		f << buf_encode << std::endl;
 
 		save =  "VALUE*";
 		save += SAORI_FUNC::UnicodeToMultiByte(m_element[i]->m_value,CP_UTF8);
 
-		strncpy(buf,save.c_str(),MAX_VALUE_LENGTH+HEADER_LENGTH);
-		EncodeBuffer(buf);
-		f << buf << std::endl;
+		strncpy(buf_decode,save.c_str(),BUFFER_DECODE);
+		EncodeBuffer2(buf_decode,buf_encode);
+		f << buf_encode << std::endl;
 	}
 }
 
@@ -244,14 +283,25 @@ bool CSharedValue::load()
 	std::ifstream strm;
 	strm.open(checkAndModifyPath(FILE_NAME).c_str());
 
-	char buf[MAX_VALUE_LENGTH+HEADER_LENGTH+2];
-	buf[MAX_VALUE_LENGTH+HEADER_LENGTH+1] = 0;
+	char buf_decode[BUFFER_DECODE+1];
+	buf_decode[BUFFER_DECODE] = 0;
+	char buf_encode[BUFFER_ENCODE+1];
+	buf_encode[BUFFER_ENCODE] = 0;
 
-	strm.getline(buf,MAX_VALUE_LENGTH+HEADER_LENGTH);
+	strm.getline(buf_encode,BUFFER_ENCODE);
 	if ( strm.fail() ) {
 		return false;
 	}
-	if ( strcmp(buf,"SVD1") != 0 ) {
+
+	int version = 0;
+
+	if ( strcmp(buf_encode,"SVD2") == 0 ) {
+		version = 2;
+	}
+	else if ( strcmp(buf_encode,"SVD1") == 0 ) {
+		version = 1;
+	}
+	else {
 		return false;
 	}
 
@@ -260,31 +310,36 @@ bool CSharedValue::load()
 	string_t value;
 
 	while ( true ) {
-		strm.getline(buf,sizeof(buf));
+		strm.getline(buf_encode,sizeof(buf_encode));
 		if ( strm.fail() ) {
 			break;
 		}
 
-		DecodeBuffer(buf);
+		if ( version == 1 ) {
+			DecodeBuffer1(buf_encode,buf_decode);
+		}
+		else {
+			DecodeBuffer2(buf_encode,buf_decode);
+		}
 
-		if ( strncmp(buf,"GHOST*",HEADER_LENGTH) == 0 ) {
-			string_t gname = SAORI_FUNC::MultiByteToUnicode(buf+HEADER_LENGTH,CP_UTF8);
+		if ( strncmp(buf_decode,"GHOST*",HEADER_LENGTH) == 0 ) {
+			string_t gname = SAORI_FUNC::MultiByteToUnicode(buf_decode+HEADER_LENGTH,CP_UTF8);
 			pGhost = FindGhost(gname);
 			if ( ! pGhost ) {
 				pGhost = new CSharedValueGhost(gname);
 				m_ghost_values.push_back(pGhost);
 			}
 		}
-		else if ( strncmp(buf,"NAME_*",HEADER_LENGTH) == 0 ) {
+		else if ( strncmp(buf_decode,"NAME_*",HEADER_LENGTH) == 0 ) {
 			if ( pGhost && name.size() ) {
 				pGhost->Add(name,L"");
 				name = L"";
 			}
-			name = SAORI_FUNC::MultiByteToUnicode(buf+HEADER_LENGTH,CP_UTF8);
+			name = SAORI_FUNC::MultiByteToUnicode(buf_decode+HEADER_LENGTH,CP_UTF8);
 		}
-		else if ( strncmp(buf,"VALUE*",HEADER_LENGTH) == 0 ) {
+		else if ( strncmp(buf_decode,"VALUE*",HEADER_LENGTH) == 0 ) {
 			if ( pGhost && name.size() ) {
-				value = SAORI_FUNC::MultiByteToUnicode(buf+HEADER_LENGTH,CP_UTF8);
+				value = SAORI_FUNC::MultiByteToUnicode(buf_decode+HEADER_LENGTH,CP_UTF8);
 				pGhost->Add(name,value);
 				name = L"";
 				value = L"";
@@ -302,7 +357,7 @@ void CSharedValue::Save(void)
 	std::ofstream strm;
 	strm.open(checkAndModifyPath(FILE_NAME).c_str());
 
-	strm << "SVD1" << std::endl;
+	strm << "SVD2" << std::endl;
 	size_t n = m_ghost_values.size();
 
 	for ( size_t i = 0 ; i < n ; ++i ) {
