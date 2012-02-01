@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="GetDesktopIconRect"
+	Name="GetDesktopInfo"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -28,7 +28,7 @@
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Release/GetDesktopIconRect.pch"
+				PrecompiledHeaderFile=".\Release/GetDesktopInfo.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -40,11 +40,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib version.lib"
-				OutputFile=".\Release/GetDesktopIconRect.dll"
+				OutputFile=".\Release/GetDesktopInfo.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				ProgramDatabaseFile=".\Release/GetDesktopIconRect.pdb"
-				ImportLibrary=".\Release/GetDesktopIconRect.lib"
+				ProgramDatabaseFile=".\Release/GetDesktopInfo.pdb"
+				ImportLibrary=".\Release/GetDesktopInfo.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -52,7 +52,7 @@
 				MkTypLibCompatible="TRUE"
 				SuppressStartupBanner="TRUE"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/GetDesktopIconRect.tlb"
+				TypeLibraryName=".\Release/GetDesktopInfo.tlb"
 				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
@@ -91,7 +91,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Debug/GetDesktopIconRect.pch"
+				PrecompiledHeaderFile=".\Debug/GetDesktopInfo.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -104,12 +104,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib version.lib"
-				OutputFile=".\Debug/GetDesktopIconRect.dll"
+				OutputFile=".\Debug/GetDesktopInfo.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Debug/GetDesktopIconRect.pdb"
-				ImportLibrary=".\Debug/GetDesktopIconRect.lib"
+				ProgramDatabaseFile=".\Debug/GetDesktopInfo.pdb"
+				ImportLibrary=".\Debug/GetDesktopInfo.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -117,7 +117,7 @@
 				MkTypLibCompatible="TRUE"
 				SuppressStartupBanner="TRUE"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/GetDesktopIconRect.tlb"
+				TypeLibraryName=".\Debug/GetDesktopInfo.tlb"
 				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
@@ -188,7 +188,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="GetDesktopIconRect.cpp">
+				RelativePath="GetDesktopInfo.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
@@ -225,7 +225,7 @@
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
 			<File
-				RelativePath="GetDesktopIconRect.rc">
+				RelativePath="GetDesktopInfo.rc">
 			</File>
 		</Filter>
 	</Files>

@@ -331,6 +331,10 @@ template<typename T> void** IID_PPV_ARGS_Helper(T** pp)
 
 #define COM_PTR_DEF(type) _com_ptr_t<_com_IIID<type,&__uuidof(type)> >
 
+#ifndef SWC_DESKTOP
+#define SWC_DESKTOP 0x8
+#endif
+
 static unsigned int GetDesktopIconInfoListW5(std::vector<WindowIconInfo> &vec,CSAORIOutput& out)
 {
 	HRESULT result;
@@ -346,7 +350,7 @@ static unsigned int GetDesktopIconInfoListW5(std::vector<WindowIconInfo> &vec,CS
 	VariantInit(&var);
 	COM_PTR_DEF(IDispatch) dispatch = NULL;
 	long hwnd;
-	result = shellWindows->FindWindowSW(&var,&var,/*SWC_DESKTOP*/0x8,&hwnd,SWFO_NEEDDISPATCH,&dispatch);
+	result = shellWindows->FindWindowSW(&var,&var,SWC_DESKTOP,&hwnd,SWFO_NEEDDISPATCH,&dispatch);
 	if ( ! SUCCEEDED(result) ) {
 		out.opts.insert(map_strpair::value_type(L"X-Error-Reason",L"IDispatch"));
 		return 0;
@@ -426,16 +430,6 @@ static unsigned int GetDesktopIconInfoListW5(std::vector<WindowIconInfo> &vec,CS
 		++count;
 	}
 
-	/*enumIDList->Release();
-	shellFolder->Release();
-	folderView->Release();
-	shellView->Release();
-	shellBrowser->Release();
-	serviceProvider->Release();
-	webBrowserApp->Release();
-	dispatch->Release();
-	shellWindows->Release();*/
-
 	return count;
 }
 
@@ -482,7 +476,7 @@ void __cdecl EmptyTrashThread(void*)
 	}
 
 	if ( g_hWnd && ::IsWindow(g_hWnd) ) {
-		string_t sstp(L"NOTIFY SSTP/1.1\r\nEvent: OnRecycleBinEmptied\r\nCharset: UTF-8\r\nSender: GetDesktopIconRect SAORI\r\nHWnd: 0\r\n");
+		string_t sstp(L"NOTIFY SSTP/1.1\r\nEvent: OnRecycleBinEmptied\r\nCharset: UTF-8\r\nSender: GetDesktopInfo SAORI\r\nHWnd: 0\r\n");
 
 		char_t tmp[256];
 

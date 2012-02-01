@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="GetDesktopIconRect" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="GetDesktopInfo" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** 編集しないでください **
 
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
-CFG=GetDesktopIconRect - Win32 Debug
+CFG=GetDesktopInfo - Win32 Debug
 !MESSAGE これは有効なﾒｲｸﾌｧｲﾙではありません。 このﾌﾟﾛｼﾞｪｸﾄをﾋﾞﾙﾄﾞするためには NMAKE を使用してください。
 !MESSAGE [ﾒｲｸﾌｧｲﾙのｴｸｽﾎﾟｰﾄ] ｺﾏﾝﾄﾞを使用して実行してください
 !MESSAGE 
-!MESSAGE NMAKE /f "GetDesktopIconRect.mak".
+!MESSAGE NMAKE /f "GetDesktopInfo.mak".
 !MESSAGE 
 !MESSAGE NMAKE の実行時に構成を指定できます
 !MESSAGE ｺﾏﾝﾄﾞ ﾗｲﾝ上でﾏｸﾛの設定を定義します。例:
 !MESSAGE 
-!MESSAGE NMAKE /f "GetDesktopIconRect.mak" CFG="GetDesktopIconRect - Win32 Debug"
+!MESSAGE NMAKE /f "GetDesktopInfo.mak" CFG="GetDesktopInfo - Win32 Debug"
 !MESSAGE 
 !MESSAGE 選択可能なﾋﾞﾙﾄﾞ ﾓｰﾄﾞ:
 !MESSAGE 
-!MESSAGE "GetDesktopIconRect - Win32 Release" ("Win32 (x86) Dynamic-Link Library" 用)
-!MESSAGE "GetDesktopIconRect - Win32 Debug" ("Win32 (x86) Dynamic-Link Library" 用)
+!MESSAGE "GetDesktopInfo - Win32 Release" ("Win32 (x86) Dynamic-Link Library" 用)
+!MESSAGE "GetDesktopInfo - Win32 Debug" ("Win32 (x86) Dynamic-Link Library" 用)
 !MESSAGE 
 
 # Begin Project
@@ -29,7 +29,7 @@ CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "GetDesktopIconRect - Win32 Release"
+!IF  "$(CFG)" == "GetDesktopInfo - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -55,7 +55,7 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib winmm.lib shlwapi.lib /nologo /dll /machine:I386
 
-!ELSEIF  "$(CFG)" == "GetDesktopIconRect - Win32 Debug"
+!ELSEIF  "$(CFG)" == "GetDesktopInfo - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -79,14 +79,14 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib winmm.lib shlwapi.lib /nologo /dll /debug /machine:I386 /out:"D:\ssp_src_set\ssp\ghost\mobilemaster\ghost\master\saori/GetDesktopIconRect.dll" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib winmm.lib shlwapi.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 
 # Begin Target
 
-# Name "GetDesktopIconRect - Win32 Release"
-# Name "GetDesktopIconRect - Win32 Debug"
+# Name "GetDesktopInfo - Win32 Release"
+# Name "GetDesktopInfo - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -100,7 +100,7 @@ SOURCE=..\..\csaori_base.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\GetDesktopIconRect.cpp
+SOURCE=.\GetDesktopInfo.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -124,7 +124,7 @@ SOURCE=.\resource.h
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE=.\GetDesktopIconRect.rc
+SOURCE=.\GetDesktopInfo.rc
 # End Source File
 # End Group
 # End Target
