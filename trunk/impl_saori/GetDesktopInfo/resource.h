@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Developer Studio generated include file.
-// Used by GetDesktopIconRect.rc
+// Used by GetDesktopInfo.rc
 //
 
 // Next default values for new objects
