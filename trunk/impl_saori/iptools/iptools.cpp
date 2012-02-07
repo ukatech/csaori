@@ -6,7 +6,11 @@
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <process.h>
+
 #include "csaori.h"
+
+static void* g_hwnd = NULL;
 
 string_t CountryCodeToName(const string_t& s);
 
@@ -31,18 +35,106 @@ bool CSAORI::unload(){
 	実行
 ---------------------------------------------------------*/
 
+class ExecuteWhoisData {
+public:
+	string_t in_event;
+	string_t in_host;
+
+	string_t inetnum;
+	string_t netname;
+	string_t descr;
+	string_t country;
+};
+
+static void _cdecl ExecuteWhoisThreadFunc(void *d);
+static bool ExecuteWhois(ExecuteWhoisData &d,bool is_async = false);
+
 void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
-	if ( in.args.size() < 2 ) {
-		out.result_code = SAORIRESULT_BAD_REQUEST;
-		return;
-	}
-	
-	if ( in.args[0] != L"iptools" ) {
+	//パラメータ必須 Arg0:コマンド
+	if ( in.args.size() < 1 ) {
 		out.result_code = SAORIRESULT_BAD_REQUEST;
 		return;
 	}
 
+	out.result_code = SAORIRESULT_BAD_REQUEST;
+	const string_t &cmd = in.args[0];
+	
+	//***** hwndコマンド *****
+	if ( wcsnicmp(cmd.c_str(),L"hwnd",4) == 0 ) {
+		//このコマンドのみ特殊：Arg1はhwnd
+		if ( in.args.size() < 2 ) {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
+			return;
+		}
+		g_hwnd = reinterpret_cast<void*>(wcstoul(in.args[1].c_str(),NULL,10));
+		return;
+	}
+
+	//***** whois(async) - こっちを必ず先に書く *****
+	if ( wcsnicmp(cmd.c_str(),L"ipwhois_async",13) == 0 || wcsnicmp(cmd.c_str(),L"whois_async",11) == 0 ) {
+		if ( in.args.size() < 2 ) {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
+			return;
+		}
+		if ( g_hwnd == NULL ) {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
+			return;
+		}
+		
+		ExecuteWhoisData *pData = new ExecuteWhoisData;
+		pData->in_host = in.args[1];
+		if ( in.args.size() >= 3 ) {
+			pData->in_event = in.args[2];
+		}
+		_beginthread(ExecuteWhoisThreadFunc,0,pData);
+
+		return;
+	}
+
+	//***** whois *****
+	if ( wcsnicmp(cmd.c_str(),L"ipwhois",7) == 0 || wcsnicmp(cmd.c_str(),L"whois",5) == 0 ) {
+		if ( in.args.size() < 2 ) {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
+			return;
+		}
+		
+		ExecuteWhoisData d;
+
+		d.in_host = in.args[1];
+
+		if ( ! ExecuteWhois(d) ) {
+			out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
+			return;
+		}
+
+		out.result_code = SAORIRESULT_OK;
+		out.result = CountryCodeToName(d.country);
+		out.values.push_back(d.country);
+		out.values.push_back(d.inetnum);
+		out.values.push_back(d.netname);
+		out.values.push_back(d.descr);
+
+		return;
+	}
+}
+
+void _cdecl ExecuteWhoisThreadFunc(void *ptr)
+{
+	ExecuteWhoisData *pData = reinterpret_cast<ExecuteWhoisData*>(ptr);
+
+	ExecuteWhoisData &d = *pData;
+
+	if ( ExecuteWhois(d,true) ) {
+	}
+	else {
+	}
+
+	delete pData;
+}
+
+bool ExecuteWhois(ExecuteWhoisData &d,bool is_async)
+{
 	int Ports = 43; //whois
 
 	ADDRINFO Hints,*AddrInfo;
@@ -52,8 +144,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	
 	int RetVal = getaddrinfo("whois.lacnic.net", "43", &Hints, &AddrInfo);
 	if ( RetVal != 0 ) {
-		out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
-		return;
+		return false;
 	}
 
 	SOCKET ConnSocket = INVALID_SOCKET;
@@ -71,13 +162,12 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	
 	freeaddrinfo(AddrInfo);
 
-	std::string send_msg = SAORI_FUNC::UnicodeToMultiByte(in.args[1]);
+	std::string send_msg = SAORI_FUNC::UnicodeToMultiByte(d.in_host);
 	send_msg += "\r\n";
 	
 	RetVal = send(ConnSocket, send_msg.c_str(), send_msg.size(), 0);
 	if (RetVal == SOCKET_ERROR) {
-		out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
-		return;
+		return false;
 	}
 
     shutdown(ConnSocket, SD_SEND);
@@ -104,8 +194,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		closesocket(ConnSocket);
 
 		if (read_string.size() == 0) {
-			out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
-			return;
+			return false;
 		}
 
 		data = SAORI_FUNC::MultiByteToUnicode(read_string);
@@ -114,7 +203,6 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	size_t pos = 0, nextpos, ts;
 	string_t sl,k,v;
 
-	string_t inetnum,netname,descr,country;
 	bool suppress = false;
 	bool last_descr = false;
 
@@ -133,21 +221,21 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 					v = sl.substr(vs);
 
 					if ( k.find(L"inetnum") != string_t::npos || k.find(L"NetRange") != string_t::npos ) {
-						inetnum = v;
+						d.inetnum = v;
 						last_descr = false;
 					}
 					else if ( k.find(L"netname") != string_t::npos || k.find(L"OrgID") != string_t::npos ) {
-						netname = v;
+						d.netname = v;
 						last_descr = false;
 					}
 					else if ( k.find(L"descr") != string_t::npos || k.find(L"OrgName") != string_t::npos ) {
 						if ( ! last_descr ) {
-							descr = v;
+							d.descr = v;
 						}
 						last_descr = true;
 					}
 					else if ( k.find(L"country") != string_t::npos || k.find(L"Country") != string_t::npos ) {
-						country = v;
+						d.country = v;
 						last_descr = false;
 					}
 					else if ( k.find(L"route") != string_t::npos ) {
@@ -164,13 +252,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		if (nextpos == string_t::npos) break;
 		pos = nextpos;
 	}
-
-	out.result_code = SAORIRESULT_OK;
-	out.result = CountryCodeToName(country);
-	out.values.push_back(country);
-	out.values.push_back(inetnum);
-	out.values.push_back(netname);
-	out.values.push_back(descr);
+	return true;
 }
 
 /*---------------------------------------------------------
