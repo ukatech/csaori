@@ -38,7 +38,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 	
-	if ( in.args[0] != L"ipwhois" ) {
+	if ( in.args[0] != L"iptools" ) {
 		out.result_code = SAORIRESULT_BAD_REQUEST;
 		return;
 	}

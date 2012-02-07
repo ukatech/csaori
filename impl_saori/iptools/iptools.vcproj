@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="ipwhois"
+	Name="iptools"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -28,7 +28,7 @@
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Release/ipwhois.pch"
+				PrecompiledHeaderFile=".\Release/iptools.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -40,11 +40,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib version.lib"
-				OutputFile=".\Release/ipwhois.dll"
+				OutputFile=".\Release/iptools.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				ProgramDatabaseFile=".\Release/ipwhois.pdb"
-				ImportLibrary=".\Release/ipwhois.lib"
+				ProgramDatabaseFile=".\Release/iptools.pdb"
+				ImportLibrary=".\Release/iptools.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -52,7 +52,7 @@
 				MkTypLibCompatible="TRUE"
 				SuppressStartupBanner="TRUE"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/ipwhois.tlb"
+				TypeLibraryName=".\Release/iptools.tlb"
 				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
@@ -91,7 +91,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Debug/ipwhois.pch"
+				PrecompiledHeaderFile=".\Debug/iptools.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -104,12 +104,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib version.lib"
-				OutputFile=".\Debug/ipwhois.dll"
+				OutputFile=".\Debug/iptools.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Debug/ipwhois.pdb"
-				ImportLibrary=".\Debug/ipwhois.lib"
+				ProgramDatabaseFile=".\Debug/iptools.pdb"
+				ImportLibrary=".\Debug/iptools.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -117,7 +117,7 @@
 				MkTypLibCompatible="TRUE"
 				SuppressStartupBanner="TRUE"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/ipwhois.tlb"
+				TypeLibraryName=".\Debug/iptools.tlb"
 				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
@@ -168,7 +168,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="ipwhois.cpp">
+				RelativePath="iptools.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
@@ -202,7 +202,7 @@
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
 			<File
-				RelativePath="ipwhois.rc">
+				RelativePath="iptools.rc">
 			</File>
 		</Filter>
 	</Files>

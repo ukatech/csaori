@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Developer Studio generated include file.
-// Used by ipwhois.rc
+// Used by iptools.rc
 //
 
 // Next default values for new objects
