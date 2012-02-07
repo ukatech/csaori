@@ -356,15 +356,16 @@ static unsigned int GetDesktopIconInfoListW5(std::vector<WindowIconInfo> &vec,CS
 		return 0;
 	}
 	
-	COM_PTR_DEF(IWebBrowserApp) webBrowserApp = NULL;
+	/*COM_PTR_DEF(IWebBrowserApp) webBrowserApp = NULL;
 	result = dispatch->QueryInterface(IID_PPV_ARGS(&webBrowserApp));
 	if ( ! SUCCEEDED(result) ) {
 		out.opts.insert(map_strpair::value_type(L"X-Error-Reason",L"IWebBrowserApp"));
 		return 0;
-	}
+	}*/
 
 	COM_PTR_DEF(IServiceProvider) serviceProvider = NULL;
-	result = webBrowserApp->QueryInterface(IID_PPV_ARGS(&serviceProvider));
+	//result = webBrowserApp->QueryInterface(IID_PPV_ARGS(&serviceProvider));
+	result = dispatch->QueryInterface(IID_PPV_ARGS(&serviceProvider));
 	if ( ! SUCCEEDED(result) ) {
 		out.opts.insert(map_strpair::value_type(L"X-Error-Reason",L"IServiceProvider"));
 		return 0;
