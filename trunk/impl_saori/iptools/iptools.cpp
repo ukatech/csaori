@@ -15,6 +15,7 @@
 #include <ws2tcpip.h>
 #include <process.h>
 #include <iphlpapi.h>
+#include <iptypes.h>
 
 #include "csaori.h"
 
@@ -166,25 +167,46 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 
 	//***** all *****
-	/*if ( wcsnicmp(cmd.c_str(),L"all",7) == 0 ) {
-		ULONG buffer_size = sizeof(IP_ADAPTER_INFO)*30;
-		IP_ADAPTER_INFO *pInf = reinterpret_cast<IP_ADAPTER_INFO*>(malloc(buffer_size));
+	if ( wcsnicmp(cmd.c_str(),L"all",7) == 0 ) {
+		ULONG buffer_info = sizeof(IP_ADAPTER_INFO)*30;
+		IP_ADAPTER_INFO *ptr_info = reinterpret_cast<IP_ADAPTER_INFO*>(malloc(buffer_info));
 
-		DWORD result = ::GetAdaptersInfo(pInf,&buffer_size);
+		DWORD result = ::GetAdaptersInfo(ptr_info,&buffer_info);
 		if ( result == ERROR_BUFFER_OVERFLOW ) {
-			free(pInf);
-			pInf = reinterpret_cast<IP_ADAPTER_INFO*>(malloc(buffer_size));
+			free(ptr_info);
+			ptr_info = reinterpret_cast<IP_ADAPTER_INFO*>(malloc(buffer_info));
 
-			result = ::GetAdaptersInfo(pInf,&buffer_size);
+			result = ::GetAdaptersInfo(ptr_info,&buffer_info);
 		}
 
-		DWORD count = buffer_size / sizeof(IP_ADAPTER_INFO);
+		typedef ULONG (WINAPI *TypeGetAdaptersAddresses)(ULONG Family,ULONG Flags,PVOID Reserved,PIP_ADAPTER_ADDRESSES AdapterAddresses,PULONG SizePointer);
+
+		TypeGetAdaptersAddresses pGetAdaptersAddresses = reinterpret_cast<TypeGetAdaptersAddresses>(::GetProcAddress(::GetModuleHandle("iphlpapi"),"GetAdaptersAddresses"));
+		IP_ADAPTER_ADDRESSES *ptr_address = NULL;
+
+		if ( pGetAdaptersAddresses ) {
+			ULONG buffer_address = 0x2000U;
+			ptr_address = reinterpret_cast<IP_ADAPTER_ADDRESSES*>(malloc(buffer_address));
+
+			result = pGetAdaptersAddresses(AF_UNSPEC,0x0080U/*GAA_FLAG_INCLUDE_GATEWAYS*/,0,ptr_address,&buffer_address);
+			if ( result == ERROR_BUFFER_OVERFLOW ) {
+				free(ptr_address);
+				ptr_address = reinterpret_cast<IP_ADAPTER_ADDRESSES*>(malloc(buffer_address));
+
+				result = pGetAdaptersAddresses(AF_UNSPEC,0x0080U/*GAA_FLAG_INCLUDE_GATEWAYS*/,0,ptr_address,&buffer_address);
+			}
+		}
+
+		DWORD count = buffer_info / sizeof(IP_ADAPTER_INFO);
 
 
-		free(pInf);
+		if ( ptr_address ) {
+			free(ptr_address);
+		}
+		free(ptr_info);
 
 		return;
-	}*/
+	}
 }
 
 void _cdecl ExecuteWhoisThreadFunc(void *ptr)
