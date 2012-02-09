@@ -2,15 +2,24 @@
 #pragma warning( disable : 4786 )
 #endif
 
+//IPv6
+#if _MSC_VER <= 1200
+#ifndef _WSPIAPI_COUNTOF
+#define _WSPIAPI_COUNTOF(_Array) (sizeof(_Array) / sizeof(_Array[0]))
+#endif
+#endif
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <process.h>
+#include <iphlpapi.h>
 
 #include "csaori.h"
 
-static void* g_hwnd = NULL;
+static HWND g_hwnd = NULL;
+volatile HANDLE g_hThread = NULL;
 
 string_t CountryCodeToName(const string_t& s);
 
@@ -27,6 +36,10 @@ bool CSAORI::load(){
 	‰ð•ú
 ---------------------------------------------------------*/
 bool CSAORI::unload(){
+	if ( g_hThread ) {
+		::WaitForSingleObject(g_hThread,INFINITE);
+	}
+
 	WSACleanup();
 	return true;
 }
@@ -39,15 +52,18 @@ class ExecuteWhoisData {
 public:
 	string_t in_event;
 	string_t in_host;
+	string_t in_whois_to;
 
 	string_t inetnum;
 	string_t netname;
 	string_t descr;
 	string_t country;
+	string_t raw;
 };
 
 static void _cdecl ExecuteWhoisThreadFunc(void *d);
 static bool ExecuteWhois(ExecuteWhoisData &d,bool is_async = false);
+static bool ExecuteWhoisSub(ExecuteWhoisData &d,bool is_async = false);
 
 void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
@@ -67,7 +83,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result_code = SAORIRESULT_BAD_REQUEST;
 			return;
 		}
-		g_hwnd = reinterpret_cast<void*>(wcstoul(in.args[1].c_str(),NULL,10));
+		g_hwnd = reinterpret_cast<HWND>(wcstoul(in.args[1].c_str(),NULL,10));
 		return;
 	}
 
@@ -81,14 +97,26 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result_code = SAORIRESULT_BAD_REQUEST;
 			return;
 		}
+		if ( g_hThread != NULL ) {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
+			return;
+		}
 		
 		ExecuteWhoisData *pData = new ExecuteWhoisData;
 		pData->in_host = in.args[1];
 		if ( in.args.size() >= 3 ) {
-			pData->in_event = in.args[2];
+			pData->in_whois_to = in.args[2];
 		}
-		_beginthread(ExecuteWhoisThreadFunc,0,pData);
+		if ( in.args.size() >= 4 ) {
+			pData->in_event = in.args[3];
+		}
 
+		unsigned long result = _beginthread(ExecuteWhoisThreadFunc,0,pData);
+		if ( result != static_cast<unsigned long>(-1) ) {
+			g_hThread = reinterpret_cast<HANDLE>(result);
+		}
+
+		out.result_code = SAORIRESULT_OK;
 		return;
 	}
 
@@ -102,6 +130,9 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		ExecuteWhoisData d;
 
 		d.in_host = in.args[1];
+		if ( in.args.size() >= 3 ) {
+			d.in_whois_to = in.args[2];
+		}
 
 		if ( ! ExecuteWhois(d) ) {
 			out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
@@ -117,6 +148,43 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 		return;
 	}
+
+	//***** flushdns *****
+	if ( wcsnicmp(cmd.c_str(),L"flushdns",7) == 0 ) {
+		BOOL (WINAPI *pDnsFlushResolverCache)();
+
+		HMODULE hDNSAPI = ::LoadLibrary("dnsapi.dll");
+		pDnsFlushResolverCache = reinterpret_cast<BOOL (WINAPI*)()>(::GetProcAddress(hDNSAPI,"DnsFlushResolverCache"));
+
+		if ( pDnsFlushResolverCache ) {
+			out.result_code = SAORIRESULT_OK;
+			pDnsFlushResolverCache();
+		}
+		else {
+			out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
+		}
+	}
+
+	//***** all *****
+	/*if ( wcsnicmp(cmd.c_str(),L"all",7) == 0 ) {
+		ULONG buffer_size = sizeof(IP_ADAPTER_INFO)*30;
+		IP_ADAPTER_INFO *pInf = reinterpret_cast<IP_ADAPTER_INFO*>(malloc(buffer_size));
+
+		DWORD result = ::GetAdaptersInfo(pInf,&buffer_size);
+		if ( result == ERROR_BUFFER_OVERFLOW ) {
+			free(pInf);
+			pInf = reinterpret_cast<IP_ADAPTER_INFO*>(malloc(buffer_size));
+
+			result = ::GetAdaptersInfo(pInf,&buffer_size);
+		}
+
+		DWORD count = buffer_size / sizeof(IP_ADAPTER_INFO);
+
+
+		free(pInf);
+
+		return;
+	}*/
 }
 
 void _cdecl ExecuteWhoisThreadFunc(void *ptr)
@@ -125,16 +193,100 @@ void _cdecl ExecuteWhoisThreadFunc(void *ptr)
 
 	ExecuteWhoisData &d = *pData;
 
-	if ( ExecuteWhois(d,true) ) {
+	bool result = ExecuteWhois(d,true);
+
+	string_t sstp(L"NOTIFY SSTP/1.1\r\nCharset: UTF-8\r\nSender: tsvnexec SAORI\r\nHWnd: 0\r\nEvent: ");
+	if ( d.in_event.size() ) {
+		sstp += d.in_event;
+		if ( ! result ) {
+			sstp += L"Failure";
+		}
 	}
 	else {
+		if ( result ) {
+			sstp += L"OnIPToolsWhoisComplete";
+		}
+		else {
+			sstp += L"OnIPToolsWhoisFailure";
+		}
+	}
+	sstp += L"\r\n";
+
+	sstp += L"Reference0: ";
+	sstp += d.in_host;
+	sstp += L"\r\n";
+
+	if ( result ) {
+		sstp += L"Reference1: ";
+		sstp += d.raw;
+		sstp += L"\r\n";
+
+		sstp += L"Reference2: ";
+		sstp += d.country;
+		sstp += L",";
+		sstp += CountryCodeToName(d.country);
+		sstp += L"\r\n";
+
+		sstp += L"Reference3: ";
+		sstp += d.inetnum;
+		sstp += L"\r\n";
+
+		sstp += L"Reference4: ";
+		sstp += d.netname;
+		sstp += L"\r\n";
+
+		sstp += L"Reference5: ";
+		sstp += d.descr;
+		sstp += L"\r\n";
 	}
 
+	sstp += L"\r\n";
+
+	std::string sstp_a = SAORI_FUNC::UnicodeToMultiByte(sstp.c_str(),CP_UTF8);
+
+	COPYDATASTRUCT c;
+	c.dwData = 9801;
+	c.cbData = sstp.size();
+	c.lpData = const_cast<char*>(sstp_a.c_str());
+
+	DWORD sstpresult;
+	::SendMessageTimeout(reinterpret_cast<HWND>(g_hwnd),
+		WM_COPYDATA,
+		reinterpret_cast<WPARAM>(g_hwnd),
+		reinterpret_cast<LPARAM>(&c),
+		SMTO_ABORTIFHUNG,5000,&sstpresult);
+
 	delete pData;
+	g_hThread = NULL;
 }
 
 bool ExecuteWhois(ExecuteWhoisData &d,bool is_async)
 {
+	if ( d.in_whois_to.size() == 0 ) {
+		const char_t* const table[] = {L"whois.iana.org",L"whois.apnic.net",L"whois.arin.net",L"whois.ripe.net",L"whois.lacnic.net",L"whois.afrinic.net"};
+
+		bool result = false;
+		for ( int i = 0 ; i < (sizeof(table)/sizeof(table[0])) ; ++i ) {
+			d.in_whois_to = table[i];
+			result = ExecuteWhoisSub(d,is_async);
+			/*if ( ! result ) {
+				return result;
+			}*/
+			if ( d.country.size() > 0 ) {
+				return result;
+			}
+		}
+		return result;
+	}
+	else {
+		return ExecuteWhoisSub(d,is_async);
+	}
+}
+
+bool ExecuteWhoisSub(ExecuteWhoisData &d,bool is_async)
+{
+	std::string whois_to = SAORI_FUNC::UnicodeToMultiByte(d.in_whois_to.c_str());
+
 	int Ports = 43; //whois
 
 	ADDRINFO Hints,*AddrInfo;
@@ -142,7 +294,7 @@ bool ExecuteWhois(ExecuteWhoisData &d,bool is_async)
 	Hints.ai_family = PF_UNSPEC;
 	Hints.ai_socktype = SOCK_STREAM;
 	
-	int RetVal = getaddrinfo("whois.lacnic.net", "43", &Hints, &AddrInfo);
+	int RetVal = getaddrinfo(whois_to.c_str(), "43", &Hints, &AddrInfo);
 	if ( RetVal != 0 ) {
 		return false;
 	}
@@ -210,7 +362,10 @@ bool ExecuteWhois(ExecuteWhoisData &d,bool is_async)
 		nextpos = SAORI_FUNC::getLine(sl, data, pos);
 
 		if ( ! suppress ) {
-			if ( sl[0] != L'%' && sl[0] != L'[' && sl[0] != L'#' ) {
+			if ( sl[0] != 0 && sl[0] != L'%' && sl[0] != L'[' && sl[0] != L'#' ) {
+				d.raw += sl;
+				d.raw += L"\1";
+
 				ts = sl.find(L":");
 
 				if (ts != string_t::npos) {
@@ -252,6 +407,7 @@ bool ExecuteWhois(ExecuteWhoisData &d,bool is_async)
 		if (nextpos == string_t::npos) break;
 		pos = nextpos;
 	}
+
 	return true;
 }
 
