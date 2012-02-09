@@ -65,6 +65,7 @@ public:
 static void _cdecl ExecuteWhoisThreadFunc(void *d);
 static bool ExecuteWhois(ExecuteWhoisData &d,bool is_async = false);
 static bool ExecuteWhoisSub(ExecuteWhoisData &d,bool is_async = false);
+static const char_t* GetMediaTypeFromID(DWORD type);
 
 void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
@@ -197,8 +198,44 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			}
 		}
 
-		DWORD count = buffer_info / sizeof(IP_ADAPTER_INFO);
+		string_t line;
+		string_t name;
+		char_t buf[64];
 
+		IP_ADAPTER_INFO *pAdapterInfo = ptr_info;
+		while ( pAdapterInfo ) {
+			IP_ADAPTER_ADDRESSES *pAdapterAddress = ptr_address;
+			while ( pAdapterAddress ) {
+				if ( strcmp(pAdapterInfo->AdapterName,pAdapterAddress->AdapterName) == 0 ) {
+					break;
+				}
+				pAdapterAddress = pAdapterAddress->Next;
+			}
+
+			swprintf(buf,L"%u",pAdapterInfo->Index);
+			line = buf;
+			line += L"\1";
+			line += SAORI_FUNC::MultiByteToUnicode(std::string(pAdapterInfo->AdapterName));
+			line += L"\1";
+			if ( pAdapterAddress ) {
+				line += pAdapterAddress->Description;
+				line += L"\1";
+				line += GetMediaTypeFromID(pAdapterAddress->IfType);
+			}
+			else {
+				line += SAORI_FUNC::MultiByteToUnicode(std::string(pAdapterInfo->Description));
+				line += L"\1";
+				line += GetMediaTypeFromID(pAdapterInfo->Type);
+			}
+
+			MIB_IFROW ifrow;
+			ZeroMemory(&ifrow,sizeof(ifrow));
+			ifrow.dwIndex = pAdapterInfo->Index;
+			::GetIfEntry(&ifrow);
+			
+
+			pAdapterInfo = pAdapterInfo->Next;
+		}
 
 		if ( ptr_address ) {
 			free(ptr_address);
@@ -721,4 +758,28 @@ string_t CountryCodeToName(const string_t& s)
 	return s;
 }
 
+
+static const char_t* GetMediaTypeFromID(DWORD type)
+{
+	switch ( type ) {
+	case IF_TYPE_ETHERNET_CSMACD:
+		return L"Ethernet";
+	case IF_TYPE_ISO88025_TOKENRING:
+		return L"TokenRing";
+	case IF_TYPE_PPP:
+		return L"PPP";
+	case IF_TYPE_SOFTWARE_LOOPBACK:
+		return L"Loopback";
+	case IF_TYPE_ATM:
+		return L"ATM";
+	case IF_TYPE_IEEE80211:
+		return L"IEEE802.11";
+	case IF_TYPE_TUNNEL:
+		return L"Tunnel";
+	case IF_TYPE_IEEE1394:
+		return L"IEEE1394";
+	default :
+		return L"Other";
+	}
+}
 
