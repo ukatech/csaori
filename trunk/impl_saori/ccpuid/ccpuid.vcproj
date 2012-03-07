@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;ccpuid_EXPORTS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;CCPUID_EXPORTS;CUSTOM_CREATE_INSTANCE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
@@ -85,7 +85,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\.."
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;ccpuid_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;CCPUID_EXPORTS;CUSTOM_CREATE_INSTANCE"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -149,7 +149,7 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;ccpuid_EXPORTS;$(NoInherit)"
+						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;CCPUID_EXPORTS;CUSTOM_CREATE_INSTANCE;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -157,7 +157,7 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;ccpuid_EXPORTS;$(NoInherit)"/>
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;CCPUID_EXPORTS;CUSTOM_CREATE_INSTANCE;$(NoInherit)"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -176,7 +176,7 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;ccpuid_EXPORTS;$(NoInherit)"
+						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;CCPUID_EXPORTS;CUSTOM_CREATE_INSTANCE;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -184,7 +184,7 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;ccpuid_EXPORTS;$(NoInherit)"/>
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;CCPUID_EXPORTS;CUSTOM_CREATE_INSTANCE;$(NoInherit)"/>
 				</FileConfiguration>
 			</File>
 			<File

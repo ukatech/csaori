@@ -9,10 +9,25 @@
 //------------------------------------------------------------------------------
 //CSAORI
 //------------------------------------------------------------------------------
+class CSAORI_CPUID : public CSAORI {
+private:
+	bool GetInfoFromString(const string_t &in,string_t &out);
 
-bool GetInfoFromString(const string_t &in,string_t &out);
+public:
+	virtual void exec(const CSAORIInput& in,CSAORIOutput& out);
+	virtual bool unload();
+	virtual bool load();
 
-void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
+	virtual ~CSAORI_CPUID() { }
+};
+
+CSAORIBase* CreateInstance(void)
+{
+	return new CSAORI_CPUID();
+}
+
+
+void CSAORI_CPUID::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
 	if (in.args.size() <= 0) {
 		out.result_code = SAORIRESULT_NO_CONTENT;
@@ -46,17 +61,17 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 }
 
-bool CSAORI::load()
+bool CSAORI_CPUID::load()
 {
 	return true;
 }
 
-bool CSAORI::unload()
+bool CSAORI_CPUID::unload()
 {
 	return true;
 }
 
-bool GetInfoFromString(const string_t &in,string_t &out)
+bool CSAORI_CPUID::GetInfoFromString(const string_t &in,string_t &out)
 {
 	// Static variables
 	// OS
