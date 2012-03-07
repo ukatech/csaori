@@ -129,20 +129,22 @@ UINT CPUUsage9X(void)
     return usage;
 }
 
+static bool g_is_osvi_got = false;
+static OSVERSIONINFO g_osvi;
+
 UINT CPUUsage() {
-	OSVERSIONINFO osvi;
-	ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+	if ( ! g_is_osvi_got ) {
+		g_is_osvi_got = true;
 
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-
-	if( GetVersionEx (&osvi) ) {
-		if(osvi.dwPlatformId == 1) { // Win 9x/ME
-			return CPUUsage9X();
-		} else if(osvi.dwPlatformId == 2) { // Win NT
-			return CPUUsageNT();
-		} else {
-			return 0;
-		}
+		ZeroMemory(&g_osvi, sizeof(OSVERSIONINFO));
+		g_osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		GetVersionEx (&g_osvi);
+	}
+	
+	if(g_osvi.dwPlatformId == 1) { // Win 9x/ME
+		return CPUUsage9X();
+	} else if(g_osvi.dwPlatformId == 2) { // Win NT
+		return CPUUsageNT();
 	} else {
 		return 0;
 	}

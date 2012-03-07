@@ -78,7 +78,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 	out.result_code = SAORIRESULT_BAD_REQUEST;
 	const string_t &cmd = in.args[0];
 	
-	//***** hwndコマンド *****
+	//***** hwndコマンド **************************************************
 	if ( wcsnicmp(cmd.c_str(),L"hwnd",4) == 0 ) {
 		//このコマンドのみ特殊：Arg1はhwnd
 		if ( in.args.size() < 2 ) {
@@ -89,7 +89,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
-	//***** whois(async) - こっちを必ず先に書く *****
+	//***** whois(async) - こっちを必ず先に書く *************************
 	if ( wcsnicmp(cmd.c_str(),L"ipwhois_async",13) == 0 || wcsnicmp(cmd.c_str(),L"whois_async",11) == 0 ) {
 		if ( in.args.size() < 2 ) {
 			out.result_code = SAORIRESULT_BAD_REQUEST;
@@ -122,7 +122,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
-	//***** whois *****
+	//***** whois *******************************************************
 	if ( wcsnicmp(cmd.c_str(),L"ipwhois",7) == 0 || wcsnicmp(cmd.c_str(),L"whois",5) == 0 ) {
 		if ( in.args.size() < 2 ) {
 			out.result_code = SAORIRESULT_BAD_REQUEST;
@@ -151,7 +151,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 
-	//***** flushdns *****
+	//***** flushdns *******************************************************
 	if ( wcsnicmp(cmd.c_str(),L"flushdns",7) == 0 ) {
 		BOOL (WINAPI *pDnsFlushResolverCache)();
 
@@ -165,10 +165,12 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		else {
 			out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
 		}
+
+		::FreeLibrary(hDNSAPI);
 	}
 
-	//***** all *****
-	if ( wcsnicmp(cmd.c_str(),L"all",7) == 0 ) {
+	//***** adapter ************************************************************
+	if ( wcsnicmp(cmd.c_str(),L"adapter",7) == 0 ) {
 		ULONG buffer_info = sizeof(IP_ADAPTER_INFO)*30;
 		IP_ADAPTER_INFO *ptr_info = reinterpret_cast<IP_ADAPTER_INFO*>(malloc(buffer_info));
 
@@ -201,9 +203,14 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		string_t line;
 		string_t name;
 		char_t buf[64];
+		DWORD count = 0;
 
-		IP_ADAPTER_INFO *pAdapterInfo = ptr_info;
-		while ( pAdapterInfo ) {
+		for ( IP_ADAPTER_INFO *pAdapterInfo = ptr_info ; pAdapterInfo ; pAdapterInfo = pAdapterInfo->Next ) {
+			if ( pAdapterInfo->AddressLength == 0 ) { continue; }
+			if ( pAdapterInfo->Type == MIB_IF_TYPE_LOOPBACK ) { continue; }
+
+			count += 1;
+
 			IP_ADAPTER_ADDRESSES *pAdapterAddress = ptr_address;
 			while ( pAdapterAddress ) {
 				if ( strcmp(pAdapterInfo->AdapterName,pAdapterAddress->AdapterName) == 0 ) {
@@ -212,30 +219,114 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 				pAdapterAddress = pAdapterAddress->Next;
 			}
 
-			swprintf(buf,L"%u",pAdapterInfo->Index);
-			line = buf;
-			line += L"\1";
-			line += SAORI_FUNC::MultiByteToUnicode(std::string(pAdapterInfo->AdapterName));
-			line += L"\1";
-			if ( pAdapterAddress ) {
-				line += pAdapterAddress->Description;
-				line += L"\1";
-				line += GetMediaTypeFromID(pAdapterAddress->IfType);
-			}
-			else {
-				line += SAORI_FUNC::MultiByteToUnicode(std::string(pAdapterInfo->Description));
-				line += L"\1";
-				line += GetMediaTypeFromID(pAdapterInfo->Type);
-			}
-
 			MIB_IFROW ifrow;
 			ZeroMemory(&ifrow,sizeof(ifrow));
 			ifrow.dwIndex = pAdapterInfo->Index;
 			::GetIfEntry(&ifrow);
-			
 
-			pAdapterInfo = pAdapterInfo->Next;
+			//-----Index-----
+			swprintf(buf,L"%u",pAdapterInfo->Index);
+			line = buf;
+			line += L"\1";
+
+			//-----Name(GUID)-----
+			line += SAORI_FUNC::MultiByteToUnicode(std::string(pAdapterInfo->AdapterName));
+			line += L"\1";
+
+			if ( pAdapterAddress ) {
+				//-----Desc-----
+				line += pAdapterAddress->Description;
+				line += L"\1";
+
+				//-----Type-----
+				line += GetMediaTypeFromID(pAdapterAddress->IfType);
+				line += L"\1";
+
+				//-----Status-----
+				static const WORD* status_a[] = {L"unknown",L"up",L"down",L"testing",L"unknown",L"dormant",L"unknown",L"down"};
+				if ( pAdapterAddress->OperStatus < (sizeof(status_a)/sizeof(status_a[0])) ) {
+					line += status_a[pAdapterAddress->OperStatus];
+				}
+				else {
+					line += L"unknown";
+				}
+				line += L"\1";
+
+				//-----IP-----
+				int address_count = 0;
+				for ( IP_ADAPTER_UNICAST_ADDRESS *uni = pAdapterAddress->FirstUnicastAddress; uni; uni = uni->Next ) {
+					if(~(uni->Flags) & IP_ADAPTER_ADDRESS_DNS_ELIGIBLE) { continue; }
+					if(uni->Flags & IP_ADAPTER_ADDRESS_TRANSIENT) { continue; }
+
+					char host[NI_MAXHOST + 1] = {'\0'};   // host に「0.0.0.0」形式の文字列を取得します。
+					if ( getnameinfo(uni->Address.lpSockaddr, uni->Address.iSockaddrLength, host, sizeof(host), 0, 0, NI_NUMERICHOST/*NI_NAMEREQD*/) == 0 ) {
+						line += SAORI_FUNC::MultiByteToUnicode(std::string(host));
+						line += L",";
+						address_count += 1;
+					}
+				}
+				if ( address_count ) {
+					line.erase(line.end()-1);
+				}
+				line += L"\1";
+			
+			}
+			else {
+				//-----Desc-----
+				line += SAORI_FUNC::MultiByteToUnicode(std::string(pAdapterInfo->Description));
+				line += L"\1";
+
+				//-----Type-----
+				line += GetMediaTypeFromID(pAdapterInfo->Type);
+				line += L"\1";
+
+				//-----Status-----
+				static const WORD* status_i[] = {L"down",L"down",L"down",L"dormant",L"up",L"up"};
+				if ( ifrow.dwOperStatus < (sizeof(status_i)/sizeof(status_i[0])) ) {
+					line += status_i[ifrow.dwOperStatus];
+				}
+				else {
+					line += L"unknown";
+				}
+				line += L"\1";
+
+				//-----IP-----
+				int address_count = 0;
+				for ( IP_ADDR_STRING *uni = &(pAdapterInfo->IpAddressList) ; uni ; uni = uni->Next ) {
+					line += SAORI_FUNC::MultiByteToUnicode(std::string(uni->IpAddress.String));
+					line += L",";
+					address_count += 1;
+				}
+				if ( address_count ) {
+					line.erase(line.end()-1);
+				}
+				line += L"\1";
+			}
+
+			//-----PhysAddr-----
+			if ( ifrow.dwPhysAddrLen ) {
+				for ( DWORD i = 0 ; i < ifrow.dwPhysAddrLen ; ++i ) {
+					swprintf(buf,L"%02X:",ifrow.bPhysAddr[i]);
+					line += buf;
+				}
+				line.erase(line.end()-1);
+			}
+			line += L"\1";
+
+			//-----DHCP-----
+			line += pAdapterInfo->DhcpEnabled ? L"dynamic" : L"static";
+			line += L"\1";
+
+			//-----Speed-----
+			swprintf(buf,L"%u,%u,%u",ifrow.dwSpeed,ifrow.dwInOctets,ifrow.dwOutOctets);
+			line += buf;
+
+			out.values.push_back(line);		
 		}
+
+		swprintf(buf,L"%u",count);
+		out.result = buf;
+		out.result_code = SAORIRESULT_OK;
 
 		if ( ptr_address ) {
 			free(ptr_address);
