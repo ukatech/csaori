@@ -47,12 +47,17 @@ BOOL GetOSDisplayString(LPTSTR osname, LPTSTR osver, DWORD* osbuild)
 					 _tcscat(osname, TEXT("Windows Vista "));
 				else _tcscat(osname, TEXT("Windows Server 2008 " ));
 			}
-
-			if ( osvi.dwMinorVersion == 1 )
+			else if ( osvi.dwMinorVersion == 1 )
 			{
 				if( osvi.wProductType == VER_NT_WORKSTATION )
 					 _tcscat(osname, TEXT("Windows 7 "));
 				else _tcscat(osname, TEXT("Windows Server 2008 R2 " ));
+			}
+			else if ( osvi.dwMinorVersion == 2 )
+			{
+				//if( osvi.wProductType == VER_NT_WORKSTATION )
+					 _tcscat(osname, TEXT("Windows 8 "));
+				//else _tcscat(osname, TEXT("Windows Server 2008 R2 " ));
 			}
 			
 			pGPI = (PGPI) GetProcAddress(
@@ -63,56 +68,111 @@ BOOL GetOSDisplayString(LPTSTR osname, LPTSTR osver, DWORD* osbuild)
 
 			switch( dwType )
 			{
+				case PRODUCT_PROFESSIONAL:
+				case PRODUCT_PROFESSIONAL_E:
+				case PRODUCT_PROFESSIONAL_N:
+					_tcscat(osname, TEXT("Professional" ));
+					break;
+				case PRODUCT_BUSINESS:
+				case PRODUCT_BUSINESS_N:
+					_tcscat(osname, TEXT("Business Edition" ));
+					break;
 				case PRODUCT_ULTIMATE:
+				case PRODUCT_ULTIMATE_E:
+				case PRODUCT_ULTIMATE_N:
 					_tcscat(osname, TEXT("Ultimate Edition" ));
 					break;
 				case PRODUCT_HOME_PREMIUM:
+				case PRODUCT_HOME_PREMIUM_E:
+				case PRODUCT_HOME_PREMIUM_N:
 					_tcscat(osname, TEXT("Home Premium Edition" ));
 					break;
 				case PRODUCT_HOME_BASIC:
+				case PRODUCT_HOME_BASIC_E:
+				case PRODUCT_HOME_BASIC_N:
 					_tcscat(osname, TEXT("Home Basic Edition" ));
 					break;
+				case PRODUCT_HOME_SERVER:
+					_tcscat(osname, TEXT("Home Server" ));
+					break;
+				case PRODUCT_HOME_PREMIUM_SERVER:
+					_tcscat(osname, TEXT("Home Premium Server" ));
+					break;
 				case PRODUCT_ENTERPRISE:
+				case PRODUCT_ENTERPRISE_E:
+				case PRODUCT_ENTERPRISE_N:
 					_tcscat(osname, TEXT("Enterprise Edition" ));
 					break;
-				case PRODUCT_BUSINESS:
-					_tcscat(osname, TEXT("Business Edition" ));
-					break;
 				case PRODUCT_STARTER:
+				case PRODUCT_STARTER_E:
+				case PRODUCT_STARTER_N:
 					_tcscat(osname, TEXT("Starter Edition" ));
 					break;
 				case PRODUCT_CLUSTER_SERVER:
+				case PRODUCT_CLUSTER_SERVER_V:
 					_tcscat(osname, TEXT("Cluster Server Edition" ));
 					break;
 				case PRODUCT_DATACENTER_SERVER:
+				case PRODUCT_DATACENTER_SERVER_V:
 					_tcscat(osname, TEXT("Datacenter Edition" ));
 					break;
 				case PRODUCT_DATACENTER_SERVER_CORE:
+				case PRODUCT_DATACENTER_SERVER_CORE_V:
 					_tcscat(osname, TEXT("Datacenter Edition (core installation)" ));
 					break;
 				case PRODUCT_ENTERPRISE_SERVER:
+				case PRODUCT_ENTERPRISE_SERVER_V:
 					_tcscat(osname, TEXT("Enterprise Edition" ));
 					break;
 				case PRODUCT_ENTERPRISE_SERVER_CORE:
+				case PRODUCT_ENTERPRISE_SERVER_CORE_V:
 					_tcscat(osname, TEXT("Enterprise Edition (core installation)" ));
 					break;
 				case PRODUCT_ENTERPRISE_SERVER_IA64:
 					_tcscat(osname, TEXT("Enterprise Edition for Itanium-based Systems" ));
 					break;
+				case PRODUCT_SB_SOLUTION_SERVER:
+				case PRODUCT_SB_SOLUTION_SERVER_EM:
+				case PRODUCT_SERVER_FOR_SB_SOLUTIONS:
+				case PRODUCT_SERVER_FOR_SB_SOLUTIONS_EM:
+				case PRODUCT_SERVER_FOR_SMALLBUSINESS:
+				case PRODUCT_SERVER_FOR_SMALLBUSINESS_V:
 				case PRODUCT_SMALLBUSINESS_SERVER:
 					_tcscat(osname, TEXT("Small Business Server" ));
 					break;
 				case PRODUCT_SMALLBUSINESS_SERVER_PREMIUM:
+				case PRODUCT_SMALLBUSINESS_SERVER_PREMIUM_CORE:
 					_tcscat(osname, TEXT("Small Business Server Premium Edition" ));
 					break;
 				case PRODUCT_STANDARD_SERVER:
+				case PRODUCT_STANDARD_SERVER_SOLUTIONS:
+				case PRODUCT_STANDARD_SERVER_SOLUTIONS_CORE:
+				case PRODUCT_STANDARD_SERVER_V:
 					_tcscat(osname, TEXT("Standard Edition" ));
 					break;
 				case PRODUCT_STANDARD_SERVER_CORE:
+				case PRODUCT_STANDARD_SERVER_CORE_V:
 					_tcscat(osname, TEXT("Standard Edition (core installation)" ));
 					break;
 				case PRODUCT_WEB_SERVER:
+				case PRODUCT_WEB_SERVER_CORE:
 					_tcscat(osname, TEXT("Web Server Edition" ));
+					break;
+				case PRODUCT_STORAGE_ENTERPRISE_SERVER:
+				case PRODUCT_STORAGE_ENTERPRISE_SERVER_CORE:
+				case PRODUCT_STORAGE_EXPRESS_SERVER:
+				case PRODUCT_STORAGE_EXPRESS_SERVER_CORE:
+				case PRODUCT_STORAGE_STANDARD_SERVER:
+				case PRODUCT_STORAGE_STANDARD_SERVER_CORE:
+				case PRODUCT_STORAGE_WORKGROUP_SERVER:
+				case PRODUCT_STORAGE_WORKGROUP_SERVER_CORE:
+					_tcscat(osname, TEXT("Storage Server" ));
+					break;
+				case PRODUCT_ESSENTIALBUSINESS_SERVER_ADDL:
+				case PRODUCT_ESSENTIALBUSINESS_SERVER_ADDLSVC:
+				case PRODUCT_ESSENTIALBUSINESS_SERVER_MGMT:
+				case PRODUCT_ESSENTIALBUSINESS_SERVER_MGMTSVC:
+					_tcscat(osname, TEXT("Essential Business Server" ));
 					break;
 			}
 		}
