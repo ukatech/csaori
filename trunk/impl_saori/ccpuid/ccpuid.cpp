@@ -368,6 +368,24 @@ bool CSAORI_CPUID::GetInfoFromString(const string_t &in,string_t &out)
 			out = SAORI_FUNC::intToString(cpu_usage.GetCPUUsage());
 			return true;
 		}
+		if (in == L"cpu.usage.history") {		// cpu.usage: Return CPU Usage
+			unsigned char *hist = cpu_usage.GetCPUUsageHistory();
+
+			out = L"";
+
+			char_t buf[32];
+			unsigned int c;
+			for ( UINT i = 0 ; i < 100 ; ++i ) {
+				c = hist[i];
+				swprintf(buf,L"%u",c);
+
+				if ( i > 0 ) {
+					out += L",";
+				}
+				out += buf;
+			}
+			return true;
+		}
 
 		if (in == L"cpu.vmguest") {		// cpu.vmguest: Is running in virtualized environment
 			out = uExtFlags.iVirt ? L"Yes" : L"No";

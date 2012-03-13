@@ -70,20 +70,20 @@ void CPUUsage::CPUUsageThreadNT(void)
     LONG                           status;
     LARGE_INTEGER                  liOldIdleTime = {0,0};
     LARGE_INTEGER                  liOldSystemTime = {0,0};
-	PROCNTQSI                      NtQuerySystemInformation;
+	PROCNTQSI                      pNtQuerySystemInformation;
 	
-    NtQuerySystemInformation = (PROCNTQSI)GetProcAddress(
+    pNtQuerySystemInformation = (PROCNTQSI)GetProcAddress(
 		GetModuleHandle("ntdll"),
 		"NtQuerySystemInformation"
 		);
 	
-    if (!NtQuerySystemInformation) {
+    if (!pNtQuerySystemInformation) {
         m_usage = 0;
 		return;
 	}
 	
     // get number of processors in the system
-    status = NtQuerySystemInformation(SystemBasicInformation,&SysBaseInfo,sizeof(SysBaseInfo),NULL);
+    status = pNtQuerySystemInformation(SystemBasicInformation,&SysBaseInfo,sizeof(SysBaseInfo),NULL);
     if (status != NO_ERROR) {
         m_usage = 0;
 		return;
@@ -91,10 +91,10 @@ void CPUUsage::CPUUsageThreadNT(void)
     
     while ( ! m_thread_exit ) {
         // get new system time
-		status = NtQuerySystemInformation(SystemTimeInformation,&SysTimeInfo,sizeof(SysTimeInfo),0);
+		status = pNtQuerySystemInformation(SystemTimeInformation,&SysTimeInfo,sizeof(SysTimeInfo),0);
         if (status == NO_ERROR) {
 			// get new CPU's idle time
-			status = NtQuerySystemInformation(SystemPerformanceInformation,&SysPerfInfo,sizeof(SysPerfInfo),NULL);
+			status = pNtQuerySystemInformation(SystemPerformanceInformation,&SysPerfInfo,sizeof(SysPerfInfo),NULL);
 			if (status == NO_ERROR) {		
 				// if it's a first call - skip it
 				if (liOldIdleTime.QuadPart != 0) {
@@ -109,6 +109,11 @@ void CPUUsage::CPUUsageThreadNT(void)
 					dbIdleTime = 100.0 - dbIdleTime * 100.0 / (double)SysBaseInfo.bKeNumberProcessors + 0.5;
 					
 					m_usage = (UINT)dbIdleTime;
+
+					for ( int i = (sizeof(m_usage_array)/sizeof(m_usage_array[0]))-1 ; i >= 1 ; --i ) {
+						m_usage_array[i] = m_usage_array[i-1];
+					}
+					m_usage_array[0] = (unsigned char)m_usage;
 				}
 				
 				// store new CPU's idle and system time
@@ -165,6 +170,11 @@ void CPUUsage::CPUUsageThread9X(void)
 			&dwDataSize );
 		m_usage = (UINT)dwCpuUsage;
 
+		for ( int i = (sizeof(m_usage_array)/sizeof(m_usage_array[0]))-1 ; i >= 1 ; --i ) {
+			m_usage_array[i] = m_usage_array[i-1];
+		}
+		m_usage_array[0] = (unsigned char)m_usage;
+
 		WaitForSingleObject(m_h_event,1000);
 	}
 	
@@ -191,6 +201,8 @@ void CPUUsage::CPUUsageThread9X(void)
 
 void CPUUsage::CPUUsageThread()
 {
+	::SetThreadPriority(m_h_thread,THREAD_PRIORITY_LOWEST);
+
 	if ( ! m_is_osvi_got ) {
 		m_is_osvi_got = true;
 		
@@ -228,6 +240,7 @@ void CPUUsage::Load(void)
 	if ( m_h_thread ) { return; }
 
 	m_thread_exit = 0;
+	ZeroMemory(m_usage_array,sizeof(m_usage_array));
 
 	unsigned long h = _beginthread(CPU_Thread,0,this);
 	if ( h != (unsigned long)-1 ) {
@@ -245,5 +258,7 @@ void CPUUsage::Unload(void)
 			::TerminateThread(m_h_thread,0);
 		}
 		m_h_thread = NULL;
+		m_thread_exit = 0;
+		ZeroMemory(m_usage_array,sizeof(m_usage_array));
 	}
 }

@@ -8,7 +8,8 @@ class CPUUsage {
 private:
 	bool m_is_osvi_got;
 	OSVERSIONINFO m_osvi;
-	UINT m_usage;
+	unsigned int m_usage;
+	unsigned char m_usage_array[100];
 
 	volatile int m_thread_exit;
 	HANDLE m_h_event;
@@ -26,7 +27,8 @@ public:
 
 	void CPUUsageThread();
 
-	inline UINT GetCPUUsage(void) { return m_usage; }
+	inline unsigned int GetCPUUsage(void) { return m_usage; }
+	inline unsigned char* GetCPUUsageHistory(void) { return m_usage_array; }
 };
 
 #endif /* __CPUUSAGE_H */
