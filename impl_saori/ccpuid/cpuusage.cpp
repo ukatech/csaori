@@ -1,5 +1,6 @@
 #include <pdh.h>
 #include <pdhmsg.h>
+#include <process.h>
 
 #include "cpuusage.h"
 
@@ -91,10 +92,10 @@ void CPUUsage::CPUUsageThreadNT(void)
     while ( ! m_thread_exit ) {
         // get new system time
 		status = NtQuerySystemInformation(SystemTimeInformation,&SysTimeInfo,sizeof(SysTimeInfo),0);
-        if (status!=NO_ERROR) {
+        if (status == NO_ERROR) {
 			// get new CPU's idle time
 			status = NtQuerySystemInformation(SystemPerformanceInformation,&SysPerfInfo,sizeof(SysPerfInfo),NULL);
-			if (status != NO_ERROR) {		
+			if (status == NO_ERROR) {		
 				// if it's a first call - skip it
 				if (liOldIdleTime.QuadPart != 0) {
 					// CurrentValue = NewValue - OldValue
@@ -128,7 +129,6 @@ void CPUUsage::CPUUsageThread9X(void)
     DWORD dwDataSize;
     DWORD dwType;
     DWORD dwCpuUsage;
-    UINT usage;
 	
     // starting the counter
     if ( RegOpenKeyEx( HKEY_DYN_DATA,
@@ -157,20 +157,16 @@ void CPUUsage::CPUUsageThread9X(void)
 		return;
 	}
 	
-	dwDataSize=sizeof(DWORD);
-	RegQueryValueEx( hkey,
-		"KERNEL\\CPUUsage",
-		NULL,&dwType,
-		(LPBYTE)&dwCpuUsage,
-		&dwDataSize );
+    while ( ! m_thread_exit ) {
+		RegQueryValueEx( hkey,
+			"KERNEL\\CPUUsage",
+			NULL,&dwType,
+			(LPBYTE)&dwCpuUsage,
+			&dwDataSize );
+		m_usage = (UINT)dwCpuUsage;
 
-	WaitForSingleObject(m_h_event,1000);
-	RegQueryValueEx( hkey,
-		"KERNEL\\CPUUsage",
-		NULL,&dwType,
-		(LPBYTE)&dwCpuUsage,
-		&dwDataSize );
-	usage = (UINT)dwCpuUsage;
+		WaitForSingleObject(m_h_event,1000);
+	}
 	
     RegCloseKey(hkey);
     
@@ -211,7 +207,7 @@ void CPUUsage::CPUUsageThread()
 	}
 }
 
-CPUUsage::CPUUsage(void) : m_is_osvi_got(false) , m_usage(0) , m_thread_exit(0)
+CPUUsage::CPUUsage(void) : m_is_osvi_got(false) , m_usage(0) , m_thread_exit(0) , m_h_thread(NULL)
 {
 	m_h_event = ::CreateEvent(NULL,TRUE,FALSE,NULL);
 }
@@ -221,11 +217,33 @@ CPUUsage::~CPUUsage(void)
 	::CloseHandle(m_h_event);
 }
 
+static void _cdecl CPU_Thread(void *p)
+{
+	CPUUsage *pUsage = reinterpret_cast<CPUUsage*>(p);
+	pUsage->CPUUsageThread();
+}
+
 void CPUUsage::Load(void)
 {
+	if ( m_h_thread ) { return; }
+
+	m_thread_exit = 0;
+
+	unsigned long h = _beginthread(CPU_Thread,0,this);
+	if ( h != (unsigned long)-1 ) {
+		m_h_thread = (HANDLE)h;
+	}
 }
 
 void CPUUsage::Unload(void)
 {
-	::SetEvent(m_h_event);
+	if ( m_h_thread ) {
+		m_thread_exit = 1;
+		::SetEvent(m_h_event);
+
+		if ( ::WaitForSingleObject(m_h_thread,2000) == WAIT_TIMEOUT ) {
+			::TerminateThread(m_h_thread,0);
+		}
+		m_h_thread = NULL;
+	}
 }

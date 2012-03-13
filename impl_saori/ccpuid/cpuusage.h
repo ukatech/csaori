@@ -12,6 +12,7 @@ private:
 
 	volatile int m_thread_exit;
 	HANDLE m_h_event;
+	HANDLE m_h_thread;
 
 	void CPUUsageThread9X();
 	void CPUUsageThreadNT();
@@ -24,6 +25,8 @@ public:
 	void Unload(void);
 
 	void CPUUsageThread();
+
+	inline UINT GetCPUUsage(void) { return m_usage; }
 };
 
 #endif /* __CPUUSAGE_H */

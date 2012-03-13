@@ -13,6 +13,8 @@ class CSAORI_CPUID : public CSAORI {
 private:
 	bool GetInfoFromString(const string_t &in,string_t &out);
 
+	CPUUsage cpu_usage;
+
 public:
 	virtual void exec(const CSAORIInput& in,CSAORIOutput& out);
 	virtual bool unload();
@@ -63,11 +65,13 @@ void CSAORI_CPUID::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 bool CSAORI_CPUID::load()
 {
+	cpu_usage.Load();
 	return true;
 }
 
 bool CSAORI_CPUID::unload()
 {
+	cpu_usage.Unload();
 	return true;
 }
 
@@ -361,7 +365,7 @@ bool CSAORI_CPUID::GetInfoFromString(const string_t &in,string_t &out)
 
 		if (in == L"cpu.usage") {		// cpu.usage: Return CPU Usage
 
-			out = SAORI_FUNC::intToString(CPUUsage());
+			out = SAORI_FUNC::intToString(cpu_usage.GetCPUUsage());
 			return true;
 		}
 
