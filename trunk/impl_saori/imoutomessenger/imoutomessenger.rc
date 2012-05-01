@@ -54,8 +54,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,1,0,0
- PRODUCTVERSION 1,1,0,0
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x29L
@@ -68,25 +68,25 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "041104b0"
+        BLOCK "000004b0"
         BEGIN
             VALUE "Comments", " \0"
             VALUE "CompanyName", " \0"
-            VALUE "FileDescription", "PlayWavSound SAORI Extension / CSaori Library Sample\0"
-            VALUE "PlayWavSound", "1, 1, 0, 0\0"
-            VALUE "InternalName", "PlayWavSound\0"
+            VALUE "FileDescription", "imoutomessenger SAORI Extension / CSaori Library Sample\0"
+            VALUE "FileVersion", "1, 0, 0, 0\0"
+            VALUE "InternalName", "imoutomessenger\0"
             VALUE "LegalCopyright", " \0"
             VALUE "LegalTrademarks", " \0"
-            VALUE "OriginalFilename", "PlayWavSound.dll\0"
+            VALUE "OriginalFilename", "imoutomessenger.dll\0"
             VALUE "PrivateBuild", " \0"
-            VALUE "ProductName", "PlayWavSound\0"
-            VALUE "ProductVersion", "1, 1, 0, 0\0"
+            VALUE "ProductName", "imoutomessenger\0"
+            VALUE "ProductVersion", "1, 0, 0, 0\0"
             VALUE "SpecialBuild", " \0"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x411, 1200
+        VALUE "Translation", 0x0, 1200
     END
 END
 
