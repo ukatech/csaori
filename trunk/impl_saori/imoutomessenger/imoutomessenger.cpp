@@ -29,6 +29,8 @@ private:
 	void UpdateWindowList(void);
 	bool EnumProc(HWND hwnd);
 
+	bool SendTo(CSAORIOutput& out,const char_t *string,const char_t *send_to);
+
 public:
 	CSaoriIMM() : m_mainwnd(-1) {
 	}
@@ -143,50 +145,71 @@ void CSaoriIMM::exec(const CSAORIInput& in,CSAORIOutput& out)
 			return;
 		}
 
-		UpdateWindowList();
-
-		if ( m_list.size() == 0 ) {
-			out.result_code = SAORIRESULT_NO_CONTENT;
+		const char_t *send_to = NULL;
+		if ( in.args.size() >= 3 ) {
+			send_to = in.args[2].c_str();
+		}
+		SendTo(out,in.args[1].c_str(),send_to);
+	}
+	else if ( wcsnicmp(in.args[0].c_str(),L"focus",5) == 0 ) {
+		if ( in.args.size() < 2 ) {
 			return;
 		}
 
-		HWND hWndToSend = NULL;
-		string_t window_title;
-
+		const char_t *send_to = NULL;
 		if ( in.args.size() >= 3 ) {
-			size_t n = m_list.size();
-			std::string find_str = SAORI_FUNC::UnicodeToMultiByte(in.args[2]);
-
-			for ( size_t i = 0 ; i < n ; ++i ) {
-				if ( strstr(m_list[i].title.c_str(),find_str.c_str()) ) {
-					hWndToSend = m_list[i].hwnd;
-					window_title = SAORI_FUNC::MultiByteToUnicode(m_list[i].title.c_str());
-					break;
-				}
-			}
+			send_to = in.args[1].c_str();
 		}
-		if ( hWndToSend == NULL ) {
-			hWndToSend = m_list[m_mainwnd].hwnd;
-			window_title = SAORI_FUNC::MultiByteToUnicode(m_list[m_mainwnd].title.c_str());
-		}
-
-		if ( hWndToSend ) {
-			out.result_code = SAORIRESULT_OK;
-			out.result = window_title;
-
-			std::string text = SAORI_FUNC::UnicodeToMultiByte(in.args[1],CP_UTF8);
-
-			COPYDATASTRUCT cp;
-			cp.dwData = 0;
-			cp.cbData = text.size();
-			cp.lpData = const_cast<char*>(text.c_str());
-
-			::SendMessageTimeout(hWndToSend,WM_COPYDATA,reinterpret_cast<WPARAM>(hWndToSend),
-				reinterpret_cast<LPARAM>(&cp),SMTO_ABORTIFHUNG | SMTO_NORMAL,1000,&m_send_result);
-		}
-		else {
-			out.result_code = SAORIRESULT_NO_CONTENT;
-		}
+		SendTo(out,L"$TTPC_FOCUS",send_to);
 	}
 }
 
+bool CSaoriIMM::SendTo(CSAORIOutput& out,const char_t *string,const char_t *send_to)
+{
+	UpdateWindowList();
+
+	if ( m_list.size() == 0 ) {
+		out.result_code = SAORIRESULT_NO_CONTENT;
+		return false;
+	}
+
+	HWND hWndToSend = NULL;
+	string_t window_title;
+
+	if ( send_to && *send_to ) {
+		size_t n = m_list.size();
+		std::string find_str = SAORI_FUNC::UnicodeToMultiByte(send_to);
+
+		for ( size_t i = 0 ; i < n ; ++i ) {
+			if ( strstr(m_list[i].title.c_str(),find_str.c_str()) ) {
+				hWndToSend = m_list[i].hwnd;
+				window_title = SAORI_FUNC::MultiByteToUnicode(m_list[i].title.c_str());
+				break;
+			}
+		}
+	}
+	if ( hWndToSend == NULL ) {
+		hWndToSend = m_list[m_mainwnd].hwnd;
+		window_title = SAORI_FUNC::MultiByteToUnicode(m_list[m_mainwnd].title.c_str());
+	}
+
+	if ( hWndToSend ) {
+		out.result_code = SAORIRESULT_OK;
+		out.result = window_title;
+
+		std::string text = SAORI_FUNC::UnicodeToMultiByte(string,CP_UTF8);
+
+		COPYDATASTRUCT cp;
+		cp.dwData = 0;
+		cp.cbData = text.size();
+		cp.lpData = const_cast<char*>(text.c_str());
+
+		::SendMessageTimeout(hWndToSend,WM_COPYDATA,reinterpret_cast<WPARAM>(hWndToSend),
+			reinterpret_cast<LPARAM>(&cp),SMTO_ABORTIFHUNG | SMTO_NORMAL,1000,&m_send_result);
+		return true;
+	}
+	else {
+		out.result_code = SAORIRESULT_NO_CONTENT;
+		return false;
+	}
+}
