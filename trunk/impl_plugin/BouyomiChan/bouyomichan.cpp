@@ -386,7 +386,7 @@ void CBouyomiChan::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 		::CloseHandle(hMutex);
 
-		if ( err != ERROR_ALREADY_EXISTS ) {
+		if ( err == ERROR_ALREADY_EXISTS ) {
 			return;
 		}
 
