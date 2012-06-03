@@ -43,11 +43,16 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out){
 	out.result_code = SAORIRESULT_BAD_REQUEST;
 	if ( in.args.size() < 1 ) { return; }
 
+	if ( wcsicmp(in.args[0].c_str(),L"hwnd") == 0 ) {
+		out.result_code = SAORIRESULT_NO_CONTENT;
+		return;
+	}
+
 	DWORD flag = SND_ASYNC;
 	std::string filepath;
 
 	if ( wcsnicmp(in.args[0].c_str(),L"system:",7) == 0 ) {
-		flag |= SND_ALIAS_ID;
+		flag |= SND_NODEFAULT | SND_ALIAS;
 		filepath = SAORI_FUNC::UnicodeToMultiByte(in.args[0].c_str()+7);
 	}
 	else {

@@ -17,8 +17,14 @@
 ■使用方法
 
 ・呼び出し
-　Argument0　　WAVEファイルのパス
-　環境変数を展開可能です。例：%SystemRoot%\system32\Macromed\Flash\npswf32.dll
+　Argument0
+　　system:ではじまるもの＝システム登録済み警告音
+　　　例：system:SystemExclamation -> 警告ダイアログの音
+　　　　　レジストリエディタで HKEY_CURRENT_USER\AppEvents\EventLabels 以下を見ると幸せになれるかもしれません。
+
+　　その他＝WAVEファイルのパス
+　　　環境変数を展開可能です。例：%SystemRoot%\Media\chimes.wav
+　　　本DLLからの相対パスでも指定可能です。例：..\sound\type1.wav
 
 ・結果
 　Result
@@ -30,5 +36,5 @@ license.txtを見てください。
 
 ■更新履歴
 
-・2011/8/26 Initial Release
+・2012/6/4 Initial Release
 
