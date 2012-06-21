@@ -86,6 +86,8 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 		size = 4;
 		result = ::RegQueryValueEx(hKey,"DiskCount",0,&type,(BYTE*)&dwData,&size);
+		DWORD diskCount = dwData;
+
 		if ( result == ERROR_SUCCESS ) {
 			for ( unsigned int i = 0 ; i < dwData ; ++i ) {
 				sprintf(name,"Disk%u",i);
@@ -98,17 +100,21 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 
 		result = ::RegQueryValueEx(hKey,"LastUpdate",0,&type,(BYTE*)&dwData,&size);
-		DWORD lastUpdateTick = dwData;
+		time_t lastUpdate = time(NULL) - ((::GetTickCount() - dwData) / 1000);
 
 		::RegCloseKey(hKey);
 
-		if ( dwData != names.size() ) {
+		if ( diskCount != names.size() ) {
 			return;
 		}
 
 		std::string sz,sz_line;
 
 		DWORD status = 0;
+
+		struct tm *tm_update = localtime(&lastUpdate);
+		sprintf(buffer,"%d,%d,%d,%d,%d,%d",tm_update->tm_year+1900,tm_update->tm_mon+1,tm_update->tm_mday,tm_update->tm_hour,tm_update->tm_min,tm_update->tm_sec);
+		out.values.push_back(SAORI_FUNC::MultiByteToUnicode(buffer));
 
 		unsigned int n = names.size();
 		for ( unsigned int i = 0 ; i < n ; ++i ) {
@@ -170,17 +176,19 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 			::RegCloseKey(hKey);
 		}
 		if ( status == 1 ) {
-			out.result = L"Good";
+			out.values[0] = L"Good," + out.values[0];
 		}
 		else if ( status == 2 ) {
-			out.result = L"Caution";
+			out.values[0] = L"Caution," + out.values[0];
 		}
 		else if ( status == 3 ) {
-			out.result = L"Bad";
+			out.values[0] = L"Bad," + out.values[0];
 		}
 		else {
-			out.result = L"Unknown";
+			out.values[0] = L"Unknown," + out.values[0];
 		}
+		
+		event = L"OnCrystalDiskInfoEvent";
 		out.result_code = SAORIRESULT_OK;
 	}
 }
