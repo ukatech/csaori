@@ -45,7 +45,7 @@ CrystalDiskInfoの[機能]メニューから、
 　Reference1～: 名前,ドライブレター,(Good|Caution|Bad|Unknown),容量,温度,temperature(Good|Caution|Bad|Unknown)
 　　ディスク個別ステータスです。カンマ区切り。
 　　3番目はディスク全体の診断情報、6番目は温度警告です。
-　　例：TOSHIBA MK6476GSX,C: D:,Good,640.1GB,31 ℃,temperatureGood
+　　例：TOSHIBA MK6476GSX51RAP0NNT,C: D:,Good,640.1 GB,32 °C,temperatureGood
 
 
 ・OnCrystalDiskInfoClear
