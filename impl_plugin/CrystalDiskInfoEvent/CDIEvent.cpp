@@ -42,7 +42,7 @@ CSAORIBase* CreateInstance(void)
 /*---------------------------------------------------------------
 	初期化(DllMain縛り)
 ---------------------------------------------------------------*/
-CSharedValue::CSharedValue(void)
+CSharedValue::CSharedValue(void) : last_tick(0)
 {
 }
 
@@ -65,22 +65,52 @@ bool CSharedValue::unload(void)
 
 void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
-	out.result_code = SAORIRESULT_BAD_REQUEST;
+	out.result_code = SAORIRESULT_NO_CONTENT;
+
+	//--------------------------------------------------------
+	if ( wcsicmp(in.id.c_str(),L"OnGhostBoot") == 0 ) {
+		if ( last_values.size() > 0 ) {
+			event = L"OnCrystalDiskInfoEvent";
+			out.result_code = SAORIRESULT_OK;
+			out.values = last_values;
+		}
+
+		return;
+	}
 
 	//--------------------------------------------------------
 	if ( wcsicmp(in.id.c_str(),L"OnSecondChange") == 0 ) {
-		out.result_code = SAORIRESULT_NO_CONTENT;
-
 		HKEY hKey = NULL;
 		LONG result = ::RegOpenKeyEx(HKEY_CURRENT_USER,
 			"Software\\Crystal Dew World\\CrystalDiskInfo",0,KEY_READ,&hKey);
 		if ( result != ERROR_SUCCESS ) {
+			if ( last_tick || (last_values.size() > 0) ) {
+				out.result_code = SAORIRESULT_OK;
+				event = L"OnCrystalDiskInfoClear";
+
+				last_tick = 0;
+				last_values.clear();
+			}
 			return;
 		}
 
+		//last update
+		DWORD type,dwData,size;
+
+		size = 4;
+		result = ::RegQueryValueEx(hKey,"LastUpdate",0,&type,(BYTE*)&dwData,&size);
+		DWORD update_tick = dwData;
+		time_t lastUpdate = time(NULL) - ((::GetTickCount() - update_tick) / 1000);
+
+		//更新されてない
+		if ( (last_values.size() > 0) && (update_tick == last_tick) ) {
+			::RegCloseKey(hKey);
+			return;
+		}
+
+		//diskcountを取って名前リスト構築
 		std::vector<std::string> names;
 
-		DWORD type,dwData,size;
 		char buffer[512];
 		char name[64];
 
@@ -89,7 +119,7 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 		DWORD diskCount = dwData;
 
 		if ( result == ERROR_SUCCESS ) {
-			for ( unsigned int i = 0 ; i < dwData ; ++i ) {
+			for ( unsigned int i = 0 ; i < diskCount ; ++i ) {
 				sprintf(name,"Disk%u",i);
 				size = sizeof(buffer)-1;
 				result = ::RegQueryValueEx(hKey,name,0,&type,(BYTE*)buffer,&size);
@@ -99,25 +129,26 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 			}
 		}
 
-		result = ::RegQueryValueEx(hKey,"LastUpdate",0,&type,(BYTE*)&dwData,&size);
-		time_t lastUpdate = time(NULL) - ((::GetTickCount() - dwData) / 1000);
-
 		::RegCloseKey(hKey);
 
+		//ぜんぶとれてないっぽ？→ボッシュートになります！
 		if ( diskCount != names.size() ) {
 			return;
 		}
 
+		//values(Reference)構築
 		std::string sz,sz_line;
 
 		DWORD status = 0;
 
+		//更新日付
 		struct tm *tm_update = localtime(&lastUpdate);
 		sprintf(buffer,"%d,%d,%d,%d,%d,%d",tm_update->tm_year+1900,tm_update->tm_mon+1,tm_update->tm_mday,tm_update->tm_hour,tm_update->tm_min,tm_update->tm_sec);
 		out.values.push_back(SAORI_FUNC::MultiByteToUnicode(buffer));
 
 		unsigned int n = names.size();
 		for ( unsigned int i = 0 ; i < n ; ++i ) {
+			//情報キーをひとつずつまわる
 			sz = "Software\\Crystal Dew World\\CrystalDiskInfo\\";
 			sz += names[i];
 
@@ -129,12 +160,12 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 			sz_line = "";
 
 			sz_line += names[i];
-			sz_line += "\1";
+			sz_line += ",";
 
 			size = sizeof(buffer)-1;
 			result = ::RegQueryValueEx(hKey,"DriveLetter",0,&type,(BYTE*)buffer,&size);
 			sz_line += buffer;
-			sz_line += "\1";
+			sz_line += ",";
 
 			size = 4;
 			result = ::RegQueryValueEx(hKey,"DiskStatus",0,&type,(BYTE*)&dwData,&size);
@@ -150,7 +181,7 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 			else {
 				sz_line += "Unknown";
 			}
-			sz_line += "\1";
+			sz_line += ",";
 			if ( dwData > status ) {
 				status = dwData;
 			}
@@ -158,23 +189,25 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 			size = sizeof(buffer)-1;
 			result = ::RegQueryValueEx(hKey,"DiskSize",0,&type,(BYTE*)buffer,&size);
 			sz_line += buffer;
-			sz_line += "\1";
+			sz_line += ",";
 
 			size = sizeof(buffer)-1;
 			result = ::RegQueryValueEx(hKey,"Temperature",0,&type,(BYTE*)buffer,&size);
 			sz_line += buffer;
-			sz_line += "\1";
+			sz_line += ",";
 
 
 			size = sizeof(buffer)-1;
 			result = ::RegQueryValueEx(hKey,"TemperatureClass",0,&type,(BYTE*)buffer,&size);
 			sz_line += buffer;
-			//sz_line += "\1";
+			//sz_line += ",";
 
 			out.values.push_back(SAORI_FUNC::MultiByteToUnicode(sz_line));
 
 			::RegCloseKey(hKey);
 		}
+
+		//Reference0にステータスを足す
 		if ( status == 1 ) {
 			out.values[0] = L"Good," + out.values[0];
 		}
@@ -187,8 +220,12 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 		else {
 			out.values[0] = L"Unknown," + out.values[0];
 		}
+
+		last_tick = update_tick;
+		last_values = out.values;
 		
 		event = L"OnCrystalDiskInfoEvent";
 		out.result_code = SAORIRESULT_OK;
+		return;
 	}
 }
