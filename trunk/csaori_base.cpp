@@ -204,7 +204,16 @@ namespace SAORI_FUNC{
 	}
 
 	string_t replaceAll(string_t string, const string_t &find, const string_t &replace) {
-		unsigned int found = 0;
+		string_t::size_type found = std::string::npos;
+		while((found = string.find(find, found)) != std::string::npos) {
+			string.replace(found, find.length(), replace);
+			found += replace.size();
+		}
+		return string;
+	}
+
+	std::string replaceAll(std::string string, const std::string &find, const std::string &replace) {
+		std::string::size_type found = std::string::npos;
 		while((found = string.find(find, found)) != std::string::npos) {
 			string.replace(found, find.length(), replace);
 			found += replace.size();
