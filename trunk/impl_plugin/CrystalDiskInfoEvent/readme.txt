@@ -62,3 +62,10 @@ license.txtを見てください。
 ・2012/6/22 1.0
 　First Release
 
+■陳謝
+
+・CrystalDiskInfo作者、hiyohiyo様
+・Shizuku Editionにかかわった桐野霞様・五十嵐裕美様・橘べるちぇ様
+
+ごめんなさい！！！！！！！！！！
+
