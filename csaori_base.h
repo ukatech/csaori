@@ -68,6 +68,7 @@ namespace SAORI_FUNC {
 	string_t getResultString(int);
 
 	string_t replaceAll(string_t string, const string_t &find, const string_t &replace);
+	std::string replaceAll(std::string string, const std::string &find, const std::string &replace);
 
 	std::string UnicodeToMultiByte(const wchar_t *Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0);
 	inline std::string UnicodeToMultiByte(const string_t& Source, unsigned int CodePage=CP_OEMCP, DWORD Flags=0) {

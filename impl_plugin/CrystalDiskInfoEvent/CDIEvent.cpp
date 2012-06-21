@@ -124,7 +124,7 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 				size = sizeof(buffer)-1;
 				result = ::RegQueryValueEx(hKey,name,0,&type,(BYTE*)buffer,&size);
 				if ( result == ERROR_SUCCESS ) {
-					names.push_back(std::string(name));
+					names.push_back(std::string(buffer));
 				}
 			}
 		}
@@ -159,12 +159,12 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 			sz_line = "";
 
-			sz_line += names[i];
+			sz_line += SAORI_FUNC::replaceAll(names[i],","," ");
 			sz_line += ",";
 
 			size = sizeof(buffer)-1;
 			result = ::RegQueryValueEx(hKey,"DriveLetter",0,&type,(BYTE*)buffer,&size);
-			sz_line += buffer;
+			sz_line += SAORI_FUNC::replaceAll(buffer,","," ");
 			sz_line += ",";
 
 			size = 4;
@@ -188,18 +188,18 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 			size = sizeof(buffer)-1;
 			result = ::RegQueryValueEx(hKey,"DiskSize",0,&type,(BYTE*)buffer,&size);
-			sz_line += buffer;
+			sz_line += SAORI_FUNC::replaceAll(buffer,","," ");
 			sz_line += ",";
 
 			size = sizeof(buffer)-1;
 			result = ::RegQueryValueEx(hKey,"Temperature",0,&type,(BYTE*)buffer,&size);
-			sz_line += buffer;
+			sz_line += SAORI_FUNC::replaceAll(buffer,","," ");
 			sz_line += ",";
 
 
 			size = sizeof(buffer)-1;
 			result = ::RegQueryValueEx(hKey,"TemperatureClass",0,&type,(BYTE*)buffer,&size);
-			sz_line += buffer;
+			sz_line += SAORI_FUNC::replaceAll(buffer,","," ");
 			//sz_line += ",";
 
 			out.values.push_back(SAORI_FUNC::MultiByteToUnicode(sz_line));
