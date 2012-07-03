@@ -252,11 +252,23 @@ static char_t* SplitCharTalk(char_t *scr,int &ctx)
 	return next;
 }
 
-static void ClearTag(char_t *t)
+static void ClearTag(char_t *t,int &inQuickSection)
 {
-	int len = wcslen(t);
+	if ( inQuickSection ) {
+		char_t *last = wcsstr(t,L"\\_q");
+		if ( last ) {
+			memmove(t,last+3,(wcslen(last+3)+1)*sizeof(char_t)); //ゼロ終端もコピー
+			inQuickSection = false;
+		}
+		else {
+			t[0] = 0;
+			return;
+		}
+	}
 
-	for ( int i = 0 ; i < len ; ++i ) {
+	size_t len = wcslen(t);
+
+	for ( size_t i = 0 ; i < len ; ++i ) {
 		if ( t[i] == L'\\' ) {
 			if ( t[i+1] == L'\\' ) {
 				memcpy(t+i,t+i+1,(len-i/*-1+1 ZEROも*/)*sizeof(char_t));
@@ -272,7 +284,14 @@ static void ClearTag(char_t *t)
 					++j;
 					if ( tagc == L'q' && uscount == 1 ) { //クイック
 						char_t *last = wcsstr(t+j,L"\\_q");
-						j = last-t+3;
+						if ( last ) {
+							j = (last-t)+3;
+						}
+						else {
+							inQuickSection = true;
+							t[i] = 0; //ここでカット
+							return;
+						}
 					}
 					else if ( t[j] == L'[' ) { //パラメータもあった
 						++j;
@@ -307,7 +326,7 @@ static void ClearTag(char_t *t)
 					len = 0;
 				}
 				else {
-					memcpy(t+i,t+j,(len-j+1/*+1してZEROも*/)*sizeof(char_t));
+					memmove(t+i,t+j,(len-j+1/*+1してZEROも*/)*sizeof(char_t));
 					len -= (j-i);
 					i -= 1;
 				}
@@ -357,6 +376,11 @@ void CBouyomiChan::exec(const CSAORIInput& in,CSAORIOutput& out)
 			else if ( wcsicmp(in.args[0].c_str(),L"machine") == 0 ) {
 				speak_type = 2;
 			}
+			else if ( wcsicmp(in.args[0].c_str(),L"close") == 0 ) {
+				out.result = L"\\0\\b[-1]\\e";
+				out.result_code = SAORIRESULT_OK;
+				return;
+			}
 			else {
 				out.result = SAORIRESULT_NO_CONTENT;
 				return;
@@ -368,17 +392,17 @@ void CBouyomiChan::exec(const CSAORIInput& in,CSAORIOutput& out)
 	//--------------------------------------------------------
 	if ( wcsicmp(in.id.c_str(),L"OnOtherGhostTalk") == 0 ) {
 		//棒読みちゃん起動チェック
-		OSVERSIONINFO inf;
-		inf.dwOSVersionInfoSize = sizeof(inf);
-		::GetVersionEx(&inf);
+		//OSVERSIONINFO inf;
+		//inf.dwOSVersionInfoSize = sizeof(inf);
+		//::GetVersionEx(&inf);
 
 		HANDLE hMutex;
-		if ( inf.dwMajorVersion >= 5 ) {
-			hMutex = ::CreateMutex(NULL,TRUE,"Local\\棒読みちゃん");
-		}
-		else {
+		//if ( inf.dwMajorVersion >= 5 ) {
+		//	hMutex = ::CreateMutex(NULL,TRUE,"Local\\棒読みちゃん");
+		//}
+		//else {
 			hMutex = ::CreateMutex(NULL,TRUE,"棒読みちゃん");
-		}
+		//}
 		DWORD err = ::GetLastError();
 
 		if ( ! hMutex ) {
@@ -386,7 +410,7 @@ void CBouyomiChan::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 		::CloseHandle(hMutex);
 
-		if ( err == ERROR_ALREADY_EXISTS ) {
+		if ( err != ERROR_ALREADY_EXISTS ) { //ERROR_ALREADY_EXISTSの時（＝確認時すでにある）のみ処理
 			return;
 		}
 
@@ -404,10 +428,11 @@ void CBouyomiChan::exec(const CSAORIInput& in,CSAORIOutput& out)
 		size_t count = 0;
 		int ctx = 0;
 		int lastctx = 0;
+		int inQuickSection = false;
 
 		do {
 			next = SplitCharTalk(split,ctx);
-			ClearTag(split);
+			ClearTag(split,inQuickSection);
 			if ( *split == 0 ) {
 				if ( next ) {
 					split = next;
