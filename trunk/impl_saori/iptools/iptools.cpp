@@ -156,17 +156,29 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 		BOOL (WINAPI *pDnsFlushResolverCache)();
 
 		HMODULE hDNSAPI = ::LoadLibrary("dnsapi.dll");
-		pDnsFlushResolverCache = reinterpret_cast<BOOL (WINAPI*)()>(::GetProcAddress(hDNSAPI,"DnsFlushResolverCache"));
+		if ( hDNSAPI ) {
+			pDnsFlushResolverCache = reinterpret_cast<BOOL (WINAPI*)()>(::GetProcAddress(hDNSAPI,"DnsFlushResolverCache"));
 
-		if ( pDnsFlushResolverCache ) {
-			out.result_code = SAORIRESULT_OK;
-			pDnsFlushResolverCache();
+			if ( pDnsFlushResolverCache ) {
+				out.result_code = SAORIRESULT_OK;
+				if ( pDnsFlushResolverCache() ) {
+					out.result = L"1";
+				}
+				else {
+					out.result = L"0";
+				}
+			}
+			else {
+				out.result_code = SAORIRESULT_OK;
+				out.result = L"0";
+			}
+
+			::FreeLibrary(hDNSAPI);
 		}
 		else {
-			out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
+			out.result_code = SAORIRESULT_OK;
+			out.result = L"0";
 		}
-
-		::FreeLibrary(hDNSAPI);
 	}
 
 	//***** adapter ************************************************************
