@@ -157,7 +157,7 @@ public:
 
 class CSAORIBase {
 public:
-	CSAORIBase(){
+	CSAORIBase() : module_handle(NULL) , call_id(0) {
 		setlocale( LC_ALL, "Japanese");
 	}
 	virtual ~CSAORIBase() {
@@ -167,6 +167,7 @@ public:
 private:
 	string_t module_path;
 	HANDLE module_handle;
+	unsigned int call_id;
 
 public:
 	//Internal Functions
@@ -182,6 +183,8 @@ public:
 	std::string checkAndModifyPath(const std::string &path);
 	string_t checkAndModifyPathW(const string_t &path);
 
+	//exec call unique id
+	unsigned int getLastCallID() { return call_id; }
 
 	//Interface specific constant string functions to override
 	virtual const string_t& s_saori_version(void) const = 0;
