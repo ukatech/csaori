@@ -26,10 +26,41 @@ volatile HANDLE g_hThread = NULL;
 
 string_t CountryCodeToName(const string_t& s);
 
+class CSAORIIPTools : public CSAORI {
+private:
+	unsigned int m_lastcall_conn;
+	unsigned int m_lastcall_device;
+
+	RASCONNA *m_pRasConn;
+	DWORD m_numRasConn;
+
+	RASDEVINFOA *m_pRasDevInfo;
+	DWORD m_numRasDevInfo;
+
+public:
+	CSAORIIPTools();
+	virtual ~CSAORIIPTools();
+
+	bool GetRasConnection(const char *name,RASCONNA &out);
+	bool GetRasDevice(const char *type,const char *name,RASDEVINFOA &out);
+
+	virtual void exec(const CSAORIInput& in,CSAORIOutput& out);
+	virtual bool unload();
+	virtual bool load();
+};
+
+CSAORIBase* CreateInstance(void)
+{
+	return new CSAORIIPTools();
+}
+
 /*---------------------------------------------------------
 	初期化
 ---------------------------------------------------------*/
-bool CSAORI::load(){
+CSAORIIPTools::CSAORIIPTools() : m_lastcall_conn(0),m_lastcall_device(0),m_pRasConn(NULL),m_numRasConn(0),m_pRasDevInfo(NULL),m_numRasDevInfo(0) {
+}
+
+bool CSAORIIPTools::load(){
     WSADATA wsaData;
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 	return true;
@@ -38,13 +69,96 @@ bool CSAORI::load(){
 /*---------------------------------------------------------
 	解放
 ---------------------------------------------------------*/
-bool CSAORI::unload(){
+CSAORIIPTools::~CSAORIIPTools(){
+}
+
+bool CSAORIIPTools::unload(){
 	if ( g_hThread ) {
 		::WaitForSingleObject(g_hThread,INFINITE);
 	}
+	if ( m_pRasConn ) { free(m_pRasConn); m_numRasConn = 0; m_lastcall_conn = 0; }
+	if ( m_pRasDevInfo ) { free(m_pRasDevInfo); m_numRasDevInfo = 0; m_lastcall_device = 0; }
 
 	WSACleanup();
 	return true;
+}
+
+bool CSAORIIPTools::GetRasDevice(const char *type,const char *name,RASDEVINFOA &out)
+{
+	if ( m_lastcall_device != getLastCallID() ) {
+		m_lastcall_device = getLastCallID();
+
+		if ( m_pRasDevInfo ) { free(m_pRasDevInfo); }
+
+		DWORD size = sizeof(RASDEVINFOA)*10;
+		m_pRasDevInfo = reinterpret_cast<RASDEVINFOA*>(malloc(size));
+		m_pRasDevInfo->dwSize = sizeof(RASDEVINFOA);
+
+		DWORD result = ::RasEnumDevicesA(m_pRasDevInfo,&size,&m_numRasDevInfo);
+		if ( result == ERROR_BUFFER_TOO_SMALL || result == ERROR_NOT_ENOUGH_MEMORY ) {
+			free(m_pRasDevInfo);
+			m_pRasDevInfo = reinterpret_cast<RASDEVINFOA*>(malloc(size));
+			result = ::RasEnumDevicesA(m_pRasDevInfo,&size,&m_numRasDevInfo);
+		}
+
+		if ( result != 0 ) {
+			free(m_pRasDevInfo);
+			m_pRasDevInfo = NULL;
+			m_numRasDevInfo = 0;
+			return false;
+		}
+	}
+
+	if ( (! m_pRasDevInfo) || (! m_numRasDevInfo) ) {
+		return false;
+	}
+	for ( DWORD i = 0 ; i < m_numRasDevInfo ; ++i ) {
+		if ( strcmp(type,m_pRasDevInfo[i].szDeviceType) == 0 ) {
+			if ( strcmp(name,m_pRasDevInfo[i].szDeviceName) == 0 ) {
+				out = m_pRasDevInfo[i];
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool CSAORIIPTools::GetRasConnection(const char *name,RASCONNA &out)
+{
+	if ( m_lastcall_conn != getLastCallID() ) {
+		m_lastcall_conn = getLastCallID();
+
+		if ( m_pRasConn ) { free(m_pRasConn); }
+
+		DWORD size = sizeof(RASCONNA)*10;
+		m_pRasConn = reinterpret_cast<RASCONNA*>(malloc(size));
+		m_pRasConn->dwSize = sizeof(RASCONNA);
+
+		DWORD result = ::RasEnumConnectionsA(m_pRasConn,&size,&m_numRasConn);
+		if ( result == ERROR_BUFFER_TOO_SMALL || result == ERROR_NOT_ENOUGH_MEMORY ) {
+			free(m_pRasConn);
+			m_pRasConn = reinterpret_cast<RASCONNA*>(malloc(size));
+			result = ::RasEnumConnectionsA(m_pRasConn,&size,&m_numRasConn);
+		}
+
+		if ( result != 0 ) {
+			free(m_pRasConn);
+			m_pRasConn = NULL;
+			m_numRasConn = 0;
+			return false;
+		}
+	}
+
+	if ( (! m_pRasConn) || (! m_numRasConn) ) {
+		return false;
+	}
+	for ( DWORD i = 0 ; i < m_numRasConn ; ++i ) {
+		if ( strcmp(name,m_pRasConn[i].szEntryName) == 0 ) {
+			out = m_pRasConn[i];
+			return true;
+		}
+	}
+	return false;
 }
 
 /*---------------------------------------------------------
@@ -69,7 +183,7 @@ static bool ExecuteWhois(ExecuteWhoisData &d,bool is_async = false);
 static bool ExecuteWhoisSub(ExecuteWhoisData &d,bool is_async = false);
 static const char_t* GetMediaTypeFromID(DWORD type);
 
-void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
+void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
 	//パラメータ必須 Arg0:コマンド
 	if ( in.args.size() < 1 ) {
@@ -192,7 +306,7 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 		DWORD entry = 0;
 		DWORD result = ::RasEnumEntriesA(NULL,NULL,r,&size,&entry);
-		if ( result == ERROR_BUFFER_TOO_SMALL ) {
+		if ( result == ERROR_BUFFER_TOO_SMALL || result == ERROR_NOT_ENOUGH_MEMORY ) {
 			free(r);
 			r = reinterpret_cast<RASENTRYNAMEA*>(malloc(size));
 			result = ::RasEnumEntriesA(NULL,NULL,r,&size,&entry);
@@ -203,14 +317,56 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			return;
 		}
 		
+		string_t value;
+		RASCONNA rasConn;
+		RASCONNSTATUSA rasStatus;
+		RASENTRYA rasEntry;
+		RASDEVINFOA rasDevice;
+
 		for ( DWORD i = 0 ; i < entry ; ++i ) {
-			out.values.push_back(SAORI_FUNC::MultiByteToUnicode(r[i].szEntryName));
+			value = SAORI_FUNC::MultiByteToUnicode(r[i].szEntryName);
+
+			rasEntry.dwSize = sizeof(rasEntry);
+			DWORD entrySize = sizeof(rasEntry);
+			::RasGetEntryPropertiesA(NULL,r[i].szEntryName,&rasEntry,&entrySize,NULL,NULL);
+
+			value += L"\1";
+			value += SAORI_FUNC::MultiByteToUnicode(rasEntry.szDeviceType);
+
+			value += L"\1";
+			value += SAORI_FUNC::MultiByteToUnicode(rasEntry.szDeviceName);
+
+			if ( GetRasDevice(rasEntry.szDeviceType,rasEntry.szDeviceName,rasDevice) ) {
+				value += L"\1" L"1";
+			}
+			else {
+				value += L"\1" L"0";
+			}
+
+			if ( GetRasConnection(r[i].szEntryName,rasConn) ) {
+				rasStatus.dwSize = sizeof(rasStatus);
+				::RasGetConnectStatusA(rasConn.hrasconn,&rasStatus);
+
+				if ( rasStatus.rasconnstate == RASCS_Connected ) {
+					value += L"\1" L"1";
+				}
+				else {
+					value += L"\1" L"0";
+				}
+			}
+			else {
+				value += L"\1" L"0";
+			}
+
+			out.values.push_back(value);
 		}
 		char_t entry_text[64];
 		swprintf(entry_text,L"%u",entry);
 
 		out.result = entry_text;
 		out.result_code = SAORIRESULT_OK;
+
+		free(r);
 
 		return;
 	}

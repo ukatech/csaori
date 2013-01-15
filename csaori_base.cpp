@@ -471,6 +471,11 @@ string_t CSAORIOutput::toString()
 //------------------------------------------------------------------------------
 std::string CSAORIBase::request(const std::string &rq_tmp)
 {
+	call_id += 1;
+	if ( call_id >= 0x7fffffffU ) {
+		call_id = 1;
+	}
+
 	std::string cmd;
 	CSAORIInput* pIn;
 	CSAORIOutput* pOut;
