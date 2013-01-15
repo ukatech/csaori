@@ -16,6 +16,8 @@
 #include <process.h>
 #include <iphlpapi.h>
 #include <iptypes.h>
+#include <ras.h>
+#include <raserror.h>
 
 #include "csaori.h"
 
@@ -179,6 +181,38 @@ void CSAORI::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result_code = SAORIRESULT_OK;
 			out.result = L"0";
 		}
+		return;
+	}
+
+	//***** ras_enum ************************************************************
+	if ( wcsnicmp(cmd.c_str(),L"ras_enum",8) == 0 ) {
+		DWORD size = sizeof(RASENTRYNAMEA)*10;
+		RASENTRYNAMEA *r = reinterpret_cast<RASENTRYNAMEA*>(malloc(size));
+		r->dwSize = sizeof(RASENTRYNAMEA);
+
+		DWORD entry = 0;
+		DWORD result = ::RasEnumEntriesA(NULL,NULL,r,&size,&entry);
+		if ( result == ERROR_BUFFER_TOO_SMALL ) {
+			free(r);
+			r = reinterpret_cast<RASENTRYNAMEA*>(malloc(size));
+			result = ::RasEnumEntriesA(NULL,NULL,r,&size,&entry);
+		}
+
+		if ( result != 0 ) {
+			out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
+			return;
+		}
+		
+		for ( DWORD i = 0 ; i < entry ; ++i ) {
+			out.values.push_back(SAORI_FUNC::MultiByteToUnicode(r[i].szEntryName));
+		}
+		char_t entry_text[64];
+		swprintf(entry_text,L"%u",entry);
+
+		out.result = entry_text;
+		out.result_code = SAORIRESULT_OK;
+
+		return;
 	}
 
 	//***** adapter ************************************************************
