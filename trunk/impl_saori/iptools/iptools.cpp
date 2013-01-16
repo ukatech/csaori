@@ -21,10 +21,25 @@
 
 #include "csaori.h"
 
+#define SSTP_HEADER L"NOTIFY SSTP/1.1\r\nCharset: UTF-8\r\nSender: iptools SAORI\r\nHWnd: 0\r\nEvent: "
+
 static HWND g_hwnd = NULL;
-volatile HANDLE g_hThread = NULL;
 
 string_t CountryCodeToName(const string_t& s);
+void SendSSTP(const string_t &str);
+
+class ExecuteWhoisData {
+public:
+	string_t in_event;
+	string_t in_host;
+	string_t in_whois_to;
+
+	string_t inetnum;
+	string_t netname;
+	string_t descr;
+	string_t country;
+	string_t raw;
+};
 
 class CSAORIIPTools : public CSAORI {
 private:
@@ -37,6 +52,12 @@ private:
 	RASDEVINFOA *m_pRasDevInfo;
 	DWORD m_numRasDevInfo;
 
+	volatile void* m_hangup_thread;
+	void* m_hangup_handle;
+
+	volatile void* m_whois_thread;
+	ExecuteWhoisData* m_whois_data;
+
 public:
 	CSAORIIPTools();
 	virtual ~CSAORIIPTools();
@@ -44,9 +65,16 @@ public:
 	bool GetRasConnection(const char *name,RASCONNA &out);
 	bool GetRasDevice(const char *type,const char *name,RASDEVINFOA &out);
 
+	void RasHangupThread(void);
+	void ExecuteWhoisThread(void);
+
 	virtual void exec(const CSAORIInput& in,CSAORIOutput& out);
 	virtual bool unload();
 	virtual bool load();
+
+private:
+	bool ExecuteWhois(ExecuteWhoisData &d,bool is_async);
+	bool ExecuteWhoisSub(ExecuteWhoisData &d,bool is_async);
 };
 
 CSAORIBase* CreateInstance(void)
@@ -57,7 +85,9 @@ CSAORIBase* CreateInstance(void)
 /*---------------------------------------------------------
 	初期化
 ---------------------------------------------------------*/
-CSAORIIPTools::CSAORIIPTools() : m_lastcall_conn(0),m_lastcall_device(0),m_pRasConn(NULL),m_numRasConn(0),m_pRasDevInfo(NULL),m_numRasDevInfo(0) {
+CSAORIIPTools::CSAORIIPTools() : m_lastcall_conn(0),m_lastcall_device(0),m_pRasConn(NULL)
+	,m_numRasConn(0),m_pRasDevInfo(NULL),m_numRasDevInfo(0),m_hangup_thread(NULL),m_hangup_handle(NULL)
+	,m_whois_thread(NULL),m_whois_data(NULL) {
 }
 
 bool CSAORIIPTools::load(){
@@ -73,8 +103,13 @@ CSAORIIPTools::~CSAORIIPTools(){
 }
 
 bool CSAORIIPTools::unload(){
-	if ( g_hThread ) {
-		::WaitForSingleObject(g_hThread,INFINITE);
+	if ( m_whois_thread ) {
+		::WaitForSingleObject((HANDLE)m_whois_thread,INFINITE);
+		m_whois_thread = NULL;
+	}
+	if ( m_hangup_thread ) {
+		::WaitForSingleObject((HANDLE)m_hangup_thread,INFINITE);
+		m_hangup_thread = NULL;
 	}
 	if ( m_pRasConn ) { free(m_pRasConn); m_numRasConn = 0; m_lastcall_conn = 0; }
 	if ( m_pRasDevInfo ) { free(m_pRasDevInfo); m_numRasDevInfo = 0; m_lastcall_device = 0; }
@@ -163,109 +198,161 @@ bool CSAORIIPTools::GetRasConnection(const char *name,RASCONNA &out)
 
 static void WINAPI IPTools_RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs,DWORD dwError,DWORD dwExtendedError)
 {
+	string_t state;
+	string_t message;
+	
 	if (dwError != 0) {
+		state = L"Error";
+
 		char szBuf[256];
 		RasGetErrorStringA(dwError, szBuf, sizeof(szBuf));
-		return;
+
+		message = SAORI_FUNC::MultiByteToUnicode(szBuf);
+	}
+	else {
+		switch (rascs) {
+		case RASCS_OpenPort:
+			state = L"OpenPort";
+			message = L"ダイヤルしています。";
+			break;
+		case RASCS_PortOpened:
+			state = L"PortOpened";
+			message = L"ポートをオープンしました。";
+			break;
+		case RASCS_ConnectDevice:
+			state = L"ConnectDevice";
+			message = L"デバイスに接続しています。";
+			break;
+		case RASCS_DeviceConnected:
+			state = L"DeviceConnected";
+			message = L"デバイスに接続しました。";
+			break;
+		case RASCS_AllDevicesConnected:
+			state = L"AllDevicesConnected";
+			message = L"すべてのデバイスに接続しました。";
+			break;
+		case RASCS_Authenticate:
+			state = L"Authenticate";
+			message = L"認証を開始しました。";
+			break;
+		case RASCS_AuthNotify:
+			state = L"AuthNotify";
+			message = L"認証中です。";
+			break;
+		case RASCS_AuthRetry:
+			state = L"AuthRetry";
+			message = L"再認証中です。";
+			break;
+		case RASCS_AuthCallback:
+			state = L"AuthCallback";
+			message = L"コールバック認証中です。";
+			break;
+		case RASCS_AuthChangePassword:
+			state = L"AuthChangePassword";
+			message = L"パスワードを変更中です。";
+			break;
+		case RASCS_AuthProject:
+			state = L"AuthProject";
+			message = L"プロジェクションフェーズを開始しました。";
+			break;
+		case RASCS_AuthLinkSpeed:
+			state = L"AuthLinkSpeed";
+			message = L"リンク速度を計算中です。";
+			break;
+		case RASCS_AuthAck:
+			state = L"AuthAck";
+			message = L"認証を受け付けました。";
+			break;
+		case RASCS_ReAuthenticate:
+			state = L"ReAuthenticate";
+			message = L"再認証中です。";
+			break;
+		case RASCS_Authenticated:
+			state = L"Authenticated";
+			message = L"認証を完了しました。";
+			break;
+		case RASCS_PrepareForCallback:
+			state = L"PrepareForCallback";
+			message = L"コールバックの準備中です。";
+			break;
+		case RASCS_WaitForModemReset:
+			state = L"WaitForModemReset";
+			message = L"モデムのリセットを待っています。";
+			break;
+		case RASCS_WaitForCallback:
+			state = L"WaitForCallback";
+			message = L"コールバックを待っています。";
+			break;
+		case RASCS_Projected:
+			state = L"Projected";
+			message = L"プロジェクションフェーズを完了しました。";
+			break;
+		case RASCS_StartAuthentication:
+			state = L"StartAuthentication";
+			message = L"認証を開始しました。";
+			break;
+		case RASCS_CallbackComplete:
+			state = L"CallbackComplete";
+			message = L"コールバックを終了しました。";
+			break;
+		case RASCS_LogonNetwork:
+			state = L"LogonNetwork";
+			message = L"ネットワークにログオン中です。";
+			break;
+		case RASCS_SubEntryConnected:
+			state = L"SubEntryConnected";
+			message = L"サブエントリーを接続しました。";
+			break;
+		case RASCS_SubEntryDisconnected:
+			state = L"SubEntryDisconnected";
+			message = L"サブエントリーが切断されました。";
+			break;
+		case RASCS_Interactive:
+			state = L"Interactive";
+			message = L"対話中です。";
+			break;
+		case RASCS_RetryAuthentication:
+			state = L"RetryAuthentication";
+			message = L"認証のリトライ中です。";
+			break;
+		case RASCS_CallbackSetByCaller:
+			state = L"CallbackSetByCaller";
+			message = L"呼び出し元によってコールバックが設定されました。";
+			break;
+		case RASCS_PasswordExpired:
+			state = L"PasswordExpired";
+			message = L"パスワードが無効です。";
+			break;
+		case RASCS_Connected:
+			state = L"Connected";
+			message = L"接続しました。";
+			break;
+		case RASCS_Disconnected:
+			state = L"Disconnected";
+			message = L"切断しました。";
+			break;
+		default:
+			state = L"Unknown";
+			message = L"不明なエラーが発生しました。";
+			break;
+		}
 	}
 
-	string_t state;
-	
-	switch (rascs) {
-	case RASCS_OpenPort:
-		state = L"OpenPort";
-		break;
-	case RASCS_PortOpened:
-		state = L"PortOpened";
-		break;
-	case RASCS_ConnectDevice:
-		state = L"ConnectDevice";
-		break;
-	case RASCS_DeviceConnected:
-		state = L"DeviceConnected";
-		break;
-	case RASCS_AllDevicesConnected:
-		state = L"AllDevicesConnected";
-		break;
-	case RASCS_Authenticate:
-		state = L"Authenticate";
-		break;
-	case RASCS_AuthNotify:
-		state = L"AuthNotify";
-		break;
-	case RASCS_AuthRetry:
-		state = L"AuthRetry";
-		break;
-	case RASCS_AuthCallback:
-		state = L"AuthCallback";
-		break;
-	case RASCS_AuthChangePassword:
-		state = L"AuthChangePassword";
-		break;
-	case RASCS_AuthProject:
-		state = L"AuthProject";
-		break;
-	case RASCS_AuthLinkSpeed:
-		state = L"AuthLinkSpeed";
-		break;
-	case RASCS_AuthAck:
-		state = L"AuthAck";
-		break;
-	case RASCS_ReAuthenticate:
-		state = L"ReAuthenticate";
-		break;
-	case RASCS_Authenticated:
-		state = L"Authenticated";
-		break;
-	case RASCS_PrepareForCallback:
-		state = L"PrepareForCallback";
-		break;
-	case RASCS_WaitForModemReset:
-		state = L"WaitForModemReset";
-		break;
-	case RASCS_WaitForCallback:
-		state = L"WaitForCallback";
-		break;
-	case RASCS_Projected:
-		state = L"Projected";
-		break;
-	case RASCS_StartAuthentication:
-		state = L"StartAuthentication";
-		break;
-	case RASCS_CallbackComplete:
-		state = L"CallbackComplete";
-		break;
-	case RASCS_LogonNetwork:
-		state = L"LogonNetwork";
-		break;
-	case RASCS_SubEntryConnected:
-		state = L"SubEntryConnected";
-		break;
-	case RASCS_SubEntryDisconnected:
-		state = L"SubEntryDisconnected";
-		break;
-	case RASCS_Interactive:
-		state = L"Interactive";
-		break;
-	case RASCS_RetryAuthentication:
-		state = L"RetryAuthentication";
-		break;
-	case RASCS_CallbackSetByCaller:
-		state = L"CallbackSetByCaller";
-		break;
-	case RASCS_PasswordExpired:
-		state = L"PasswordExpired";
-		break;
-	case RASCS_Connected:
-		state = L"Connected";
-		break;
-	case RASCS_Disconnected:
-		state = L"Disconnected";
-		break;
-	default:
-		state = L"Unknown";
-		break;
-	}
+	string_t sstp(SSTP_HEADER);
+	sstp += L"OnIPToolsRasDialStatus";
+	sstp += L"\r\n";
+
+	sstp += L"Reference0: ";
+	sstp += state;
+	sstp += L"\r\n";
+
+	sstp += L"Reference1: ";
+	sstp += message;
+	sstp += L"\r\n";
+
+	sstp += L"\r\n";
+
+	SendSSTP(sstp);
 }
 
 
@@ -273,23 +360,10 @@ static void WINAPI IPTools_RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTAT
 	実行
 ---------------------------------------------------------*/
 
-class ExecuteWhoisData {
-public:
-	string_t in_event;
-	string_t in_host;
-	string_t in_whois_to;
-
-	string_t inetnum;
-	string_t netname;
-	string_t descr;
-	string_t country;
-	string_t raw;
-};
-
-static void _cdecl ExecuteWhoisThreadFunc(void *d);
-static bool ExecuteWhois(ExecuteWhoisData &d,bool is_async = false);
-static bool ExecuteWhoisSub(ExecuteWhoisData &d,bool is_async = false);
+static void _cdecl ExecuteWhoisThreadProc(void *d);
 static const char_t* GetMediaTypeFromID(DWORD type);
+
+static void _cdecl RasHangupThreadProc(void* pv);
 
 void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
@@ -323,23 +397,23 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result_code = SAORIRESULT_BAD_REQUEST;
 			return;
 		}
-		if ( g_hThread != NULL ) {
+		if ( m_whois_thread != NULL ) {
 			out.result_code = SAORIRESULT_BAD_REQUEST;
 			return;
 		}
 		
-		ExecuteWhoisData *pData = new ExecuteWhoisData;
-		pData->in_host = in.args[1];
+		m_whois_data = new ExecuteWhoisData;
+		m_whois_data->in_host = in.args[1];
 		if ( in.args.size() >= 3 ) {
-			pData->in_whois_to = in.args[2];
+			m_whois_data->in_whois_to = in.args[2];
 		}
 		if ( in.args.size() >= 4 ) {
-			pData->in_event = in.args[3];
+			m_whois_data->in_event = in.args[3];
 		}
 
-		unsigned long result = _beginthread(ExecuteWhoisThreadFunc,0,pData);
+		unsigned long result = _beginthread(ExecuteWhoisThreadProc,0,this);
 		if ( result != static_cast<unsigned long>(-1) ) {
-			g_hThread = reinterpret_cast<HANDLE>(result);
+			m_whois_thread = reinterpret_cast<HANDLE>(result);
 		}
 
 		out.result_code = SAORIRESULT_OK;
@@ -360,7 +434,7 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 			d.in_whois_to = in.args[2];
 		}
 
-		if ( ! ExecuteWhois(d) ) {
+		if ( ! ExecuteWhois(d,false) ) {
 			out.result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
 			return;
 		}
@@ -407,9 +481,19 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 
 	//***** ras_hangup ************************************************************
-	if ( wcsnicmp(cmd.c_str(),L"ras_hang",8) == 0 ) {
+	if ( wcsnicmp(cmd.c_str(),L"ras_hang",8) == 0 || wcsnicmp(cmd.c_str(),L"ras_close",9) == 0 ) {
 		if ( in.args.size() < 2 ) {
 			out.result_code = SAORIRESULT_BAD_REQUEST;
+			return;
+		}
+		if ( g_hwnd == NULL ) {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
+			return;
+		}
+
+		if ( m_hangup_thread ) {
+			out.result = L"closing";
+			out.result_code = SAORIRESULT_OK;
 			return;
 		}
 
@@ -419,11 +503,15 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 		if ( ! GetRasConnection(rasname.c_str(),rasConn) ) {
 			out.result = L"not_found";
 			out.result_code = SAORIRESULT_OK;
-
 			return;
 		}
 
-		::RasHangUp(rasConn.hrasconn);
+		m_hangup_handle = rasConn.hrasconn;
+
+		unsigned long h = _beginthread(RasHangupThreadProc,0,this);
+		if ( h != (unsigned long)-1 ) {
+			m_hangup_thread = (HANDLE)h;
+		}
 
 		out.result = L"OK";
 		out.result_code = SAORIRESULT_OK;
@@ -431,14 +519,25 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 
 	//***** ras_dial ************************************************************
-	if ( wcsnicmp(cmd.c_str(),L"ras_dial",8) == 0 ) {
+	if ( wcsnicmp(cmd.c_str(),L"ras_dial",8) == 0 || wcsnicmp(cmd.c_str(),L"ras_open",8) == 0 || wcsnicmp(cmd.c_str(),L"ras_connect",11) == 0 ) {
 		if ( in.args.size() < 2 ) {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
+			return;
+		}
+		if ( g_hwnd == NULL ) {
 			out.result_code = SAORIRESULT_BAD_REQUEST;
 			return;
 		}
 
 		std::string rasname = SAORI_FUNC::UnicodeToMultiByte(in.args[1].c_str());
 		
+		RASCONNA rasConn;
+		if ( GetRasConnection(rasname.c_str(),rasConn) ) {
+			out.result = L"already_connect";
+			out.result_code = SAORIRESULT_OK;
+			return;
+		}
+
 		BOOL bPassword;
 		RASDIALPARAMSA dialParams;
 		dialParams.dwSize = sizeof(dialParams);
@@ -487,7 +586,6 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 		
 		string_t value;
 		RASCONNA rasConn;
-		RASCONNSTATUSA rasStatus;
 		RASENTRYA rasEntry;
 		RASDEVINFOA rasDevice;
 
@@ -512,15 +610,7 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 			}
 
 			if ( GetRasConnection(r[i].szEntryName,rasConn) ) {
-				rasStatus.dwSize = sizeof(rasStatus);
-				::RasGetConnectStatusA(rasConn.hrasconn,&rasStatus);
-
-				if ( rasStatus.rasconnstate == RASCS_Connected ) {
-					value += L"\1" L"1";
-				}
-				else {
-					value += L"\1" L"0";
-				}
+				value += L"\1" L"1";
 			}
 			else {
 				value += L"\1" L"0";
@@ -707,15 +797,44 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 }
 
-void _cdecl ExecuteWhoisThreadFunc(void *ptr)
+void CSAORIIPTools::RasHangupThread(void)
 {
-	ExecuteWhoisData *pData = reinterpret_cast<ExecuteWhoisData*>(ptr);
+	::RasHangUp((HRASCONN)m_hangup_handle);
+
+	string_t sstp(SSTP_HEADER);
+	sstp += L"OnIPToolsRasHangupComplete";
+	sstp += L"\r\n";
+	sstp += L"\r\n";
+
+	SendSSTP(sstp);
+
+	::Sleep(3000);
+
+	m_hangup_thread = NULL;
+	m_hangup_handle = NULL;
+}
+
+static void _cdecl RasHangupThreadProc(void* pv)
+{
+	CSAORIIPTools *pIP = reinterpret_cast<CSAORIIPTools*>(pv);
+	pIP->RasHangupThread();
+}
+
+void _cdecl ExecuteWhoisThreadProc(void *pv)
+{
+	CSAORIIPTools *pIP = reinterpret_cast<CSAORIIPTools*>(pv);
+	pIP->ExecuteWhoisThread();
+}
+
+void CSAORIIPTools::ExecuteWhoisThread()
+{
+	ExecuteWhoisData *pData = m_whois_data;
 
 	ExecuteWhoisData &d = *pData;
 
 	bool result = ExecuteWhois(d,true);
 
-	string_t sstp(L"NOTIFY SSTP/1.1\r\nCharset: UTF-8\r\nSender: tsvnexec SAORI\r\nHWnd: 0\r\nEvent: ");
+	string_t sstp(SSTP_HEADER);
 	if ( d.in_event.size() ) {
 		sstp += d.in_event;
 		if ( ! result ) {
@@ -762,25 +881,13 @@ void _cdecl ExecuteWhoisThreadFunc(void *ptr)
 
 	sstp += L"\r\n";
 
-	std::string sstp_a = SAORI_FUNC::UnicodeToMultiByte(sstp.c_str(),CP_UTF8);
-
-	COPYDATASTRUCT c;
-	c.dwData = 9801;
-	c.cbData = sstp.size();
-	c.lpData = const_cast<char*>(sstp_a.c_str());
-
-	DWORD sstpresult;
-	::SendMessageTimeout(reinterpret_cast<HWND>(g_hwnd),
-		WM_COPYDATA,
-		reinterpret_cast<WPARAM>(g_hwnd),
-		reinterpret_cast<LPARAM>(&c),
-		SMTO_ABORTIFHUNG,5000,&sstpresult);
+	SendSSTP(sstp);
 
 	delete pData;
-	g_hThread = NULL;
+	m_whois_thread = NULL;
 }
 
-bool ExecuteWhois(ExecuteWhoisData &d,bool is_async)
+bool CSAORIIPTools::ExecuteWhois(ExecuteWhoisData &d,bool is_async)
 {
 	if ( d.in_whois_to.size() == 0 ) {
 		const char_t* const table[] = {L"whois.iana.org",L"whois.apnic.net",L"whois.arin.net",L"whois.ripe.net",L"whois.lacnic.net",L"whois.afrinic.net"};
@@ -803,7 +910,7 @@ bool ExecuteWhois(ExecuteWhoisData &d,bool is_async)
 	}
 }
 
-bool ExecuteWhoisSub(ExecuteWhoisData &d,bool is_async)
+bool CSAORIIPTools::ExecuteWhoisSub(ExecuteWhoisData &d,bool is_async)
 {
 	std::string whois_to = SAORI_FUNC::UnicodeToMultiByte(d.in_whois_to.c_str());
 
@@ -929,6 +1036,28 @@ bool ExecuteWhoisSub(ExecuteWhoisData &d,bool is_async)
 	}
 
 	return true;
+}
+
+/*---------------------------------------------------------
+	SSTP送信
+---------------------------------------------------------*/
+void SendSSTP(const string_t &sstp)
+{
+	if ( ! g_hwnd ) { return; }
+
+	std::string sstp_a = SAORI_FUNC::UnicodeToMultiByte(sstp.c_str(),CP_UTF8);
+
+	COPYDATASTRUCT c;
+	c.dwData = 9801;
+	c.cbData = sstp.size();
+	c.lpData = const_cast<char*>(sstp_a.c_str());
+
+	DWORD sstpresult;
+	::SendMessageTimeout(reinterpret_cast<HWND>(g_hwnd),
+		WM_COPYDATA,
+		reinterpret_cast<WPARAM>(g_hwnd),
+		reinterpret_cast<LPARAM>(&c),
+		SMTO_ABORTIFHUNG,5000,&sstpresult);
 }
 
 /*---------------------------------------------------------
