@@ -161,6 +161,114 @@ bool CSAORIIPTools::GetRasConnection(const char *name,RASCONNA &out)
 	return false;
 }
 
+static void WINAPI IPTools_RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs,DWORD dwError,DWORD dwExtendedError)
+{
+	if (dwError != 0) {
+		char szBuf[256];
+		RasGetErrorStringA(dwError, szBuf, sizeof(szBuf));
+		return;
+	}
+
+	string_t state;
+	
+	switch (rascs) {
+	case RASCS_OpenPort:
+		state = L"OpenPort";
+		break;
+	case RASCS_PortOpened:
+		state = L"PortOpened";
+		break;
+	case RASCS_ConnectDevice:
+		state = L"ConnectDevice";
+		break;
+	case RASCS_DeviceConnected:
+		state = L"DeviceConnected";
+		break;
+	case RASCS_AllDevicesConnected:
+		state = L"AllDevicesConnected";
+		break;
+	case RASCS_Authenticate:
+		state = L"Authenticate";
+		break;
+	case RASCS_AuthNotify:
+		state = L"AuthNotify";
+		break;
+	case RASCS_AuthRetry:
+		state = L"AuthRetry";
+		break;
+	case RASCS_AuthCallback:
+		state = L"AuthCallback";
+		break;
+	case RASCS_AuthChangePassword:
+		state = L"AuthChangePassword";
+		break;
+	case RASCS_AuthProject:
+		state = L"AuthProject";
+		break;
+	case RASCS_AuthLinkSpeed:
+		state = L"AuthLinkSpeed";
+		break;
+	case RASCS_AuthAck:
+		state = L"AuthAck";
+		break;
+	case RASCS_ReAuthenticate:
+		state = L"ReAuthenticate";
+		break;
+	case RASCS_Authenticated:
+		state = L"Authenticated";
+		break;
+	case RASCS_PrepareForCallback:
+		state = L"PrepareForCallback";
+		break;
+	case RASCS_WaitForModemReset:
+		state = L"WaitForModemReset";
+		break;
+	case RASCS_WaitForCallback:
+		state = L"WaitForCallback";
+		break;
+	case RASCS_Projected:
+		state = L"Projected";
+		break;
+	case RASCS_StartAuthentication:
+		state = L"StartAuthentication";
+		break;
+	case RASCS_CallbackComplete:
+		state = L"CallbackComplete";
+		break;
+	case RASCS_LogonNetwork:
+		state = L"LogonNetwork";
+		break;
+	case RASCS_SubEntryConnected:
+		state = L"SubEntryConnected";
+		break;
+	case RASCS_SubEntryDisconnected:
+		state = L"SubEntryDisconnected";
+		break;
+	case RASCS_Interactive:
+		state = L"Interactive";
+		break;
+	case RASCS_RetryAuthentication:
+		state = L"RetryAuthentication";
+		break;
+	case RASCS_CallbackSetByCaller:
+		state = L"CallbackSetByCaller";
+		break;
+	case RASCS_PasswordExpired:
+		state = L"PasswordExpired";
+		break;
+	case RASCS_Connected:
+		state = L"Connected";
+		break;
+	case RASCS_Disconnected:
+		state = L"Disconnected";
+		break;
+	default:
+		state = L"Unknown";
+		break;
+	}
+}
+
+
 /*---------------------------------------------------------
 	é¿çs
 ---------------------------------------------------------*/
@@ -295,6 +403,66 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result_code = SAORIRESULT_OK;
 			out.result = L"0";
 		}
+		return;
+	}
+
+	//***** ras_hangup ************************************************************
+	if ( wcsnicmp(cmd.c_str(),L"ras_hang",8) == 0 ) {
+		if ( in.args.size() < 2 ) {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
+			return;
+		}
+
+		std::string rasname = SAORI_FUNC::UnicodeToMultiByte(in.args[1].c_str());
+		
+		RASCONNA rasConn;
+		if ( ! GetRasConnection(rasname.c_str(),rasConn) ) {
+			out.result = L"not_found";
+			out.result_code = SAORIRESULT_OK;
+
+			return;
+		}
+
+		::RasHangUp(rasConn.hrasconn);
+
+		out.result = L"OK";
+		out.result_code = SAORIRESULT_OK;
+		return;
+	}
+
+	//***** ras_dial ************************************************************
+	if ( wcsnicmp(cmd.c_str(),L"ras_dial",8) == 0 ) {
+		if ( in.args.size() < 2 ) {
+			out.result_code = SAORIRESULT_BAD_REQUEST;
+			return;
+		}
+
+		std::string rasname = SAORI_FUNC::UnicodeToMultiByte(in.args[1].c_str());
+		
+		BOOL bPassword;
+		RASDIALPARAMSA dialParams;
+		dialParams.dwSize = sizeof(dialParams);
+		strncpy(dialParams.szEntryName,rasname.c_str(),sizeof(dialParams.szEntryName)-1);
+		
+		if ( ::RasGetEntryDialParamsA(NULL, &dialParams, &bPassword) != 0 ) {
+			out.result = L"not_found";
+			out.result_code = SAORIRESULT_OK;
+			return;
+		}
+
+		HRASCONN hrasconn = NULL;
+		if ( ::RasDialA(NULL, NULL, &dialParams, 1, IPTools_RasDialFunc1, &hrasconn) != 0 ) {
+			if ( hrasconn ) {
+				::RasHangUp(hrasconn);
+			}
+
+			out.result = L"dial_error";
+			out.result_code = SAORIRESULT_OK;
+			return;
+		}
+
+		out.result = L"OK";
+		out.result_code = SAORIRESULT_OK;
 		return;
 	}
 
