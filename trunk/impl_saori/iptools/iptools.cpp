@@ -215,8 +215,9 @@ void CSAORIIPTools::RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs
 	if (dwError != 0) {
 		state = L"Error";
 
-		char szBuf[256];
-		RasGetErrorStringA(dwError, szBuf, sizeof(szBuf));
+		char szBuf[512];
+		szBuf[511] = 0;
+		::RasGetErrorStringA(dwError, szBuf, 511);
 
 		message = SAORI_FUNC::MultiByteToUnicode(szBuf);
 	}
@@ -343,9 +344,7 @@ void CSAORIIPTools::RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs
 			message = L"切断しました。";
 			break;
 		default:
-			state = L"Unknown";
-			message = L"不明なエラーが発生しました。";
-			break;
+			return;
 		}
 	}
 
@@ -522,6 +521,7 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 
 		m_hangup_handle = rasConn.hrasconn;
+		m_dial_name = in.args[1];
 
 		unsigned long h = _beginthread(RasHangupThreadProc,0,this);
 		if ( h != (unsigned long)-1 ) {
@@ -821,6 +821,11 @@ void CSAORIIPTools::RasHangupThread(void)
 	string_t sstp(SSTP_HEADER);
 	sstp += L"OnIPToolsRasHangupComplete";
 	sstp += L"\r\n";
+
+	sstp += L"Reference0: ";
+	sstp += m_dial_name;
+	sstp += L"\r\n";
+
 	sstp += L"\r\n";
 
 	SendSSTP(sstp);
@@ -1066,7 +1071,7 @@ void SendSSTP(const string_t &sstp)
 
 	COPYDATASTRUCT c;
 	c.dwData = 9801;
-	c.cbData = sstp.size();
+	c.cbData = sstp_a.size();
 	c.lpData = const_cast<char*>(sstp_a.c_str());
 
 	DWORD sstpresult;
