@@ -58,12 +58,15 @@ private:
 	volatile void* m_whois_thread;
 	ExecuteWhoisData* m_whois_data;
 
+	string_t m_dial_name;
+
 public:
 	CSAORIIPTools();
 	virtual ~CSAORIIPTools();
 
 	bool GetRasConnection(const char *name,RASCONNA &out);
 	bool GetRasDevice(const char *type,const char *name,RASDEVINFOA &out);
+	void RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs,DWORD dwError,DWORD dwExtendedError);
 
 	void RasHangupThread(void);
 	void ExecuteWhoisThread(void);
@@ -77,9 +80,12 @@ private:
 	bool ExecuteWhoisSub(ExecuteWhoisData &d,bool is_async);
 };
 
+CSAORIIPTools *g_pIPTools = NULL;
+
 CSAORIBase* CreateInstance(void)
 {
-	return new CSAORIIPTools();
+	g_pIPTools = new CSAORIIPTools();
+	return g_pIPTools;
 }
 
 /*---------------------------------------------------------
@@ -197,6 +203,11 @@ bool CSAORIIPTools::GetRasConnection(const char *name,RASCONNA &out)
 }
 
 static void WINAPI IPTools_RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs,DWORD dwError,DWORD dwExtendedError)
+{
+	g_pIPTools->RasDialFunc1(hrasconn,unMsg,rascs,dwError,dwExtendedError);
+}
+
+void CSAORIIPTools::RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs,DWORD dwError,DWORD dwExtendedError)
 {
 	string_t state;
 	string_t message;
@@ -343,10 +354,14 @@ static void WINAPI IPTools_RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTAT
 	sstp += L"\r\n";
 
 	sstp += L"Reference0: ";
-	sstp += state;
+	sstp += m_dial_name;
 	sstp += L"\r\n";
 
 	sstp += L"Reference1: ";
+	sstp += state;
+	sstp += L"\r\n";
+
+	sstp += L"Reference2: ";
 	sstp += message;
 	sstp += L"\r\n";
 
@@ -548,6 +563,8 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 			out.result_code = SAORIRESULT_OK;
 			return;
 		}
+
+		m_dial_name = in.args[1];
 
 		HRASCONN hrasconn = NULL;
 		if ( ::RasDialA(NULL, NULL, &dialParams, 1, IPTools_RasDialFunc1, &hrasconn) != 0 ) {
