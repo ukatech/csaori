@@ -124,6 +124,10 @@ bool CSAORIIPTools::unload(){
 	return true;
 }
 
+/*---------------------------------------------------------
+	RASのデバイスを検索
+---------------------------------------------------------*/
+
 bool CSAORIIPTools::GetRasDevice(const char *type,const char *name,RASDEVINFOA &out)
 {
 	if ( m_lastcall_device != getLastCallID() ) {
@@ -164,6 +168,10 @@ bool CSAORIIPTools::GetRasDevice(const char *type,const char *name,RASDEVINFOA &
 	return false;
 }
 
+/*---------------------------------------------------------
+	RASの接続を検索
+---------------------------------------------------------*/
+
 bool CSAORIIPTools::GetRasConnection(const char *name,RASCONNA &out)
 {
 	if ( m_lastcall_conn != getLastCallID() ) {
@@ -202,16 +210,11 @@ bool CSAORIIPTools::GetRasConnection(const char *name,RASCONNA &out)
 	return false;
 }
 
-static void WINAPI IPTools_RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs,DWORD dwError,DWORD dwExtendedError)
+/*---------------------------------------------------------
+	RASハンドラ
+---------------------------------------------------------*/
+static void __fastcall RasErrorStateToText(RASCONNSTATE rascs,DWORD dwError,string_t &state,string_t &message)
 {
-	g_pIPTools->RasDialFunc1(hrasconn,unMsg,rascs,dwError,dwExtendedError);
-}
-
-void CSAORIIPTools::RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs,DWORD dwError,DWORD dwExtendedError)
-{
-	string_t state;
-	string_t message;
-	
 	if (dwError != 0) {
 		state = L"Error";
 
@@ -346,6 +349,23 @@ void CSAORIIPTools::RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs
 		default:
 			return;
 		}
+	}
+}
+
+static void WINAPI IPTools_RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs,DWORD dwError,DWORD dwExtendedError)
+{
+	g_pIPTools->RasDialFunc1(hrasconn,unMsg,rascs,dwError,dwExtendedError);
+}
+
+void CSAORIIPTools::RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs,DWORD dwError,DWORD dwExtendedError)
+{
+	string_t state;
+	string_t message;
+	
+	RasErrorStateToText(rascs,dwError,state,message);
+
+	if ( state.size() == 0 ) {
+		return;
 	}
 
 	string_t sstp(SSTP_HEADER);
@@ -569,6 +589,14 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 		HRASCONN hrasconn = NULL;
 		if ( ::RasDialA(NULL, NULL, &dialParams, 1, IPTools_RasDialFunc1, &hrasconn) != 0 ) {
 			if ( hrasconn ) {
+				RASCONNSTATUSA ras_status;
+				ras_status.dwSize = sizeof(ras_status);
+				::RasGetConnectStatusA(hrasconn,&ras_status);
+
+				string_t status,message;
+				RasErrorStateToText(ras_status.rasconnstate,ras_status.dwError,status,message);
+				out.values.push_back(message);
+
 				::RasHangUp(hrasconn);
 			}
 
@@ -814,6 +842,10 @@ void CSAORIIPTools::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 }
 
+/*---------------------------------------------------------
+	RAS切断
+---------------------------------------------------------*/
+
 void CSAORIIPTools::RasHangupThread(void)
 {
 	::RasHangUp((HRASCONN)m_hangup_handle);
@@ -841,6 +873,10 @@ static void _cdecl RasHangupThreadProc(void* pv)
 	CSAORIIPTools *pIP = reinterpret_cast<CSAORIIPTools*>(pv);
 	pIP->RasHangupThread();
 }
+
+/*---------------------------------------------------------
+	Whois
+---------------------------------------------------------*/
 
 void _cdecl ExecuteWhoisThreadProc(void *pv)
 {
