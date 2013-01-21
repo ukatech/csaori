@@ -1,0 +1,8 @@
+Charset,UTF-8
+name,CrystalDiskInfo Event
+craftman,SSP BUGTRAQ
+filename,eject.dll
+secondchangeinterval,10
+otherghosttalk,0
+id,24C1E065-3B52-4397-BC27-DABB4EC09EC2
+homeurl,http://ssp.shillest.net/plugin/eject/
