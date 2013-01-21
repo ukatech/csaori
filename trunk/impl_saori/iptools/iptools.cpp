@@ -367,6 +367,9 @@ void CSAORIIPTools::RasDialFunc1(HRASCONN hrasconn,UINT unMsg,RASCONNSTATE rascs
 	if ( state.size() == 0 ) {
 		return;
 	}
+	if ( dwError != 0 ) {
+		::RasHangUp(hrasconn);
+	}
 
 	string_t sstp(SSTP_HEADER);
 	sstp += L"OnIPToolsRasDialStatus";
