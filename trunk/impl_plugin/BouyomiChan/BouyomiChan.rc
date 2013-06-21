@@ -31,7 +31,7 @@ LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,2,0
+ FILEVERSION 1,0,3,0
  PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
@@ -50,7 +50,7 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "CSaori Project\0"
             VALUE "FileDescription", "BouyomiChan\0"
-            VALUE "FileVersion", "1, 0, 2, 0\0"
+            VALUE "FileVersion", "1, 0, 3, 0\0"
             VALUE "InternalName", "BouyomiChan\0"
             VALUE "LegalCopyright", "Copyright (C) CSaori Project\0"
             VALUE "LegalTrademarks", "\0"
