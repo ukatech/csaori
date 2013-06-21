@@ -392,17 +392,23 @@ void CBouyomiChan::exec(const CSAORIInput& in,CSAORIOutput& out)
 	//--------------------------------------------------------
 	if ( wcsicmp(in.id.c_str(),L"OnOtherGhostTalk") == 0 ) {
 		//–_“Ç‚Ý‚¿‚á‚ñ‹N“®ƒ`ƒFƒbƒN
-		//OSVERSIONINFO inf;
-		//inf.dwOSVersionInfoSize = sizeof(inf);
-		//::GetVersionEx(&inf);
+		OSVERSIONINFO inf;
+		inf.dwOSVersionInfoSize = sizeof(inf);
+		::GetVersionEx(&inf);
 
-		HANDLE hMutex;
-		//if ( inf.dwMajorVersion >= 5 ) {
-		//	hMutex = ::CreateMutex(NULL,TRUE,"Local\\–_“Ç‚Ý‚¿‚á‚ñ");
-		//}
-		//else {
-			hMutex = ::CreateMutex(NULL,TRUE,"–_“Ç‚Ý‚¿‚á‚ñ");
-		//}
+		HANDLE hMutex = NULL;
+		if ( inf.dwMajorVersion >= 5 ) {
+			hMutex = ::CreateMutex(NULL,FALSE,"Local\\BouyomiChan");
+			if ( ! hMutex ) {
+				hMutex = ::CreateMutex(NULL,FALSE,"Local\\–_“Ç‚Ý‚¿‚á‚ñ");
+			}
+		}
+		if ( ! hMutex ) {
+			hMutex = ::CreateMutex(NULL,FALSE,"BouyomiChan");
+			if ( ! hMutex ) {
+				hMutex = ::CreateMutex(NULL,FALSE,"–_“Ç‚Ý‚¿‚á‚ñ");
+			}
+		}
 		DWORD err = ::GetLastError();
 
 		if ( ! hMutex ) {

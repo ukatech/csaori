@@ -21,7 +21,7 @@ secondchangeinterval,0
 
 //オプション指定-ゴーストからのトーク通知
 //0で無効、標準0
-otherghosttalk,1
+otherghosttalk,before
 
 //プラグインID
 //http://www.famkruithof.net/uuid/uuidgen とかで生成できます
