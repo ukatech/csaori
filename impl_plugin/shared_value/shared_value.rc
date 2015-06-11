@@ -47,7 +47,7 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "CSaori Project\0"
             VALUE "FileDescription", "Shared Value Plugin\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "FileVersion", "1, 0, 1, 1\0"
             VALUE "InternalName", "shared_value\0"
             VALUE "LegalCopyright", "Copyright (C) CSaori Project\0"
             VALUE "LegalTrademarks", "\0"
