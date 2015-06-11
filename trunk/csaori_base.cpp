@@ -254,7 +254,6 @@ namespace SAORI_FUNC{
 
 		static FInitializeCriticalSectionEx SInitializeCriticalSectionEx = NULL;
 		static FInitializeCriticalSectionAndSpinCount SInitializeCriticalSectionAndSpinCount = NULL;
-		static bool init = false;
 
 		if ( ! init ) {
 			OSVERSIONINFO inf;
