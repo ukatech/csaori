@@ -1,29 +1,15 @@
 kisaragi
 
 ----------------------------------------------------------------
-kisaragiは、以下の2.で明記したライセンスに従って利用できます。
-ただし、「伺かゴースト」とその周辺プログラムに組み込んで利用する場合は、
-1.のライセンスを適用するものとします。
-
-要するに、ゴーストやそれに関係するユーティリティに組み込んで使う場合は、
-何も気にしなくていいです。
+kisaragiは、以下に明記したライセンス(修正BSD)に従って利用できます。
+readmeなど文書のどこかに、下記をコピペしておいてください。
 
 ----------------------------------------------------------------
-1.伺かゴースト用ライセンス
 
-使途を限定せず自由に利用することが出来ます。
+[Kisaragi SAORI]
 
-配布パッケージに含まれているすべてのファイルを自由に取り扱うことが出来ます。
-一部のファイル、もしくはそのファイルの内容の一部を抜き出して、
-他の構成に含めてもかまいません。 
-このプログラムを使用した結果、あなたに何らかの損害が発生しても、
-その責任を作者は負いません。 
-
-----------------------------------------------------------------
-2.修正BSDライセンス
-
-Copyright (C) 2008-, CSaori Project All rights reserved.
-http://code.google.com/p/csaori/
+Copyright (C) 2016-, CSaori Project All rights reserved.
+https://github.com/ponapalt/csaori/wiki
 
 ソースコード形式かバイナリ形式か、変更するかしないかを問わず、
 以下の条件を満たす場合に限り、再頒布および使用が許可されます。
@@ -45,3 +31,71 @@ http://code.google.com/p/csaori/
 利益の喪失、業務の中断も含め、またそれに限定されない）直接損害、間接損害、
 偶発的な損害、特別損害、懲罰的損害、または結果損害について、一切責任を
 負わないものとします。
+
+
+[MeCab (libmecab.dll)]
+
+Copyright (c) 2001-2008, Taku Kudo
+Copyright (c) 2004-2008, Nippon Telegraph and Telephone Corporation
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are
+permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above
+   copyright notice, this list of conditions and the
+   following disclaimer.
+
+ * Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the
+   following disclaimer in the documentation and/or other
+   materials provided with the distribution.
+
+ * Neither the name of the Nippon Telegraph and Telegraph Corporation
+   nor the names of its contributors may be used to endorse or
+   promote products derived from this software without specific
+   prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+[NAIST-jdic (dic以下のフォルダ)]
+
+Copyright (c) 2009, Nara Institute of Science and Technology, Japan.
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer.
+Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+Neither the name of the Nara Institute of Science and Technology
+(NAIST) nor the names of its contributors may be used to endorse or
+promote products derived from this software without specific prior
+written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
