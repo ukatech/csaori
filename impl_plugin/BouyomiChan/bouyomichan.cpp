@@ -293,7 +293,13 @@ static void ClearTag(char_t *t,int &inQuickSection)
 							return;
 						}
 					}
-					else if ( t[j] == L'[' ) { //パラメータもあった
+					else if ( tagc == L'n' ) {
+						t[i] = L'　';
+						i += 1;
+					}
+					
+					//パラメータカット
+					if ( t[j] == L'[' ) { //パラメータもあった
 						++j;
 						bool in_quote = false;
 						while ( true ) {
