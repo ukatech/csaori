@@ -126,6 +126,13 @@ dicフォルダの中身(単語辞書)
 dic以下の辞書を別のものに置き換える際は、現状必ずUTF-8でコンパイルしたものを使ってください。
 (v1.1でSJISから変更しました)
 
+NEologdを使いたい場合は以下のURLからコンパイル済辞書をダウンロードできます。
+http://ssp.shillest.net/etc/mecab-ipadic-neologd-dic.zip
+ただし、とても大きなファイルになるため、使用する際は十分検討を重ねた上でどうぞ。
+
+NEologdについての詳細な情報は以下をご覧ください。
+https://github.com/neologd/mecab-ipadic-neologd/blob/master/README.ja.md
+
 
 ■配布条件等
 
@@ -139,3 +146,6 @@ license.txtを見てください。
 ・2017/5/27 v1.1
 　Mecab未インストール環境でうまく動かない場合がある問題を修正
 　辞書の文字コードをUTF-8に変更
+　NEologdで動作検証
+
+
