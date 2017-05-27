@@ -11,6 +11,8 @@ class CSAORIKisaragi : public CSAORI
 {
 private:
 	bool init_mecab(void);
+	void release_mecab(void);
+
 	void tagger_error(CSAORIOutput &out);
 
 	string_t m_dicDir;
@@ -20,12 +22,13 @@ private:
 	
 	string_t m_format[FORMAT_ARRAY_SIZE]; //node,unk,eos,bos,eon
 
+	MeCab::Model *m_pModel;
 	MeCab::Tagger *m_pTagger;
 
 	void exec_type(const CSAORIInput& in,CSAORIOutput& out,string_t out_type);
 
 public:
-	CSAORIKisaragi() : m_dicDir(L"dic\\") , m_pTagger(NULL) , m_outFormat(L"chasen") , m_hMeCabDLL(NULL) { }
+	CSAORIKisaragi() : m_dicDir(L"dic\\") , m_pModel(NULL), m_pTagger(NULL) , m_outFormat(L"chasen") , m_hMeCabDLL(NULL) { }
 	virtual ~CSAORIKisaragi() { unload(); }
 
 	virtual bool load(void);
@@ -49,10 +52,7 @@ bool CSAORIKisaragi::load()
 ---------------------------------------------------------*/
 bool CSAORIKisaragi::unload()
 {
-	if ( m_pTagger ) {
-		delete m_pTagger;
-		m_pTagger = NULL;
-	}
+	release_mecab();
 
 	if ( m_hMeCabDLL ) {
 		::FreeLibrary(m_hMeCabDLL);
@@ -96,15 +96,13 @@ void CSAORIKisaragi::exec_type(const CSAORIInput& in,CSAORIOutput& out,string_t 
 	if ( in.args.size() >= 3 ) {
 		if ( m_format[0] != in.args[2] ) {
 			m_format[0] = in.args[2];
-			delete m_pTagger;
-			m_pTagger = NULL;
+			release_mecab();
 		}
 	}
 
 	if ( m_outFormat != out_type ) {
 		m_outFormat = out_type;
-		delete m_pTagger;
-		m_pTagger = NULL;
+		release_mecab();
 	}
 
 	if ( ! init_mecab() ) {
@@ -112,15 +110,20 @@ void CSAORIKisaragi::exec_type(const CSAORIInput& in,CSAORIOutput& out,string_t 
 		return;
 	}
 
-	std::string src = SAORI_FUNC::UnicodeToMultiByte(in.args[1],CP_SJIS);
 
-	const char* pResult = m_pTagger->parse(src.c_str());
-	if ( ! pResult ) {
+	MeCab::Lattice *pLattice = m_pModel->createLattice();
+	if (! pLattice ) {
+		return;
+	}
+	std::string src = SAORI_FUNC::UnicodeToMultiByte(in.args[1],CP_UTF8);
+	pLattice->set_sentence(src.c_str());
+
+	if ( ! m_pTagger->parse(pLattice) ) {
 		tagger_error(out);
 		return;
 	}
 
-	string_t result = SAORI_FUNC::MultiByteToUnicode(pResult,CP_SJIS);
+	string_t result = SAORI_FUNC::MultiByteToUnicode(pLattice->toString(),CP_UTF8);
 	string_t sl;
 	string_t::size_type pos = 0;
 
@@ -134,16 +137,38 @@ void CSAORIKisaragi::exec_type(const CSAORIInput& in,CSAORIOutput& out,string_t 
 	return;
 }
 
+/*---------------------------------------------------------
+	èâä˙âª
+---------------------------------------------------------*/
 bool CSAORIKisaragi::init_mecab(void)
 {
-	if ( m_pTagger ) { return true; }
+	if ( m_pModel ) { return true; }
 
 	char* argv[32];
 	int argc = 0;
 
+	string_t fullPath = checkAndModifyPathW(m_dicDir);
+
+	/////
+	char tempPath[MAX_PATH];
+	::GetTempPath(MAX_PATH,tempPath);
+
+	char tempFile[MAX_PATH];
+	::GetTempFileName(tempPath,"KSG",0,tempFile);
+
+	/////
+	std::string arg_rc = "--rcfile=";
+	arg_rc += tempFile;
+
+	argv[argc] = const_cast<char*>(arg_rc.c_str());
+	argc += 1;
+
+	char oldMecabRC[MAX_PATH] = "";
+	::GetEnvironmentVariable("MECABRC",oldMecabRC,sizeof(oldMecabRC));
+	::SetEnvironmentVariable("MECABRC",tempFile);
+
 	/////
 	std::string arg_dir = "--dicdir=";
-	string_t fullPath = checkAndModifyPathW(m_dicDir);
 	arg_dir += SAORI_FUNC::UnicodeToMultiByte(fullPath.c_str(),CP_SJIS);
 
 	argv[argc] = const_cast<char*>(arg_dir.c_str());
@@ -201,13 +226,48 @@ bool CSAORIKisaragi::init_mecab(void)
 
 	/////
 
-	m_pTagger = MeCab::Tagger::create(argc,argv);
+	HANDLE h = ::CreateFile(tempFile,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL|FILE_ATTRIBUTE_TEMPORARY,NULL);
+	
+	std::string buffer;
+	buffer += "dicdir =";
+	buffer += SAORI_FUNC::UnicodeToMultiByte(fullPath.c_str(),CP_SJIS);;
+	buffer += "\n";
+
+	DWORD written = 0;
+	::WriteFile(h,buffer.c_str(),buffer.size(),&written,NULL);
+	::CloseHandle(h);
+
+	m_pModel = MeCab::createModel(argc,argv);
+	if (! m_pModel ) {
+		return false;
+	}
+
+	m_pTagger = m_pModel->createTagger();
 	if (! m_pTagger ) {
 		return false;
 	}
+
+	::DeleteFile(tempFile);
+	::SetEnvironmentVariable("MECABRC",oldMecabRC);
+
 	return true;
 }
 
+void CSAORIKisaragi::release_mecab()
+{
+	if ( m_pTagger ) {
+		delete m_pTagger;
+		m_pTagger = NULL;
+	}
+	if ( m_pModel ) {
+		delete m_pModel;
+		m_pModel = NULL;
+	}
+}
+
+/*---------------------------------------------------------
+	ÉGÉâÅ[
+---------------------------------------------------------*/
 void CSAORIKisaragi::tagger_error(CSAORIOutput &out)
 {
 	const char *e;

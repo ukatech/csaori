@@ -19,7 +19,15 @@
 
 ■使用方法
 
-・parse
+kisaragi.dll
+libmecab.dll
+dicフォルダの中身(単語辞書)
+
+以上3つの要素を同じフォルダの中に入れて、kisaragi.dllをSAORIとして呼び出してください。
+
+ゴーストの一部として配布する際は、license.txtを確認し、中身をreadmeなどに明記してください。
+
+○parse
 
   引数
     Argument0: parse
@@ -58,14 +66,14 @@
     Value12: EOS
 
 
-・parse-mecab
+○parse-mecab
 
   parseと同じですが、出力フォーマットがMeCabネイティブとなります。
   フォーマットの違いについては、例えば下記が参考になります。
   http://d.hatena.ne.jp/Kshi_Kshi/20110102/1293920002
 
 
-・wakati
+○wakati
 
   引数
     Argument0: parse
@@ -89,7 +97,7 @@
     Value0: 見 て 見 て 、 この 輝く 肌 。 あ はっ 、 もっと 近く で 見 て よ 。 
 
 
-・yomi
+○yomi
 
   引数
     Argument0: yomi
@@ -115,7 +123,8 @@
 
 ■注意事項
 
-dic以下の辞書を別のものに置き換える際は、現状必ずShift JISでコンパイルしたものを使ってください。
+dic以下の辞書を別のものに置き換える際は、現状必ずUTF-8でコンパイルしたものを使ってください。
+(v1.1でSJISから変更しました)
 
 
 ■配布条件等
@@ -127,3 +136,6 @@ license.txtを見てください。
 
 ・2016/11/26 初版
 
+・2017/5/27 v1.1
+　Mecab未インストール環境でうまく動かない場合がある問題を修正
+　辞書の文字コードをUTF-8に変更
