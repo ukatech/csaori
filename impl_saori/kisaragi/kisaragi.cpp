@@ -169,7 +169,7 @@ bool CSAORIKisaragi::init_mecab(void)
 
 	/////
 	std::string arg_dir = "--dicdir=";
-	arg_dir += SAORI_FUNC::UnicodeToMultiByte(fullPath.c_str(),CP_SJIS);
+	arg_dir += SAORI_FUNC::UnicodeToMultiByte(fullPath.c_str(),CP_UTF8); //é´èëånÇæÇØÇ»Ç∫Ç©UTF8
 
 	argv[argc] = const_cast<char*>(arg_dir.c_str());
 	argc += 1;
@@ -218,7 +218,7 @@ bool CSAORIKisaragi::init_mecab(void)
 	if ( m_userDic.size() ) {
 		arg_userdic = "--userdic=";
 		fullPath = checkAndModifyPathW(m_userDic);
-		arg_userdic += SAORI_FUNC::UnicodeToMultiByte(fullPath.c_str(),CP_SJIS);
+		arg_userdic += SAORI_FUNC::UnicodeToMultiByte(fullPath.c_str(),CP_UTF8); //é´èëånÇæÇØÇ»Ç∫Ç©UTF8
 
 		argv[argc] = const_cast<char*>(arg_userdic.c_str());
 		argc += 1;
@@ -230,7 +230,7 @@ bool CSAORIKisaragi::init_mecab(void)
 	
 	std::string buffer;
 	buffer += "dicdir =";
-	buffer += SAORI_FUNC::UnicodeToMultiByte(fullPath.c_str(),CP_SJIS);;
+	buffer += SAORI_FUNC::UnicodeToMultiByte(fullPath.c_str(),CP_SJIS);
 	buffer += "\n";
 
 	DWORD written = 0;
