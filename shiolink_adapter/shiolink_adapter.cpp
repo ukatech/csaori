@@ -22,9 +22,12 @@
 #include <windows.h>
 #include <io.h>
 #include <fcntl.h>
-
+#include <iostream>
+#include <fstream>
+ 
 #include "csaori_util.h"
 
+//#define DEBUG_LOG 1
 
 typedef BOOL (__cdecl *SHIORI_load)(HGLOBAL h, long len);
 typedef BOOL (__cdecl *SHIORI_unload)();
@@ -46,6 +49,33 @@ static void readline_stdin(std::basic_string<char> &out)
 			}
 		}
 	}
+
+#ifdef DEBUG_LOG
+	std::ofstream ofs;
+	ofs.open("log.txt",std::ios::app | std::ios::binary);
+	ofs << out;
+	ofs.close();
+#endif
+}
+
+static void writeline_stdout(const char *txt)
+{
+	char c;
+	const char *out = txt;
+
+	while ( true ) {
+		c = *out;
+		if ( c == 0 ) { break; }
+		putchar(c);
+		out += 1;
+	}
+
+#ifdef DEBUG_LOG
+	std::ofstream ofs;
+	ofs.open("log.txt",std::ios::app | std::ios::binary);
+	ofs << txt;
+	ofs.close();
+#endif
 }
 
 int main(int argc, char *argv[])
@@ -120,9 +150,9 @@ int main(int argc, char *argv[])
 				long size = path.length();
 
 				HGLOBAL h = ::GlobalAlloc(GMEM_FIXED,size+1);
-				memcpy(h,path.c_str()+3,size+1);
+				memcpy(h,path.c_str(),size+1);
 
-				/*int result = */pfLoad(h,size);
+				int result = pfLoad(h,size);
 			}
 			break;
 
@@ -136,8 +166,8 @@ int main(int argc, char *argv[])
 
 		case 'S':
 			{
-				puts(line.c_str());
-				puts("\r\n");
+				writeline_stdout(line.c_str());
+				writeline_stdout("\r\n");
 				fflush(stdout);
 
 				std::basic_string<char> rq;
@@ -171,8 +201,10 @@ int main(int argc, char *argv[])
 					rs += "\r\n";
 				}
 
-				puts(rs.c_str());
+				writeline_stdout(rs.c_str());
 				fflush(stdout);
+
+				::GlobalFree(sh);
 
 			}
 			break;
