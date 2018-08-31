@@ -200,6 +200,98 @@ string_t CSAORIOutput::toString()
 	return dest;
 }
 
+bool CSAORIOutput::parseString(const string_t &src)
+{
+	const string_t& vtag = base.s_saori_value();
+	const string_t::size_type cvtag = vtag.length();
+	const string_t& rtag = base.s_saori_result();
+	const string_t& saori_version = base.s_saori_version();
+	
+	string_t::size_type pos = 0, nextpos;
+	string_t::size_type ts;
+	
+	string_t sl;
+	
+	pos = SAORI_FUNC::getLine(sl, src, pos);
+	ts = sl.find(saori_version);
+	if (ts == string_t::npos) return false;
+
+	long r = wcstol(sl.substr(ts + saori_version.length()+1).c_str(),NULL,10);
+
+	if ( r == 200 ) {
+		result_code = SAORIRESULT_OK;
+	}
+	else if ( r == 204 ) {
+		result_code = SAORIRESULT_NO_CONTENT;
+	}
+	else if ( r == 400 ) {
+		result_code = SAORIRESULT_BAD_REQUEST;
+	}
+	else {
+		result_code = SAORIRESULT_INTERNAL_SERVER_ERROR;
+	}
+	
+	string_t k, v;
+	int argc = 0;
+	
+	while(1) {
+		sl = L"";
+		nextpos = SAORI_FUNC::getLine(sl, src, pos);
+		ts = sl.find(L": ");
+		if (ts != string_t::npos) {
+			k = sl.substr(0, ts);
+			v = sl.substr(ts + 2);
+			const char_t *pk = k.c_str();
+			// _argument[n] は vector (_args) に積む
+			if (k.size() > cvtag && _wcsnicmp(pk, vtag.c_str(), cvtag) == 0) {
+				int ord = _wtoi(pk + cvtag);
+				if (ord > 0 || (ord == 0 && k[cvtag] == L'0')) {
+					if (argc <= ord) {
+						// _argument[n] が順番に入ってない場合は 
+						// 隙間を先に埋めておく 
+						for(int i=(int)(values.size()); i<=ord; i++) {
+							values.push_back(L"");
+						}
+					}
+					//_arg.push_back(v);
+					values[ord]=v;
+					argc = (int)(values.size());
+				}
+			}
+			// ID: はidに
+			else if ( wcsicmp(k.c_str(),rtag.c_str()) == 0 ) {
+				result = v;
+			}
+			// それ以外の要素は map (_opt) に積む 
+			else {
+				if (ts > 0) {
+					//よくあるヘッダの大文字小文字統一
+					if ( wcsicmp(k.c_str(),L"securitylevel") == 0 ) {
+						k = L"SecurityLevel";
+					}
+					else if ( wcsicmp(k.c_str(),L"sender") == 0 ) {
+						k = L"Sender";
+					}
+					else if ( wcsicmp(k.c_str(),L"charset") == 0 ) {
+						k = L"Charset";
+					}
+
+					std::map<string_t,string_t>::iterator i;
+					i = opts.find(k);
+					if (i == opts.end()) {
+						opts.insert(std::pair<string_t,string_t>(k, v));
+					}
+					else opts[k] = v;
+				}
+			}
+		}
+		if (nextpos == string_t::npos) break;
+		pos = nextpos;
+	}
+
+	return true;
+}
+
 //------------------------------------------------------------------------------
 //CSAORIBase
 //------------------------------------------------------------------------------

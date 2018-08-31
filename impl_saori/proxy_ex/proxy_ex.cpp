@@ -81,7 +81,9 @@ void CSAORIProxy::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 			string_t param;
 			for ( int i = 1 ; i < in.args.size() ; ++i ) {
+				param += L"\"";
 				param += in.args[i];
+				param += L"\"";
 				param += L" ";
 			}
 

@@ -79,6 +79,8 @@ public:
 
 	string_t toString();
 	void setResultEmpty();
+
+	bool parseString(const string_t &src);
 };
 
 class CSAORIBase {
