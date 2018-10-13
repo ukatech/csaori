@@ -103,8 +103,17 @@ void CSAORIProxy::exec(const CSAORIInput& in,CSAORIOutput& out)
 			}
 			exe_full += exe_a;
 
+			std::string exe_rootpath;
+
 			if ( ::GetFileAttributes(exe_full.c_str()) != 0xFFFFFFFFU ) {
 				exe_a = exe_full;
+
+				exe_rootpath = exe_full;
+				std::string::size_type last = exe_rootpath.find_last_of('\\');
+
+				if ( last != std::string::npos ) {
+					exe_rootpath.assign(exe_full,0,last);
+				}
 			}
 
 			std::string param_a = exe_a;
@@ -162,7 +171,12 @@ void CSAORIProxy::exec(const CSAORIInput& in,CSAORIOutput& out)
 				//si.hStdError  = hErrorWrite;
 				si.wShowWindow = SW_HIDE;
 
-				bootSuccess = (::CreateProcess(NULL/*exe_name_a.c_str()*/,(char*)param_a.c_str(),NULL,NULL,TRUE,CREATE_NEW_CONSOLE,NULL,NULL,&si,&pi) != 0);
+				if ( exe_rootpath.length() > 0 ) {
+					bootSuccess = (::CreateProcess(NULL/*exe_name_a.c_str()*/,(char*)param_a.c_str(),NULL,NULL,TRUE,CREATE_NEW_CONSOLE,NULL,exe_rootpath.c_str(),&si,&pi) != 0);
+				}
+				else {
+					bootSuccess = (::CreateProcess(NULL/*exe_name_a.c_str()*/,(char*)param_a.c_str(),NULL,NULL,TRUE,CREATE_NEW_CONSOLE,NULL,NULL,&si,&pi) != 0);
+				}
 
 				if ( bootSuccess ) {
 					::CloseHandle(pi.hThread);
