@@ -1,0 +1,8 @@
+Charset,UTF-8
+name,Discord Rich Presence
+craftman,SSP BUGTRAQ
+filename,discord.dll
+secondchangeinterval,0
+otherghosttalk,0
+id,B327256A-8C69-470d-A1B3-963345A33D2F
+homeurl,http://ssp.shillest.net/plugin/discord/

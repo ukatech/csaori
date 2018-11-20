@@ -119,7 +119,7 @@ namespace SAORI_FUNC{
 
 	string_t getResultString(int rc)
 	{
-		char_t	*p;
+		const char_t	*p;
 		
 		switch(rc) {
 			case 200:
