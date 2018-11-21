@@ -180,7 +180,9 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 		if (wcsicmp(in.id.c_str(), L"OnDiscordPluginChoiceSelect") == 0) {
 			if (in.args[0] == L"__CLOSE__")
 			{
-return;
+				out.result = L"\\0\\b[-1]\\e";
+				out.result_code = SAORIRESULT_OK;
+				return;
 			}
 
 			auto itlList = std::find_if(ghost_map.begin(), ghost_map.end(), [&](auto &x) { return x.second.name == in.args[0]; });
@@ -279,6 +281,9 @@ static const wchar_t* imageKeyTable[] =
 {
 	L"Emily/Phase4.5\1ghost_emily",
 	L"Ç∆ÇÁÇ”Ç°Ç¡Ç≠ÅôÇ∆ÇÍÇ¢ÇÒ\1ghost_traffic",
+	L"Us' Lovex2 Dev\1ghost_uslovex2dev",
+	L"ê·à®V2\1ghost_susugiv2",
+	L"Francis (is not to work)\1ghost_francis",
 };
 
 void CDiscordPlugin::Update(string_t &ghostName)
