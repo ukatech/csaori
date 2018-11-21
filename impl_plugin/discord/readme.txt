@@ -25,3 +25,6 @@ license.txtを見てください。
 ・2018/11/20 1.0
 　First Release
 
+・2018/11/21 1.0.1
+　Discord_RunCallbacks() を一応呼ぶようにした
+
