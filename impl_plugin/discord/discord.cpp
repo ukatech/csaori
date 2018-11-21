@@ -49,7 +49,7 @@ CSAORIBase* CreateInstance(void)
 }
 
 /*---------------------------------------------------------------
-	初期化(DllMain縛り)
+	初期化・開放(DllMain縛り)
 ---------------------------------------------------------------*/
 CDiscordPlugin::CDiscordPlugin(void)
 {
@@ -129,6 +129,9 @@ bool CDiscordPlugin::load()
 	return true;
 }
 
+/*---------------------------------------------------------------
+	開放(DllMainとは別)
+---------------------------------------------------------------*/
 bool CDiscordPlugin::unload(void)
 {
 	Discord_Shutdown();
@@ -164,11 +167,14 @@ static string_t replace_all(const string_t &ss,const string_t &target,const stri
 	return s;
 }
 
+/*---------------------------------------------------------------
+	イベント実行
+---------------------------------------------------------------*/
 void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
 	out.result_code = SAORIRESULT_NO_CONTENT;
 
-	//--------------------------------------------------------
+	//-------------------------------------------------------------------------------------------------------------------
 	if ( wcsicmp(in.id.c_str(),L"OnMenuExec") == 0 || wcsicmp(in.id.c_str(), L"OnDiscordPluginChoiceSelect") == 0) {
 
 		if (wcsicmp(in.id.c_str(), L"OnDiscordPluginChoiceSelect") == 0) {
@@ -236,30 +242,39 @@ return;
 
 		return;
 	}
-	else if (wcsicmp(in.id.c_str(), L"OnGhostBoot") == 0 || wcsicmp(in.id.c_str(), L"OnGhostInfoUpdate") == 0 || wcsicmp(in.id.c_str(), L"OnGhostExit") == 0) {
-	CGhostInfo *pGI = NULL;
-	if (ghost_map.empty())
+	//-------------------------------------------------------------------------------------------------------------------
+	else if (wcsicmp(in.id.c_str(), L"OnGhostBoot") == 0 || wcsicmp(in.id.c_str(), L"OnGhostInfoUpdate") == 0 || wcsicmp(in.id.c_str(), L"OnGhostExit") == 0)
 	{
-		return;
-	}
+		CGhostInfo *pGI = NULL;
+		if (ghost_map.empty())
+		{
+			return;
+		}
 
-	if (wcsicmp(in.id.c_str(), L"OnGhostExit") == 0)
+		if (wcsicmp(in.id.c_str(), L"OnGhostExit") == 0)
+		{
+			pGI = &(ghost_map.begin()->second);
+		}
+		else
+		{
+			string_t path = in.args[4];
+			pGI = &(ghost_map[path]);
+		}
+
+		Update(pGI->name);
+	}
+	//-------------------------------------------------------------------------------------------------------------------
+	if (wcsicmp(in.id.c_str(), L"OnSecondChange") == 0)
 	{
-		pGI = &(ghost_map.begin()->second);
-	}
-	else
-	{
-		string_t path = in.args[4];
-		pGI = &(ghost_map[path]);
-	}
-
-	Update(pGI->name);
-
+		Discord_RunCallbacks();
 	}
 
 
 }
 
+/*---------------------------------------------------------------
+	Discordの状態更新
+---------------------------------------------------------------*/
 static const wchar_t* imageKeyTable[] =
 {
 	L"Emily/Phase4.5\1ghost_emily",
