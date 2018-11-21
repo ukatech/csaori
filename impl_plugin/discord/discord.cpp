@@ -284,6 +284,7 @@ static const wchar_t* imageKeyTable[] =
 	L"Us' Lovex2 Dev\1ghost_uslovex2dev",
 	L"ê·à®V2\1ghost_susugiv2",
 	L"Francis (is not to work)\1ghost_francis",
+	L"ÉiÉiÇ∆Ç≠ÇÎÇÀÇ±\1ghost_nanakuro",
 };
 
 void CDiscordPlugin::Update(string_t &ghostName)
