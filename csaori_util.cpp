@@ -57,27 +57,31 @@ namespace SAORI_FUNC{
 
 	std::string UnicodeToMultiByte(const wchar_t *Source, unsigned int CodePage, DWORD Flags)
 	{
-	  if (int Len = ::WideCharToMultiByte(CodePage, Flags, Source, (int)wcslen(Source), NULL, 0, NULL, NULL)) {
-		std::vector<char> Dest(Len);
-		if (Len = ::WideCharToMultiByte(CodePage, Flags, Source, (int)wcslen(Source), &Dest[0], static_cast<int>(Dest.size()), NULL, NULL)) {
-		  return std::string(Dest.begin(), Dest.begin() + Len);
+		if ( Source && *Source ) {
+			if (int Len = ::WideCharToMultiByte(CodePage, Flags, Source, (int)wcslen(Source), NULL, 0, NULL, NULL)) {
+				std::vector<char> Dest(Len);
+				if (Len = ::WideCharToMultiByte(CodePage, Flags, Source, (int)wcslen(Source), &Dest[0], static_cast<int>(Dest.size()), NULL, NULL)) {
+					return std::string(Dest.begin(), Dest.begin() + Len);
+				}
+			}
 		}
-	  }
-	  return "";
+		return "";
 	}
-
-
+	
+	
 	std::wstring MultiByteToUnicode(const char* Source, unsigned int CodePage, DWORD Flags)
 	{
-	  if (int Len = ::MultiByteToWideChar(CodePage, Flags, Source, (int)strlen(Source), NULL, 0)) {
-		std::vector<wchar_t> Dest(Len);
-		if (Len = ::MultiByteToWideChar(CodePage, 0, Source, (int)strlen(Source), &Dest[0], static_cast<int>(Dest.size()))) {
-		  return std::wstring(Dest.begin(), Dest.begin() + Len);
+		if ( Source && *Source ) {
+			if (int Len = ::MultiByteToWideChar(CodePage, Flags, Source, (int)strlen(Source), NULL, 0)) {
+				std::vector<wchar_t> Dest(Len);
+				if (Len = ::MultiByteToWideChar(CodePage, 0, Source, (int)strlen(Source), &Dest[0], static_cast<int>(Dest.size()))) {
+					return std::wstring(Dest.begin(), Dest.begin() + Len);
+				}
+			}
 		}
-	  }
-	  return L"";
+		return L"";
 	}
-
+	
 	std::wstring CodePagetoString(unsigned int cset){
 		switch(cset){
 			case CP_SJIS:

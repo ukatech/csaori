@@ -102,6 +102,10 @@ SOURCE=..\..\csaori_base.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\csaori_util.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\kisaragi.cpp
 # End Source File
 # End Group
@@ -115,6 +119,10 @@ SOURCE=..\..\csaori.h
 # Begin Source File
 
 SOURCE=..\..\csaori_base.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\csaori_util.h
 # End Source File
 # Begin Source File
 

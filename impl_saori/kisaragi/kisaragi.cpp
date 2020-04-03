@@ -125,15 +125,38 @@ void CSAORIKisaragi::exec_type(const CSAORIInput& in,CSAORIOutput& out,string_t 
 
 	string_t result = SAORI_FUNC::MultiByteToUnicode(pLattice->toString(),CP_UTF8);
 	string_t sl;
-	string_t::size_type pos = 0;
 
-	do {
-		pos = SAORI_FUNC::getLine(sl, result, pos);
-		out.values.push_back(sl);
-	} while ( pos != string_t::npos );
-	
-	out.result = SAORI_FUNC::intToString(out.values.size());
+	if ( m_outFormat.compare(L"yomi") == 0 ) {
+		string_t::iterator ypos = result.begin();
+		char_t c;
+
+		while ( ypos != result.end() ) {
+			c = *ypos;
+
+			//ひらがな->カタカナ
+			if ( (c >= L'\x3041' && c <= L'\x3094') || (c == L'\x309D') || (c == L'\x309E') ) {
+				c += (char_t)0x60U;
+				*ypos = c;
+			}
+
+			ypos += 1;
+		}
+	}
+
+	if ( result.size() > 0 ) {
+		string_t::size_type pos = 0;
+		do {
+			pos = SAORI_FUNC::getLine(sl, result, pos);
+			out.values.push_back(sl);
+		} while ( pos != string_t::npos );
+
+		out.result = SAORI_FUNC::intToString(out.values.size());
+	}
+	else {
+		out.result = L"-1";
+	}
 	out.result_code = SAORIRESULT_OK;
+	
 	return;
 }
 
