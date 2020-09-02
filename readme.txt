@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------
 ■「CSAORI」：SAORIサンプルクラス
 ■By CSAORI Project Team
-http://code.google.com/p/csaori/
+https://github.com/ponapalt/csaori
 ----------------------------------------------------------------------
 
 ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -316,7 +316,7 @@ CSAORIは、以下の2.で明記したライセンスに従って利用できます。
 2.修正BSDライセンス
 
 Copyright (C) 2008-, CSaori Project All rights reserved.
-http://code.google.com/p/csaori/
+https://github.com/ponapalt/csaori
 
 ソースコード形式かバイナリ形式か、変更するかしないかを問わず、
 以下の条件を満たす場合に限り、再頒布および使用が許可されます。
@@ -341,4 +341,5 @@ http://code.google.com/p/csaori/
 
 ■更新履歴
 
-http://code.google.com/p/csaori/wiki/ChangeLog
+https://github.com/ponapalt/csaori/commits/master
+
