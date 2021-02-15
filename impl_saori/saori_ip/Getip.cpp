@@ -5,21 +5,20 @@
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "urlmon.lib")
 
-using namespace std;
 
-wstring string2wstring(string str) {
-  wstring result;
-  //获取缓冲区大小，并申请空间，缓冲区大小按字符计算
-  int len = MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), NULL, 0);
-  WCHAR* buffer = new WCHAR[len + 1];
-  //多字节编码转换成宽字节编码
-  MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), buffer, len);
-  buffer[len] = '\0';  //添加字符串结尾
-  //删除缓冲区并返回值
-  result=buffer;
-  delete[] buffer;
-  return result;
-}  
+std::wstring string2wstring(std::string str) {
+	std::wstring result;
+	//获取缓冲区大小，并申请空间，缓冲区大小按字符计算
+	int len = MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), NULL, 0);
+	WCHAR* buffer = new WCHAR[len + 1];
+	//多字节编码转换成宽字节编码
+	MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), buffer, len);
+	buffer[len] = '\0';  //添加字符串结尾
+	//删除缓冲区并返回值
+	result=buffer;
+	delete[] buffer;
+	return result;
+}
 
 int GetLocalHostname(std::basic_string<wchar_t>& local_name){
 	WSADATA wsaData = {0};
@@ -52,8 +51,8 @@ int GetInternetIP(std::basic_string<wchar_t>& Inernet_ip) {
 	std::string buffer;
 	GetTempPath(MAX_PATH, szTempPath);
 	UINT nResult = GetTempFileName(szTempPath, "ip", 0, szTempFile);
-	int aret = URLDownloadToFile(NULL, "http://www.ipchicken.com/", szTempFile,
-									   BINDF_GETNEWESTVERSION, NULL);
+	int aret = URLDownloadToFile(NULL,"http://usada.sakura.vg/ip.php", szTempFile,
+									  BINDF_GETNEWESTVERSION, NULL);
 	if (aret == S_FALSE) return 0;
 	FILE* fp;
 	if (fopen_s(&fp, szTempFile, "rb") != 0) {
@@ -67,12 +66,7 @@ int GetInternetIP(std::basic_string<wchar_t>& Inernet_ip) {
 		fread(&buffer[0], sizeof(TCHAR), ilength, fp);
 		fclose(fp);
 		DeleteFile(szTempFile);
-		char* str_ip = strstr(&buffer[0], "Address:");
-		if (str_ip != NULL) {
-			char tmp[32]{};
-			sscanf_s(str_ip + sizeof("Address:"), "%[^ ]", &tmp[0], 32);
-			Inernet_ip = string2wstring(&tmp[0]);
-		}
+		Inernet_ip = string2wstring(&buffer[0]);
 		return 1;
 	} else {
 		fclose(fp);
