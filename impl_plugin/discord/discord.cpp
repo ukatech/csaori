@@ -17,6 +17,7 @@
 #include <new>
 #include <iostream>
 #include <fstream>
+#include <unordered_map>
 #include <algorithm>
 
 #include "discord.h"
@@ -167,6 +168,8 @@ static string_t replace_all(const string_t &ss,const string_t &target,const stri
 	return s;
 }
 
+string_t CustomGhostInfo;
+
 /*---------------------------------------------------------------
 	イベント実行
 ---------------------------------------------------------------*/
@@ -207,6 +210,7 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 					}
 				}
 
+				CustomGhostInfo.clear();
 				Update(itlList->second.name);
 			}
 		}
@@ -263,67 +267,55 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 			pGI = &(ghost_map[path]);
 		}
 
+		CustomGhostInfo.clear();
 		Update(pGI->name);
 	}
 	//-------------------------------------------------------------------------------------------------------------------
-	if (wcsicmp(in.id.c_str(), L"OnSecondChange") == 0)
+	else if (wcsicmp(in.id.c_str(), L"OnSecondChange") == 0)
 	{
 		Discord_RunCallbacks();
 	}
-
-
+	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomGhostInfo") == 0)
+	{
+		CustomGhostInfo=in.args[0];
+		Update();
+	}
 }
 
 /*---------------------------------------------------------------
 	Discordの状態更新
 ---------------------------------------------------------------*/
-static const wchar_t* imageKeyTable[] =
+static std::unordered_map<string_t,string_t> imageKeyTable =
 {
-	L"Emily/Phase4.5\1ghost_emily",
-	L"とらふぃっく☆とれいん\1ghost_traffic",
-	L"Us' Lovex2 Dev\1ghost_uslovex2dev",
-	L"雪葵V2\1ghost_susugiv2",
-	L"Francis (is not to work)\1ghost_francis",
-	L"ナナとくろねこ\1ghost_nanakuro",
+	{L"Emily/Phase4.5",L"ghost_emily"},
+	{L"とらふぃっく☆とれいん",L"ghost_traffic"},
+	{L"Us' Lovex2 Dev",L"ghost_uslovex2dev"},
+	{L"雪葵V2",L"ghost_susugiv2"},
+	{L"Francis (is not to work)",L"ghost_francis"},
+	{L"ナナとくろねこ",L"ghost_nanakuro"},
 };
 
-void CDiscordPlugin::Update(string_t &ghostName)
+void CDiscordPlugin::Update(const string_t ghostName)
 {
-	auto itlFlag = std::find_if(flag_array.begin(), flag_array.end(), [&](auto &x) { return x.name == ghostName; });
-
-	string_t findKey = ghostName + L"\1";
-
-	const wchar_t* foundPtr = NULL;
-
-	for (int i = 0; i < _countof(imageKeyTable); i++)
-	{
-		if ( wcsstr(imageKeyTable[i], findKey.c_str()) != NULL ) {
-			foundPtr = imageKeyTable[i] + findKey.length();
-			break;
-		}
+	static std::string name;
+	static DiscordRichPresence discordPresence{};
+	if (ghostName.size()) {
+		name = SAORI_FUNC::UnicodeToMultiByte(ghostName, CP_UTF8);
+		discordPresence.startTimestamp = time(NULL);
 	}
+	std::string info = name;
+	if (CustomGhostInfo.size())
+		info += SAORI_FUNC::UnicodeToMultiByte(L": "+CustomGhostInfo, CP_UTF8);
 
-	std::string name = SAORI_FUNC::UnicodeToMultiByte(ghostName, CP_UTF8);
+	std::string foundIconName = SAORI_FUNC::UnicodeToMultiByte(imageKeyTable[ghostName], CP_UTF8);
+	if(foundIconName.empty())
+		foundIconName = "ssp_default";
 
-	DiscordRichPresence discordPresence;
-	memset(&discordPresence, 0, sizeof(discordPresence));
-	time_t currentTime;
-	discordPresence.startTimestamp = time(&currentTime);
-
-	std::string foundIconName;
-	if (foundPtr)
-	{
-		foundIconName = SAORI_FUNC::UnicodeToMultiByte(foundPtr, CP_UTF8);
-		discordPresence.largeImageKey = foundIconName.c_str();
-	}
-	else
-	{
-		discordPresence.largeImageKey = "ssp_default";
-	}
-
-	discordPresence.details = name.c_str();
+	discordPresence.details = info.c_str();
 	discordPresence.largeImageText = name.c_str();
+	discordPresence.largeImageKey = foundIconName.c_str();
 
+	auto itlFlag = std::find_if(flag_array.begin(), flag_array.end(), [&](auto& x) { return x.name == ghostName; });
 	if (itlFlag != flag_array.end() && (itlFlag->flags & CDP_FLAG_DEV) != 0)
 	{
 		discordPresence.smallImageKey = "development";
