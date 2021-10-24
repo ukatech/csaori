@@ -1,16 +1,4 @@
-﻿//setlocale//
-#ifdef _MSC_VER
-#if _MSC_VER >= 1400
-#pragma setlocale("japanese")
-#endif
-#endif
-//setlocale end//
-
-#ifdef _MSC_VER
-#pragma warning( disable : 4786 )
-#endif
-
-#define WIN32_LEAN_AND_MEAN
+﻿#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <mmsystem.h>
 

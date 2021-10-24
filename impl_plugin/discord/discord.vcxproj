@@ -178,6 +178,7 @@
     <ClInclude Include="discord-rpc\include\discord_register.h" />
     <ClInclude Include="discord-rpc\include\discord_rpc.h" />
     <ClInclude Include="discord.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
