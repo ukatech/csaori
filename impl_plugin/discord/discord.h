@@ -31,7 +31,7 @@ class CDiscordPlugin : public CPLUGIN
 private:
 	std::vector<CDiscordPluginGhostFlag> flag_array;
 
-	void Update(string_t &ghostName);
+	void Update(const string_t ghostName=L"");
 
 public:
 	CDiscordPlugin(void);
