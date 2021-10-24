@@ -1,16 +1,4 @@
-//setlocale//
-#ifdef _MSC_VER
-#if _MSC_VER >= 1400
-#pragma setlocale("japanese")
-#endif
-#endif
-//setlocale end//
-
-#ifdef _MSC_VER
-#pragma warning( disable : 4786 )
-#endif
-
-#define WIN32_LEAN_AND_MEAN
+ï»¿#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <mmsystem.h>
 
@@ -38,11 +26,11 @@
 ///////////////////////////////////////////////////
 
 /*===============================================================
-	§ŒäƒNƒ‰ƒXÀ‘•
+	åˆ¶å¾¡ã‚¯ãƒ©ã‚¹å®Ÿè£…
 ===============================================================*/
 
 /*---------------------------------------------------------------
-	ƒCƒ“ƒXƒ^ƒ“ƒXì¬icsaori_base‚©‚çŒÄ‚Î‚ê‚éj
+	ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ä½œæˆï¼ˆcsaori_baseã‹ã‚‰å‘¼ã°ã‚Œã‚‹ï¼‰
 ---------------------------------------------------------------*/
 CSAORIBase* CreateInstance(void)
 {
@@ -50,7 +38,7 @@ CSAORIBase* CreateInstance(void)
 }
 
 /*---------------------------------------------------------------
-	‰Šú‰»EŠJ•ú(DllMain”›‚è)
+	åˆæœŸåŒ–ãƒ»é–‹æ”¾(DllMainç¸›ã‚Š)
 ---------------------------------------------------------------*/
 CDiscordPlugin::CDiscordPlugin(void)
 {
@@ -61,7 +49,7 @@ CDiscordPlugin::~CDiscordPlugin()
 }
 
 /*---------------------------------------------------------------
-	‰Šú‰»(DllMain‚Æ‚Í•Ê)
+	åˆæœŸåŒ–(DllMainã¨ã¯åˆ¥)
 ---------------------------------------------------------------*/
 void handleDiscordReady(const DiscordUser* request)
 {
@@ -87,36 +75,54 @@ void handleDiscordJoinRequest(const DiscordUser* request)
 {
 }
 
+std::unordered_map<string_t,string_t> imageKeyTable{};
 bool CDiscordPlugin::load()
 {
-	std::string configPath = checkAndModifyPath("flags.txt");
-
-	std::ifstream fin;
-	fin.open(configPath);
-
-	if (fin.is_open())
 	{
-		std::string line;
+		auto TablePath = checkAndModifyPath("ImageTable.txt");
 
-		while (std::getline(fin,line))
+		std::wifstream fin(TablePath);
+		string_t buf;
+
+		while(fin){
+			getline(fin,buf);
+			auto index= buf.find(L'\t');
+			if(index!= string_t::npos){
+				imageKeyTable[buf.substr(0,index)]=buf.substr(index+1);
+			}
+		}
+
+		fin.close();
+	}
+	{
+		std::string configPath = checkAndModifyPath("flags.txt");
+
+		std::ifstream fin;
+		fin.open(configPath);
+
+		if (fin.is_open())
 		{
-			std::string flag, name;
+			std::string line;
 
-			std::stringstream line_sr(line);
+			while (std::getline(fin,line))
+			{
+				std::string flag, name;
 
-			if (line[line.size() - 1] == '\n') line.erase(line.size() - 1);
-			if (line[line.size() - 1] == '\r') line.erase(line.size() - 1);
+				std::stringstream line_sr(line);
 
-			if (std::getline(line_sr, flag, ',')) {
-				if (std::getline(line_sr, name, ',')) {
-					flag_array.push_back(CDiscordPluginGhostFlag(SAORI_FUNC::MultiByteToUnicode(name, CP_UTF8), std::stoul(flag)));
+				if (line[line.size() - 1] == '\n') line.erase(line.size() - 1);
+				if (line[line.size() - 1] == '\r') line.erase(line.size() - 1);
+
+				if (std::getline(line_sr, flag, ',')) {
+					if (std::getline(line_sr, name, ',')) {
+							flag_array.push_back(CDiscordPluginGhostFlag(SAORI_FUNC::MultiByteToUnicode(name, CP_UTF8), std::stoul(flag)));
+					}
 				}
 			}
 		}
 	}
 
-	DiscordEventHandlers handlers;
-	memset(&handlers, 0, sizeof(handlers));
+	DiscordEventHandlers handlers{};
 	handlers.ready = handleDiscordReady;
 	handlers.errored = handleDiscordError;
 	handlers.disconnected = handleDiscordDisconnected;
@@ -125,13 +131,13 @@ bool CDiscordPlugin::load()
 	handlers.joinRequest = handleDiscordJoinRequest;
 
 	// Discord_Initialize(const char* applicationId, DiscordEventHandlers* handlers, int autoRegister, const char* optionalSteamId)
-    Discord_Initialize("514051485982785536", &handlers, 0, NULL);
+	Discord_Initialize("514051485982785536", &handlers, 0, NULL);
 	
 	return true;
 }
 
 /*---------------------------------------------------------------
-	ŠJ•ú(DllMain‚Æ‚Í•Ê)
+	é–‹æ”¾(DllMainã¨ã¯åˆ¥)
 ---------------------------------------------------------------*/
 bool CDiscordPlugin::unload(void)
 {
@@ -171,7 +177,7 @@ static string_t replace_all(const string_t &ss,const string_t &target,const stri
 string_t CustomGhostInfo;
 
 /*---------------------------------------------------------------
-	ƒCƒxƒ“ƒgÀs
+	ã‚¤ãƒ™ãƒ³ãƒˆå®Ÿè¡Œ
 ---------------------------------------------------------------*/
 void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
@@ -194,7 +200,7 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 			{
 				auto itlFlag = std::find_if(flag_array.begin(), flag_array.end(), [&](auto &x) { return x.name == in.args[0]; });
 
-				if (itlFlag == flag_array.end()) //Œ©‚Â‚©‚ç‚È‚¢
+				if (itlFlag == flag_array.end()) //è¦‹ã¤ã‹ã‚‰ãªã„
 				{
 					flag_array.push_back(CDiscordPluginGhostFlag(in.args[0], CDP_FLAG_DEV));
 				}
@@ -216,7 +222,7 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 
 		string_t menu_script;
-		menu_script = L"\\t\\_q\\0ŠJ”­’†‚ÌƒS[ƒXƒg‚Éƒ`ƒFƒbƒN‚ğ“ü‚ê‚Ä‚­‚¾‚³‚¢\\nPlease check ghosts in development.\\n\\n[half]";
+		menu_script = L"\\t\\_q\\0é–‹ç™ºä¸­ã®ã‚´ãƒ¼ã‚¹ãƒˆã«ãƒã‚§ãƒƒã‚¯ã‚’å…¥ã‚Œã¦ãã ã•ã„\\nPlease check ghosts in development.\\n\\n[half]";
 
 		for (ghost_map_type::iterator it = ghost_map.begin(); it != ghost_map.end(); ++it)
 		{
@@ -229,7 +235,7 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 			}
 			else
 			{
-				menu_script += L" ";
+				menu_script += L"â–¡";
 			}
 
 			string_t q_name = replace_all(it->second.name, L"\"", L"\"\"");
@@ -241,7 +247,7 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 			menu_script += L"\"]\\n";
 		}
 
-		menu_script += L"\\n[half]\\![*]\\q[•Â‚¶‚é/Close,OnDiscordPluginChoiceSelect,__CLOSE__]";
+		menu_script += L"\\n[half]\\![*]\\q[é–‰ã˜ã‚‹/Close,OnDiscordPluginChoiceSelect,__CLOSE__]";
 
 		out.result = menu_script;
 		out.result_code = SAORIRESULT_OK;
@@ -283,18 +289,8 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 }
 
 /*---------------------------------------------------------------
-	Discord‚Ìó‘ÔXV
+	Discordã®çŠ¶æ…‹æ›´æ–°
 ---------------------------------------------------------------*/
-static std::unordered_map<string_t,string_t> imageKeyTable =
-{
-	{L"Emily/Phase4.5",L"ghost_emily"},
-	{L"‚Æ‚ç‚Ó‚¡‚Á‚­™‚Æ‚ê‚¢‚ñ",L"ghost_traffic"},
-	{L"Us' Lovex2 Dev",L"ghost_uslovex2dev"},
-	{L"áˆ¨V2",L"ghost_susugiv2"},
-	{L"Francis (is not to work)",L"ghost_francis"},
-	{L"ƒiƒi‚Æ‚­‚ë‚Ë‚±",L"ghost_nanakuro"},
-};
-
 void CDiscordPlugin::Update(const string_t ghostName)
 {
 	static std::string name;
