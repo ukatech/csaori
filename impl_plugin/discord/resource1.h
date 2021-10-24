@@ -1,8 +1,8 @@
-//{{NO_DEPENDENCIES}}
+﻿//{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
 // Used by discord1.rc
 
-// �V�����I�u�W�F�N�g�̎��̊���l
+// 新しいオブジェクトの次の既定値
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS

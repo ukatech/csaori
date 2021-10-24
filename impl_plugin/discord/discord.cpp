@@ -1,4 +1,4 @@
-//setlocale//
+ï»¿//setlocale//
 #ifdef _MSC_VER
 #if _MSC_VER >= 1400
 #pragma setlocale("japanese")
@@ -38,11 +38,11 @@
 ///////////////////////////////////////////////////
 
 /*===============================================================
-	§ŒäƒNƒ‰ƒXÀ‘•
+	åˆ¶å¾¡ã‚¯ãƒ©ã‚¹å®Ÿè£…
 ===============================================================*/
 
 /*---------------------------------------------------------------
-	ƒCƒ“ƒXƒ^ƒ“ƒXì¬icsaori_base‚©‚çŒÄ‚Î‚ê‚éj
+	ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ä½œæˆï¼ˆcsaori_baseã‹ã‚‰å‘¼ã°ã‚Œã‚‹ï¼‰
 ---------------------------------------------------------------*/
 CSAORIBase* CreateInstance(void)
 {
@@ -50,7 +50,7 @@ CSAORIBase* CreateInstance(void)
 }
 
 /*---------------------------------------------------------------
-	‰Šú‰»EŠJ•ú(DllMain”›‚è)
+	åˆæœŸåŒ–ãƒ»é–‹æ”¾(DllMainç¸›ã‚Š)
 ---------------------------------------------------------------*/
 CDiscordPlugin::CDiscordPlugin(void)
 {
@@ -61,7 +61,7 @@ CDiscordPlugin::~CDiscordPlugin()
 }
 
 /*---------------------------------------------------------------
-	‰Šú‰»(DllMain‚Æ‚Í•Ê)
+	åˆæœŸåŒ–(DllMainã¨ã¯åˆ¥)
 ---------------------------------------------------------------*/
 void handleDiscordReady(const DiscordUser* request)
 {
@@ -131,7 +131,7 @@ bool CDiscordPlugin::load()
 }
 
 /*---------------------------------------------------------------
-	ŠJ•ú(DllMain‚Æ‚Í•Ê)
+	é–‹æ”¾(DllMainã¨ã¯åˆ¥)
 ---------------------------------------------------------------*/
 bool CDiscordPlugin::unload(void)
 {
@@ -171,7 +171,7 @@ static string_t replace_all(const string_t &ss,const string_t &target,const stri
 string_t CustomGhostInfo;
 
 /*---------------------------------------------------------------
-	ƒCƒxƒ“ƒgÀs
+	ã‚¤ãƒ™ãƒ³ãƒˆå®Ÿè¡Œ
 ---------------------------------------------------------------*/
 void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 {
@@ -194,7 +194,7 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 			{
 				auto itlFlag = std::find_if(flag_array.begin(), flag_array.end(), [&](auto &x) { return x.name == in.args[0]; });
 
-				if (itlFlag == flag_array.end()) //Œ©‚Â‚©‚ç‚È‚¢
+				if (itlFlag == flag_array.end()) //è¦‹ã¤ã‹ã‚‰ãªã„
 				{
 					flag_array.push_back(CDiscordPluginGhostFlag(in.args[0], CDP_FLAG_DEV));
 				}
@@ -216,7 +216,7 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 		}
 
 		string_t menu_script;
-		menu_script = L"\\t\\_q\\0ŠJ”­’†‚ÌƒS[ƒXƒg‚Éƒ`ƒFƒbƒN‚ğ“ü‚ê‚Ä‚­‚¾‚³‚¢\\nPlease check ghosts in development.\\n\\n[half]";
+		menu_script = L"\\t\\_q\\0é–‹ç™ºä¸­ã®ã‚´ãƒ¼ã‚¹ãƒˆã«ãƒã‚§ãƒƒã‚¯ã‚’å…¥ã‚Œã¦ãã ã•ã„\\nPlease check ghosts in development.\\n\\n[half]";
 
 		for (ghost_map_type::iterator it = ghost_map.begin(); it != ghost_map.end(); ++it)
 		{
@@ -229,7 +229,7 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 			}
 			else
 			{
-				menu_script += L" ";
+				menu_script += L"â–¡";
 			}
 
 			string_t q_name = replace_all(it->second.name, L"\"", L"\"\"");
@@ -241,7 +241,7 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 			menu_script += L"\"]\\n";
 		}
 
-		menu_script += L"\\n[half]\\![*]\\q[•Â‚¶‚é/Close,OnDiscordPluginChoiceSelect,__CLOSE__]";
+		menu_script += L"\\n[half]\\![*]\\q[é–‰ã˜ã‚‹/Close,OnDiscordPluginChoiceSelect,__CLOSE__]";
 
 		out.result = menu_script;
 		out.result_code = SAORIRESULT_OK;
@@ -283,16 +283,16 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 }
 
 /*---------------------------------------------------------------
-	Discord‚Ìó‘ÔXV
+	Discordã®çŠ¶æ…‹æ›´æ–°
 ---------------------------------------------------------------*/
 static std::unordered_map<string_t,string_t> imageKeyTable =
 {
 	{L"Emily/Phase4.5",L"ghost_emily"},
-	{L"‚Æ‚ç‚Ó‚¡‚Á‚­™‚Æ‚ê‚¢‚ñ",L"ghost_traffic"},
+	{L"ã¨ã‚‰ãµãƒã£ãâ˜†ã¨ã‚Œã„ã‚“",L"ghost_traffic"},
 	{L"Us' Lovex2 Dev",L"ghost_uslovex2dev"},
-	{L"áˆ¨V2",L"ghost_susugiv2"},
+	{L"é›ªè‘µV2",L"ghost_susugiv2"},
 	{L"Francis (is not to work)",L"ghost_francis"},
-	{L"ƒiƒi‚Æ‚­‚ë‚Ë‚±",L"ghost_nanakuro"},
+	{L"ãƒŠãƒŠã¨ãã‚ã­ã“",L"ghost_nanakuro"},
 };
 
 void CDiscordPlugin::Update(const string_t ghostName)

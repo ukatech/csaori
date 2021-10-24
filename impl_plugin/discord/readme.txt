@@ -1,43 +1,43 @@
+ï»¿-----------------------------------------------------------------------------------
+â– ã€Œdiscordã€ï¼šDiscord Rich Presence Plugin
+â– Written by CSaori Project (C.Ponapalt)
+ã€€http://code.google.com/p/csaori/
 -----------------------------------------------------------------------------------
-¡udiscordvFDiscord Rich Presence Plugin
-¡Written by CSaori Project (C.Ponapalt)
-@http://code.google.com/p/csaori/
------------------------------------------------------------------------------------
 
-¡‚±‚ê‚Í‰½‚ð‚·‚é‚à‚Ì‚©
+â– ã“ã‚Œã¯ä½•ã‚’ã™ã‚‹ã‚‚ã®ã‹
 
-Discord‚ÌƒQ[ƒ€’†•\Ž¦‚ÉƒS[ƒXƒg‚Ì–¼‘O‚ð“ü‚ê‚Ü‚·B
+Discordã®ã‚²ãƒ¼ãƒ ä¸­è¡¨ç¤ºã«ã‚´ãƒ¼ã‚¹ãƒˆã®åå‰ã‚’å…¥ã‚Œã¾ã™ã€‚
 
-¡“®ìŠÂ‹«
+â– å‹•ä½œç’°å¢ƒ
 
-EWindows 7ˆÈ~
+ãƒ»Windows 7ä»¥é™
 
-¡Žg‚¢•û
+â– ä½¿ã„æ–¹
 
-ƒCƒ“ƒXƒg[ƒ‹‚µ‚½‚çŸŽè‚É“®‚«‚Ü‚·B
-uŠJ”­’†vƒtƒ‰ƒO‚ðÝ’è‚µ‚½‚¢ê‡‚ÍAƒvƒ‰ƒOƒCƒ“ƒƒjƒ…[‚©‚çDiscord Rich Presence‚ð‘I‚ñ‚Å‰º‚³‚¢B
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ãŸã‚‰å‹æ‰‹ã«å‹•ãã¾ã™ã€‚
+ã€Œé–‹ç™ºä¸­ã€ãƒ•ãƒ©ã‚°ã‚’è¨­å®šã—ãŸã„å ´åˆã¯ã€ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‹ã‚‰Discord Rich Presenceã‚’é¸ã‚“ã§ä¸‹ã•ã„ã€‚
 
-¡”z•zðŒ“™
+â– é…å¸ƒæ¡ä»¶ç­‰
 
-license.txt‚ðŒ©‚Ä‚­‚¾‚³‚¢B‚½‚¢‚µ‚½‚±‚Æ‚Í‘‚¢‚Ä‚È‚¢‚Å‚·B
+license.txtã‚’è¦‹ã¦ãã ã•ã„ã€‚ãŸã„ã—ãŸã“ã¨ã¯æ›¸ã„ã¦ãªã„ã§ã™ã€‚
 
-¡“ÁŽêƒAƒCƒRƒ“‚É‚Â‚¢‚Ä
+â– ç‰¹æ®Šã‚¢ã‚¤ã‚³ãƒ³ã«ã¤ã„ã¦
 
-ˆê•”“ÁŽê‚ÈƒAƒCƒRƒ“‚ÉØ‚è‘Ö‚í‚éƒS[ƒXƒg‚³‚ñ‚ª‚¢‚Ü‚·‚ªA‚±‚ê‚Í–{ƒvƒ‰ƒOƒCƒ“‚â‚»‚êˆÈŠO‚Å‰½‚©Contribute
-‚µ‚Ä‚¢‚½‚¾‚¢‚½•û‚Ö‚Ì‚³‚³‚â‚©‚È‚¨—ç‚É‚È‚è‚Ü‚·B‚¨Šy‚µ‚Ý‚­‚¾‚³‚¢B
+ä¸€éƒ¨ç‰¹æ®Šãªã‚¢ã‚¤ã‚³ãƒ³ã«åˆ‡ã‚Šæ›¿ã‚ã‚‹ã‚´ãƒ¼ã‚¹ãƒˆã•ã‚“ãŒã„ã¾ã™ãŒã€ã“ã‚Œã¯æœ¬ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã‚„ãã‚Œä»¥å¤–ã§ä½•ã‹Contribute
+ã—ã¦ã„ãŸã ã„ãŸæ–¹ã¸ã®ã•ã•ã‚„ã‹ãªãŠç¤¼ã«ãªã‚Šã¾ã™ã€‚ãŠæ¥½ã—ã¿ãã ã•ã„ã€‚
 
-¡XV—š—ð
+â– æ›´æ–°å±¥æ­´
 
-›2018/11/20 1.0
-@EFirst Release
+â—‹2018/11/20 1.0
+ã€€ãƒ»First Release
 
-›2018/11/21 1.0.1
-@EDiscord_RunCallbacks() ‚ðˆê‰žŒÄ‚Ô‚æ‚¤‚É‚µ‚½
+â—‹2018/11/21 1.0.1
+ã€€ãƒ»Discord_RunCallbacks() ã‚’ä¸€å¿œå‘¼ã¶ã‚ˆã†ã«ã—ãŸ
 
-›2018/11/22 1.0.2
-@E•Â‚¶‚éƒ{ƒ^ƒ“‚Å—¢XƒS[ƒXƒgãƒCƒxƒ“ƒgƒGƒ‰[‚ª‹N‚«‚é–â‘èC³
-@E‘f“G‚ÈƒTƒ€ƒVƒ“ƒOB
+â—‹2018/11/22 1.0.2
+ã€€ãƒ»é–‰ã˜ã‚‹ãƒœã‚¿ãƒ³ã§é‡Œã€…ã‚´ãƒ¼ã‚¹ãƒˆä¸Šã‚¤ãƒ™ãƒ³ãƒˆã‚¨ãƒ©ãƒ¼ãŒèµ·ãã‚‹å•é¡Œä¿®æ­£
+ã€€ãƒ»ç´ æ•µãªã‚µãƒ ã‚·ãƒ³ã‚°ã€‚
 
-›2018/11/22 1.0.2.1
-@E‘f“G‚ÈƒTƒ€ƒVƒ“ƒOB
+â—‹2018/11/22 1.0.2.1
+ã€€ãƒ»ç´ æ•µãªã‚µãƒ ã‚·ãƒ³ã‚°ã€‚
 
