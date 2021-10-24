@@ -75,36 +75,54 @@ void handleDiscordJoinRequest(const DiscordUser* request)
 {
 }
 
+std::unordered_map<string_t,string_t> imageKeyTable{};
 bool CDiscordPlugin::load()
 {
-	std::string configPath = checkAndModifyPath("flags.txt");
-
-	std::ifstream fin;
-	fin.open(configPath);
-
-	if (fin.is_open())
 	{
-		std::string line;
+		auto TablePath = checkAndModifyPath("ImageTable.txt");
 
-		while (std::getline(fin,line))
+		std::wifstream fin(TablePath);
+		string_t buf;
+
+		while(fin){
+			getline(fin,buf);
+			auto index= buf.find(L'\t');
+			if(index!= string_t::npos){
+				imageKeyTable[buf.substr(0,index)]=buf.substr(index+1);
+			}
+		}
+
+		fin.close();
+	}
+	{
+		std::string configPath = checkAndModifyPath("flags.txt");
+
+		std::ifstream fin;
+		fin.open(configPath);
+
+		if (fin.is_open())
 		{
-			std::string flag, name;
+			std::string line;
 
-			std::stringstream line_sr(line);
+			while (std::getline(fin,line))
+			{
+				std::string flag, name;
 
-			if (line[line.size() - 1] == '\n') line.erase(line.size() - 1);
-			if (line[line.size() - 1] == '\r') line.erase(line.size() - 1);
+				std::stringstream line_sr(line);
 
-			if (std::getline(line_sr, flag, ',')) {
-				if (std::getline(line_sr, name, ',')) {
-					flag_array.push_back(CDiscordPluginGhostFlag(SAORI_FUNC::MultiByteToUnicode(name, CP_UTF8), std::stoul(flag)));
+				if (line[line.size() - 1] == '\n') line.erase(line.size() - 1);
+				if (line[line.size() - 1] == '\r') line.erase(line.size() - 1);
+
+				if (std::getline(line_sr, flag, ',')) {
+					if (std::getline(line_sr, name, ',')) {
+							flag_array.push_back(CDiscordPluginGhostFlag(SAORI_FUNC::MultiByteToUnicode(name, CP_UTF8), std::stoul(flag)));
+					}
 				}
 			}
 		}
 	}
 
-	DiscordEventHandlers handlers;
-	memset(&handlers, 0, sizeof(handlers));
+	DiscordEventHandlers handlers{};
 	handlers.ready = handleDiscordReady;
 	handlers.errored = handleDiscordError;
 	handlers.disconnected = handleDiscordDisconnected;
@@ -113,7 +131,7 @@ bool CDiscordPlugin::load()
 	handlers.joinRequest = handleDiscordJoinRequest;
 
 	// Discord_Initialize(const char* applicationId, DiscordEventHandlers* handlers, int autoRegister, const char* optionalSteamId)
-    Discord_Initialize("514051485982785536", &handlers, 0, NULL);
+	Discord_Initialize("514051485982785536", &handlers, 0, NULL);
 	
 	return true;
 }
@@ -273,16 +291,6 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 /*---------------------------------------------------------------
 	Discordの状態更新
 ---------------------------------------------------------------*/
-static std::unordered_map<string_t,string_t> imageKeyTable =
-{
-	{L"Emily/Phase4.5",L"ghost_emily"},
-	{L"とらふぃっく☆とれいん",L"ghost_traffic"},
-	{L"Us' Lovex2 Dev",L"ghost_uslovex2dev"},
-	{L"雪葵V2",L"ghost_susugiv2"},
-	{L"Francis (is not to work)",L"ghost_francis"},
-	{L"ナナとくろねこ",L"ghost_nanakuro"},
-};
-
 void CDiscordPlugin::Update(const string_t ghostName)
 {
 	static std::string name;
