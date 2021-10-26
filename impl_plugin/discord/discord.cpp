@@ -48,93 +48,21 @@ CDiscordPlugin::~CDiscordPlugin()
 {
 }
 
+constexpr DiscordEventHandlers handlers{};
+void CDiscordPlugin::Discord_ReSetAPPid(const char*appid) {
+	Discord_Shutdown();
+	Appid = appid;
+	Discord_Initialize(appid, &handlers, 0, NULL);
+}
+
 /*---------------------------------------------------------------
 	初期化(DllMainとは別)
 ---------------------------------------------------------------*/
-void handleDiscordReady(const DiscordUser* request)
-{
-}
-
-void handleDiscordDisconnected(int errorCode, const char* message)
-{
-}
-
-void handleDiscordError(int errorCode, const char* message)
-{
-}
-
-void handleDiscordJoinGame(const char* joinSecret)
-{
-}
-
-void handleDiscordSpectateGame(const char* spectateSecret)
-{
-}
-
-void handleDiscordJoinRequest(const DiscordUser* request)
-{
-}
-
-std::unordered_map<string_t,string_t> imageKeyTable{};
 bool CDiscordPlugin::load()
 {
-	{
-		auto TablePath = checkAndModifyPath("ImageTable.txt");
-
-		std::wifstream fin(TablePath);
-		string_t buf;
-
-		while(fin){
-			getline(fin,buf);
-			auto index= buf.find(L'\t');
-			if(index!= string_t::npos){
-				imageKeyTable[buf.substr(0,index)]=buf.substr(index+1);
-			}
-		}
-
-		fin.close();
-	}
-	{
-		std::string configPath = checkAndModifyPath("flags.txt");
-
-		std::ifstream fin;
-		fin.open(configPath);
-
-		if (fin.is_open())
-		{
-			std::string line;
-
-			while (std::getline(fin,line))
-			{
-				std::string flag, name;
-
-				std::stringstream line_sr(line);
-
-				if (line[line.size() - 1] == '\n') line.erase(line.size() - 1);
-				if (line[line.size() - 1] == '\r') line.erase(line.size() - 1);
-
-				if (std::getline(line_sr, flag, ',')) {
-					if (std::getline(line_sr, name, ',')) {
-							flag_array.push_back(CDiscordPluginGhostFlag(SAORI_FUNC::MultiByteToUnicode(name, CP_UTF8), std::stoul(flag)));
-					}
-				}
-			}
-		}
-	}
-
-	DiscordEventHandlers handlers{};
-	handlers.ready = handleDiscordReady;
-	handlers.errored = handleDiscordError;
-	handlers.disconnected = handleDiscordDisconnected;
-	handlers.joinGame = handleDiscordJoinGame;
-	handlers.spectateGame = handleDiscordSpectateGame;
-	handlers.joinRequest = handleDiscordJoinRequest;
-
-	// Discord_Initialize(const char* applicationId, DiscordEventHandlers* handlers, int autoRegister, const char* optionalSteamId)
-	Discord_Initialize("514051485982785536", &handlers, 0, NULL);
-	
 	return true;
 }
+
 
 /*---------------------------------------------------------------
 	開放(DllMainとは別)
@@ -142,20 +70,6 @@ bool CDiscordPlugin::load()
 bool CDiscordPlugin::unload(void)
 {
 	Discord_Shutdown();
-
-	std::string configPath = checkAndModifyPath("flags.txt");
-
-	std::ofstream fout;
-	fout.open(configPath, std::ofstream::out | std::ofstream::trunc);
-	fout.seekp(0);
-
-	for (auto itl = flag_array.begin(); itl != flag_array.end(); ++itl)
-	{
-		fout << itl->flags << "," << SAORI_FUNC::UnicodeToMultiByte(itl->name, CP_UTF8) << std::endl;
-	}
-
-	fout.close();
-
 	return true;
 }
 
@@ -173,8 +87,6 @@ static string_t replace_all(const string_t &ss,const string_t &target,const stri
 
 	return s;
 }
-
-string_t CustomGhostInfo;
 
 /*---------------------------------------------------------------
 	イベント実行
@@ -198,45 +110,25 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 			if (itlList != ghost_map.end())
 			{
-				auto itlFlag = std::find_if(flag_array.begin(), flag_array.end(), [&](auto &x) { return x.name == in.args[0]; });
-
-				if (itlFlag == flag_array.end()) //見つからない
-				{
-					flag_array.push_back(CDiscordPluginGhostFlag(in.args[0], CDP_FLAG_DEV));
-				}
-				else
-				{
-					if ((itlFlag->flags & CDP_FLAG_DEV) == 0)
-					{
-						itlFlag->flags |= CDP_FLAG_DEV;
-					}
-					else
-					{
-						itlFlag->flags &= ~CDP_FLAG_DEV;
-					}
-				}
-
-				CustomGhostInfo.clear();
-				Update(itlList->second.name);
+				SetDefault(itlList->second.name);
 			}
 		}
 
 		string_t menu_script;
-		menu_script = L"\\t\\_q\\0開発中のゴーストにチェックを入れてください\\nPlease check ghosts in development.\\n\\n[half]";
+		menu_script = L"\\t\\_q\\0\
+						自分のDiscordプロファイルに表示したいゴーストをクリックしてください\\n\
+						点击你想展示于discord个人资料中的ghost\\n\
+						Click on the ghost you want to display in your discord profile\\n\
+						\\n[half]\
+						";
 
 		for (ghost_map_type::iterator it = ghost_map.begin(); it != ghost_map.end(); ++it)
 		{
-			auto itlFlag = std::find_if(flag_array.begin(), flag_array.end(), [&](auto &x) { return x.name == it->second.name; });
-
 			menu_script += L"\\![*]";
-			if (itlFlag != flag_array.end() && (itlFlag->flags & CDP_FLAG_DEV) != 0)
-			{
-				menu_script += L"\x2611";
-			}
+			if (GhostName == it->second.name)
+				menu_script += L"☑";
 			else
-			{
 				menu_script += L"□";
-			}
 
 			string_t q_name = replace_all(it->second.name, L"\"", L"\"\"");
 
@@ -255,68 +147,123 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 		return;
 	}
 	//-------------------------------------------------------------------------------------------------------------------
-	else if (wcsicmp(in.id.c_str(), L"OnGhostBoot") == 0 || wcsicmp(in.id.c_str(), L"OnGhostInfoUpdate") == 0 || wcsicmp(in.id.c_str(), L"OnGhostExit") == 0)
+	else if (wcsicmp(in.id.c_str(), L"OnGhostBoot") == 0 || wcsicmp(in.id.c_str(), L"OnGhostExit") == 0)
 	{
 		CGhostInfo *pGI = NULL;
 		if (ghost_map.empty())
-		{
 			return;
-		}
 
-		if (wcsicmp(in.id.c_str(), L"OnGhostExit") == 0)
+		if (GhostName.empty() || (wcsicmp(in.id.c_str(), L"OnGhostExit") == 0 && GhostName == in.args[1]))
 		{
 			pGI = &(ghost_map.begin()->second);
-		}
-		else
-		{
-			string_t path = in.args[4];
-			pGI = &(ghost_map[path]);
+			SetDefault(pGI->name);
 		}
 
-		CustomGhostInfo.clear();
-		Update(pGI->name);
 	}
 	//-------------------------------------------------------------------------------------------------------------------
 	else if (wcsicmp(in.id.c_str(), L"OnSecondChange") == 0)
 	{
 		Discord_RunCallbacks();
+		if (NeedNotityGhost) {
+			out.opts[L"Target"] = GhostName;
+			out.opts[L"Event"] = L"OnDiscordPluginCustom";
+			out.opts[L"EventOption"] = L"notify";
+			out.result_code = SAORIRESULT_OK;
+			NeedNotityGhost = 0;
+		}
 	}
-	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomGhostInfo") == 0)
+	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomAppid") == 0)
 	{
-		CustomGhostInfo=in.args[0];
-		Update();
+		Discord_ReSetAPPid(SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8).c_str());
+		BaseUpdate();
+	}
+	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomState") == 0)
+	{
+		CustomState = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+		BaseUpdate();
+	}
+	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomDetail") == 0)
+	{
+		CustomDetail = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+		BaseUpdate();
+	}
+	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomLargeImageKey") == 0)
+	{
+		LargeImageKey = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+		BaseUpdate();
+	}
+	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomLargeImageText") == 0)
+	{
+		LargeImageText = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+		BaseUpdate();
+	}
+	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomSmallImageKey") == 0)
+	{
+		SmallImageKey = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+		BaseUpdate();
+	}
+	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomSmallImageText") == 0)
+	{
+		SmallImageText = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+		BaseUpdate();
+	}
+	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomALL") == 0)
+	{
+		auto args=in.args;
+		args.resize(7);
+		Discord_ReSetAPPid(SAORI_FUNC::UnicodeToMultiByte(args[0], CP_UTF8).c_str());
+		CustomDetail = SAORI_FUNC::UnicodeToMultiByte(args[1], CP_UTF8);
+		CustomState = SAORI_FUNC::UnicodeToMultiByte(args[2], CP_UTF8);
+		LargeImageKey = SAORI_FUNC::UnicodeToMultiByte(args[3], CP_UTF8);
+		LargeImageText = SAORI_FUNC::UnicodeToMultiByte(args[4], CP_UTF8);
+		SmallImageKey = SAORI_FUNC::UnicodeToMultiByte(args[5], CP_UTF8);
+		SmallImageText = SAORI_FUNC::UnicodeToMultiByte(args[6], CP_UTF8);
+		BaseUpdate();
 	}
 }
 
 /*---------------------------------------------------------------
 	Discordの状態更新
 ---------------------------------------------------------------*/
-void CDiscordPlugin::Update(const string_t ghostName)
+void CDiscordPlugin::BaseUpdate()
 {
-	static std::string name;
-	static DiscordRichPresence discordPresence{};
-	if (ghostName.size()) {
-		name = SAORI_FUNC::UnicodeToMultiByte(ghostName, CP_UTF8);
-		discordPresence.startTimestamp = time(NULL);
-	}
-	std::string info = name;
-	if (CustomGhostInfo.size())
-		info += SAORI_FUNC::UnicodeToMultiByte(L": "+CustomGhostInfo, CP_UTF8);
+	discordPresence.state = CustomState.c_str();
+	discordPresence.details = CustomDetail.c_str();
+	discordPresence.largeImageKey = LargeImageKey.c_str();
+	discordPresence.largeImageText = LargeImageText.c_str();
+	discordPresence.smallImageKey = SmallImageKey.c_str();
+	discordPresence.smallImageText = SmallImageText.c_str();
 
-	std::string foundIconName = SAORI_FUNC::UnicodeToMultiByte(imageKeyTable[ghostName], CP_UTF8);
-	if(foundIconName.empty())
-		foundIconName = "ssp_default";
+	Discord_UpdatePresence(&discordPresence);
+}
+void CDiscordPlugin::ClearAll()
+{
+	discordPresence = {};
+	GhostName.clear();
+	CustomState.clear();
+	CustomDetail.clear();
+	LargeImageKey.clear();
+	LargeImageText.clear();
+	SmallImageKey.clear();
+	SmallImageText.clear();
 
-	discordPresence.details = info.c_str();
-	discordPresence.largeImageText = name.c_str();
-	discordPresence.largeImageKey = foundIconName.c_str();
+	Discord_UpdatePresence(&discordPresence);
+}
+void CDiscordPlugin::SetDefault(const string_t ghostName)
+{
+	ClearAll();
+	Discord_ReSetAPPid();
 
-	auto itlFlag = std::find_if(flag_array.begin(), flag_array.end(), [&](auto& x) { return x.name == ghostName; });
-	if (itlFlag != flag_array.end() && (itlFlag->flags & CDP_FLAG_DEV) != 0)
-	{
-		discordPresence.smallImageKey = "development";
-		discordPresence.smallImageText = "Developer";
-	}
+	GhostName = ghostName;
+	NeedNotityGhost = 1;
+
+	std::string GhostName = SAORI_FUNC::UnicodeToMultiByte(ghostName, CP_UTF8);
+
+	discordPresence.startTimestamp = time(NULL);
+
+	LargeImageKey = "ssp_default";
+	LargeImageText = GhostName;
+	CustomDetail = GhostName;
 
 	Discord_UpdatePresence(&discordPresence);
 }
