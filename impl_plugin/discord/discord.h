@@ -1,4 +1,5 @@
 ﻿#include "cplugin.h"
+#include "discord_rpc.h"
 #include <deque>
 
 #include <time.h>
@@ -9,30 +10,29 @@
 #define SHARED_VALUE_INCLUDED
 
 /*===============================================================
-	ゴーストフラグ管理用
-===============================================================*/
-#define CDP_FLAG_DEV 0x01U
-
-class CDiscordPluginGhostFlag
-{
-public:
-	string_t name;
-	unsigned int flags;
-
-	CDiscordPluginGhostFlag() : flags(0) { }
-	CDiscordPluginGhostFlag(const string_t &n,unsigned int f) : name(n), flags(f) { }
-};
-
-/*===============================================================
 	主プラグイン
 ===============================================================*/
 class CDiscordPlugin : public CPLUGIN
 {
 private:
-	std::vector<CDiscordPluginGhostFlag> flag_array;
+	bool NeedNotityGhost=0;
+	string_t GhostName;
+	std::string Appid;
+	std::string CustomState;
+	std::string CustomDetail;
+	std::string LargeImageKey;
+	std::string LargeImageText;
+	std::string SmallImageKey;
+	std::string SmallImageText;
 
-	void Update(const string_t ghostName=L"");
+	DiscordRichPresence discordPresence{};
 
+
+	void BaseUpdate();
+	void ClearAll();
+	void SetDefault(const string_t ghostName);
+
+	void Discord_ReSetAPPid(const char* appid= "514051485982785536");
 public:
 	CDiscordPlugin(void);
 	~CDiscordPlugin();
