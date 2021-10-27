@@ -251,6 +251,15 @@ void CDiscordPlugin::ClearAll()
 }
 void CDiscordPlugin::SetDefault(const string_t ghostName)
 {
+	static std::unordered_map<string_t,string_t> CompatibilityImageKeyTable =
+	{
+		{L"Emily/Phase4.5",L"ghost_emily"},
+		{L"とらふぃっく☆とれいん",L"ghost_traffic"},
+		{L"Us' Lovex2 Dev",L"ghost_uslovex2dev"},
+		{L"雪葵V2",L"ghost_susugiv2"},
+		{L"Francis (is not to work)",L"ghost_francis"},
+		{L"ナナとくろねこ",L"ghost_nanakuro"},
+	};
 	ClearAll();
 	Discord_ReSetAPPid();
 
@@ -261,7 +270,9 @@ void CDiscordPlugin::SetDefault(const string_t ghostName)
 
 	discordPresence.startTimestamp = time(NULL);
 
-	LargeImageKey = "ssp_default";
+	LargeImageKey = CompatibilityImageKeyTable[ghostName];
+	if(LargeImageKey.empty())
+		LargeImageKey = "ssp_default";
 	LargeImageText = GhostName;
 	CustomDetail = GhostName;
 
