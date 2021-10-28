@@ -126,8 +126,8 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 		string_t menu_script;
 		menu_script = L"\\t\\_q\\0\
 						自分のDiscordプロファイルに表示したいゴーストをクリックしてください\\n\
-						点击你想展示于discord个人资料中的ghost\\n\
-						Click on the ghost you want to display in your discord profile\\n\
+						点击你想展示于Discord个人资料中的ghost\\n\
+						Click on the ghost you want to display in your Discord profile\\n\
 						\\n[half]\
 						";
 
@@ -299,5 +299,5 @@ void CDiscordPlugin::SetDefault(const string_t ghostName)
 	LargeImageText = GhostName;
 	CustomDetail = GhostName;
 
-	Discord_UpdatePresence(&discordPresence);
+	BaseUpdate();
 }
