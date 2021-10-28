@@ -6,16 +6,17 @@
 
 #pragma once
 
-#ifndef SHARED_VALUE_INCLUDED
-#define SHARED_VALUE_INCLUDED
 
+enum NotityGhostState {DON_T_NEED=0,NOTIFY_END=2,NOTIFY_BEGIN=1};
 /*===============================================================
 	主プラグイン
 ===============================================================*/
 class CDiscordPlugin : public CPLUGIN
 {
 private:
-	bool NeedNotityGhost=0;
+	NotityGhostState NeedNotityGhost = DON_T_NEED;
+	string_t GhostNameForNotityEnd;
+
 	string_t GhostName;
 	std::string Appid;
 	std::string CustomState;
@@ -41,7 +42,5 @@ public:
 	virtual bool unload();
 	virtual bool load();
 };
-
-#endif //SHARED_VALUE_INCLUDED
 
 

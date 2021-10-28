@@ -164,12 +164,20 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 	else if (wcsicmp(in.id.c_str(), L"OnSecondChange") == 0)
 	{
 		Discord_RunCallbacks();
-		if (NeedNotityGhost) {
+		if (NeedNotityGhost == DON_T_NEED);
+		else if (NeedNotityGhost == NOTIFY_END) {
+			out.opts[L"Target"] = GhostNameForNotityEnd;
+			out.opts[L"Event"] = L"OnDiscordPluginCustomEnd";
+			out.opts[L"EventOption"] = L"notify";
+			out.result_code = SAORIRESULT_OK;
+			NeedNotityGhost = NOTIFY_BEGIN;
+		}
+		else if (NeedNotityGhost == NOTIFY_BEGIN) {
 			out.opts[L"Target"] = GhostName;
 			out.opts[L"Event"] = L"OnDiscordPluginCustom";
 			out.opts[L"EventOption"] = L"notify";
 			out.result_code = SAORIRESULT_OK;
-			NeedNotityGhost = 0;
+			NeedNotityGhost = DON_T_NEED;
 		}
 	}
 	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomAppid") == 0)
@@ -251,20 +259,25 @@ void CDiscordPlugin::ClearAll()
 }
 void CDiscordPlugin::SetDefault(const string_t ghostName)
 {
-	static std::unordered_map<string_t,string_t> CompatibilityImageKeyTable =
+	static std::unordered_map<string_t,std::string> CompatibilityImageKeyTable =
 	{
-		{L"Emily/Phase4.5",L"ghost_emily"},
-		{L"とらふぃっく☆とれいん",L"ghost_traffic"},
-		{L"Us' Lovex2 Dev",L"ghost_uslovex2dev"},
-		{L"雪葵V2",L"ghost_susugiv2"},
-		{L"Francis (is not to work)",L"ghost_francis"},
-		{L"ナナとくろねこ",L"ghost_nanakuro"},
+		{L"Emily/Phase4.5","ghost_emily"},
+		{L"とらふぃっく☆とれいん","ghost_traffic"},
+		{L"Us' Lovex2 Dev","ghost_uslovex2dev"},
+		{L"雪葵V2","ghost_susugiv2"},
+		{L"Francis (is not to work)","ghost_francis"},
+		{L"ナナとくろねこ","ghost_nanakuro"},
 	};
+	GhostNameForNotityEnd = GhostName;
+
 	ClearAll();
 	Discord_ReSetAPPid();
 
 	GhostName = ghostName;
-	NeedNotityGhost = 1;
+	if(GhostNameForNotityEnd.size())
+		NeedNotityGhost = NOTIFY_END;
+	else
+		NeedNotityGhost = NOTIFY_BEGIN;
 
 	std::string GhostName = SAORI_FUNC::UnicodeToMultiByte(ghostName, CP_UTF8);
 
