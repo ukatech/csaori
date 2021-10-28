@@ -172,14 +172,14 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 	{
 		Discord_RunCallbacks();
 		if (NeedNotityGhost == DON_T_NEED);
-		else if (NeedNotityGhost == NOTIFY_END) {
+		else if (NeedNotityGhost == NOTIFY_END && GhostNameForNotityEnd.size()) {
 			out.opts[L"Target"] = GhostNameForNotityEnd;
 			out.opts[L"Event"] = L"OnDiscordPluginCustomEnd";
 			out.opts[L"EventOption"] = L"notify";
 			out.result_code = SAORIRESULT_OK;
 			NeedNotityGhost = NOTIFY_BEGIN;
 		}
-		else if (NeedNotityGhost == NOTIFY_BEGIN) {
+		else if (NeedNotityGhost == NOTIFY_BEGIN && GhostName.size()) {
 			out.opts[L"Target"] = GhostName;
 			out.opts[L"Event"] = L"OnDiscordPluginCustom";
 			out.opts[L"EventOption"] = L"notify";
@@ -276,15 +276,12 @@ void CDiscordPlugin::SetDefault(const string_t ghostName)
 		{L"ナナとくろねこ","ghost_nanakuro"},
 	};
 	GhostNameForNotityEnd = GhostName;
+	NeedNotityGhost = NOTIFY_END;
 
 	ClearAll();
 	Discord_ReSetAPPid();
 
 	GhostName = ghostName;
-	if(GhostNameForNotityEnd.size())
-		NeedNotityGhost = NOTIFY_END;
-	else
-		NeedNotityGhost = NOTIFY_BEGIN;
 
 	std::string GhostName = SAORI_FUNC::UnicodeToMultiByte(ghostName, CP_UTF8);
 
