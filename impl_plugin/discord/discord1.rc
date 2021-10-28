@@ -39,7 +39,7 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "SSP BUGTRAQ"
             VALUE "FileDescription", "Discord Rich Presence Plugin"
-            VALUE "FileVersion", "1.0.2.1"
+            VALUE "FileVersion", "1.1.2.1"
             VALUE "InternalName", "discord.dll"
             VALUE "LegalCopyright", "Copyright (C) 2018 SSP BUGTRAQ"
             VALUE "OriginalFilename", "discord.dll"
