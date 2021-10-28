@@ -111,10 +111,12 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 			if (itlList != ghost_map.end())
 			{
 				if (GhostName == itlList->second.name){
-					GhostNameForNotityEnd = GhostName;
+					out.opts[L"Target"] = GhostName;
+					out.opts[L"Event"] = L"OnDiscordPluginCustomEnd";
+					out.opts[L"EventOption"] = L"notify";
+					out.result_code = SAORIRESULT_OK;
 					ClearAll();
 					Discord_Shutdown();
-					NeedNotityGhost = NOTIFY_END;
 				}
 				else
 					SetDefault(itlList->second.name);
@@ -172,18 +174,22 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 	{
 		Discord_RunCallbacks();
 		if (NeedNotityGhost == DON_T_NEED);
-		else if (NeedNotityGhost == NOTIFY_END && GhostNameForNotityEnd.size()) {
-			out.opts[L"Target"] = GhostNameForNotityEnd;
-			out.opts[L"Event"] = L"OnDiscordPluginCustomEnd";
-			out.opts[L"EventOption"] = L"notify";
-			out.result_code = SAORIRESULT_OK;
+		else if (NeedNotityGhost == NOTIFY_END) {
+			if(GhostNameForNotityEnd.size()){
+				out.opts[L"Target"] = GhostNameForNotityEnd;
+				out.opts[L"Event"] = L"OnDiscordPluginCustomEnd";
+				out.opts[L"EventOption"] = L"notify";
+				out.result_code = SAORIRESULT_OK;
+			}
 			NeedNotityGhost = NOTIFY_BEGIN;
 		}
-		else if (NeedNotityGhost == NOTIFY_BEGIN && GhostName.size()) {
-			out.opts[L"Target"] = GhostName;
-			out.opts[L"Event"] = L"OnDiscordPluginCustom";
-			out.opts[L"EventOption"] = L"notify";
-			out.result_code = SAORIRESULT_OK;
+		else if (NeedNotityGhost == NOTIFY_BEGIN) {
+			if(GhostName.size()){
+				out.opts[L"Target"] = GhostName;
+				out.opts[L"Event"] = L"OnDiscordPluginCustom";
+				out.opts[L"EventOption"] = L"notify";
+				out.result_code = SAORIRESULT_OK;
+			}
 			NeedNotityGhost = DON_T_NEED;
 		}
 	}
