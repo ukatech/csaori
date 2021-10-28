@@ -110,7 +110,14 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 
 			if (itlList != ghost_map.end())
 			{
-				SetDefault(itlList->second.name);
+				if (GhostName == itlList->second.name){
+					GhostNameForNotityEnd = GhostName;
+					ClearAll();
+					Discord_Shutdown();
+					NeedNotityGhost = NOTIFY_END;
+				}
+				else
+					SetDefault(itlList->second.name);
 			}
 		}
 
