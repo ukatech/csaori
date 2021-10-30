@@ -50,9 +50,11 @@ CDiscordPlugin::~CDiscordPlugin()
 
 constexpr DiscordEventHandlers handlers{};
 void CDiscordPlugin::Discord_ReSetAPPid(const char*appid) {
-	Discord_Shutdown();
-	Appid = appid;
-	Discord_Initialize(appid, &handlers, 0, NULL);
+	if(Appid!=appid){
+		Appid = appid;
+		Discord_Shutdown();
+		Discord_Initialize(appid, &handlers, 0, NULL);
+	}
 }
 
 /*---------------------------------------------------------------
