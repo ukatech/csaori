@@ -197,37 +197,58 @@ void CDiscordPlugin::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomAppid") == 0)
 	{
-		Discord_ReSetAPPid(SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8).c_str());
+		string_t arg0;
+		if(in.args.size())
+			arg0 = in.args[0];
+		Discord_ReSetAPPid(SAORI_FUNC::UnicodeToMultiByte(arg0, CP_UTF8).c_str());
 		BaseUpdate();
 	}
 	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomState") == 0)
 	{
-		CustomState = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+		string_t arg0;
+		if(in.args.size())
+			arg0 = in.args[0];
+		CustomState = SAORI_FUNC::UnicodeToMultiByte(arg0, CP_UTF8);
 		BaseUpdate();
 	}
 	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomDetail") == 0)
 	{
-		CustomDetail = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+		string_t arg0;
+		if(in.args.size())
+			arg0 = in.args[0];
+		CustomDetail = SAORI_FUNC::UnicodeToMultiByte(arg0, CP_UTF8);
 		BaseUpdate();
 	}
 	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomLargeImageKey") == 0)
 	{
-		LargeImageKey = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+		string_t arg0;
+		if(in.args.size())
+			arg0 = in.args[0];
+		LargeImageKey = SAORI_FUNC::UnicodeToMultiByte(arg0, CP_UTF8);
 		BaseUpdate();
 	}
 	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomLargeImageText") == 0)
 	{
-		LargeImageText = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+		string_t arg0;
+		if(in.args.size())
+			arg0 = in.args[0];
+		LargeImageText = SAORI_FUNC::UnicodeToMultiByte(arg0, CP_UTF8);
 		BaseUpdate();
 	}
 	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomSmallImageKey") == 0)
 	{
-		SmallImageKey = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+		string_t arg0;
+		if(in.args.size())
+			arg0 = in.args[0];
+		SmallImageKey = SAORI_FUNC::UnicodeToMultiByte(arg0, CP_UTF8);
 		BaseUpdate();
 	}
 	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomSmallImageText") == 0)
 	{
-		SmallImageText = SAORI_FUNC::UnicodeToMultiByte(in.args[0], CP_UTF8);
+		string_t arg0;
+		if(in.args.size())
+			arg0 = in.args[0];
+		SmallImageText = SAORI_FUNC::UnicodeToMultiByte(arg0, CP_UTF8);
 		BaseUpdate();
 	}
 	else if (wcsicmp(in.id.c_str(), L"OnDiscordPluginCustomALL") == 0)
