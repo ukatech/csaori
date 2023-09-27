@@ -1,3 +1,3 @@
 #include <string>
 
-std::wstring bignum_cacl(std::wstring a,std::wstring b,wchar_t opt);
+std::wstring bignum_cacl(std::wstring opt,std::wstring a, std::wstring b);

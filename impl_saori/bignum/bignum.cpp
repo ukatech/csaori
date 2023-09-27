@@ -31,6 +31,6 @@ void CSAORI::exec(const CSAORIInput& in, CSAORIOutput& out) {
 	if(in.args[2].size() == 0)
 		return;
 	out.result_code = SAORIRESULT_OK;
-	out.result		= bignum_cacl(in.args[0],in.args[1],in.args[2][0]);
+	out.result		= bignum_cacl(in.args[0],in.args[1],in.args[2]);
 	return;
 }
