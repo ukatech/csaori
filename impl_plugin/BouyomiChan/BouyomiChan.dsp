@@ -54,12 +54,6 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib wsock32.lib /nologo /dll /machine:I386 /out:"D:\ssp_src_set\ssp\plugin\BouyomiChan/BouyomiChan.dll"
-# Begin Special Build Tool
-TargetPath=\ssp_src_set\ssp\plugin\BouyomiChan\BouyomiChan.dll
-SOURCE="$(InputPath)"
-PostBuild_Desc=Compressing...
-PostBuild_Cmds=upx -q --best --compress-icons=0 $(TargetPath)
-# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "BouyomiChan - Win32 Debug"
 
@@ -109,6 +103,10 @@ SOURCE=..\..\cplugin.cpp
 
 SOURCE=..\..\csaori_base.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=..\..\csaori_util.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -124,6 +122,10 @@ SOURCE=..\..\cplugin.h
 # Begin Source File
 
 SOURCE=..\..\csaori_base.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\csaori_util.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
