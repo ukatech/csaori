@@ -77,8 +77,8 @@ IDD_SAORITESTER_DIALOG DIALOGEX 0, 0, 479, 325
 STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_ACCEPTFILES | WS_EX_APPWINDOW
-CAPTION "SaoriTester : Developers' SAORI Testing Platform / 1.1.0"
-FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+CAPTION "SaoriTester : Developers' SAORI Testing Platform / 1.2.0"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN", 0, 0, 0x1
 BEGIN
     GROUPBOX        "Argument",IDC_STATIC,2,3,322,175
     LTEXT           "0",IDC_STATIC,9,16,8,8
@@ -129,8 +129,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,2,0,0
+ PRODUCTVERSION 1,2,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -143,17 +143,20 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "041104B0"
+        BLOCK "041104b0"
         BEGIN
+            VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "SaoriTester MFC ±ÌßØ¹°¼®Ý\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "FileDescription", "SaoriTester\0"
+            VALUE "FileVersion", "1, 2, 0, 0\0"
             VALUE "InternalName", "SaoriTester\0"
-            VALUE "LegalCopyright", "Copyright (C) 2009\0"
-            VALUE "LegalTrademarks", "\0"
+            VALUE "LegalCopyright", "csaori\0"
+            VALUE "LegalTrademarks", "csaori\0"
             VALUE "OriginalFilename", "SaoriTester.EXE\0"
+            VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "SaoriTester ±ÌßØ¹°¼®Ý\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "ProductVersion", "1, 2, 0, 0\0"
+            VALUE "SpecialBuild", "\0"
         END
     END
     BLOCK "VarFileInfo"
