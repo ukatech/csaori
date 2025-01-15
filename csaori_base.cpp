@@ -367,8 +367,8 @@ std::string CSAORIBase::request(const std::string &rq_tmp)
 	return res_str;
 }
 
-void CSAORIBase::setModulePath(const std::string &str){
-	module_path=SAORI_FUNC::MultiByteToUnicode(str);
+void CSAORIBase::setModulePath(const std::string &str,bool isUTF8){
+	module_path=SAORI_FUNC::MultiByteToUnicode(str,isUTF8 ? CP_UTF8 : CP_OEMCP);
 }
 
 void CSAORIBase::setModuleHandle(HANDLE hMod){
@@ -561,10 +561,7 @@ request(HGLOBAL h, long *len)
 	return h;
 }
 
-SAORIAPI
-BOOL
-SAORICDECL
-load(HGLOBAL h, long len)
+static BOOL load_shared(HGLOBAL h, long len, bool isUTF8)
 {
 #ifdef _DEBUG
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
@@ -578,7 +575,7 @@ load(HGLOBAL h, long len)
 		std::string mpath;
 		mpath.assign((char*)h,len);
 		GlobalFree(h);
-		pSaori->setModulePath(mpath);
+		pSaori->setModulePath(mpath,isUTF8);
 		pSaori->setModuleHandle(g_hModule);
 	}
 
@@ -596,6 +593,22 @@ load(HGLOBAL h, long len)
 #endif
 
 	return re;
+}
+
+SAORIAPI
+BOOL
+SAORICDECL
+loadu(HGLOBAL h, long len)
+{
+	return load_shared(h,len,true);
+}
+
+SAORIAPI
+BOOL
+SAORICDECL
+load(HGLOBAL h, long len)
+{
+	return load_shared(h,len,false);
 }
 
 SAORIAPI

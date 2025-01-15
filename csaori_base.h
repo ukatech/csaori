@@ -99,7 +99,7 @@ private:
 
 public:
 	//Internal Functions
-	void setModulePath(const std::string &str);
+	void setModulePath(const std::string &str,bool isUTF8);
 	void setModuleHandle(HANDLE hMod);
 
 	const string_t& getModulePath(void) const { return module_path; }

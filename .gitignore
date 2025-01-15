@@ -1,4 +1,3 @@
-
 *.pch
 *.pdb
 *.obj
@@ -11,3 +10,5 @@
 *.plg
 *.ilk
 *.exe
+Debug
+Release
