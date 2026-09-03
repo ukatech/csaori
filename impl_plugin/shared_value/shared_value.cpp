@@ -502,7 +502,7 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 
 	//--------------------------------------------------------
-	if ( wcsicmp(in.id.c_str(),L"OnGetProperty") == 0 ) {
+	if ( wcsicmp(in.id.c_str(),L"property.get") == 0 || wcsicmp(in.id.c_str(),L"OnGetProperty") == 0 ) {
 		if ( in.args.size() >= 1 ) {
 			// ghost(ゴースト名).key(キー名) をパース
 			const string_t &prop = in.args[0];
@@ -547,7 +547,7 @@ void CSharedValue::exec(const CSAORIInput& in,CSAORIOutput& out)
 	}
 
 	//--------------------------------------------------------
-	if ( wcsicmp(in.id.c_str(),L"OnSetProperty") == 0 ) {
+	if ( wcsicmp(in.id.c_str(),L"property.set") == 0 || wcsicmp(in.id.c_str(),L"OnSetProperty") == 0 ) {
 		if ( in.args.size() >= 2 ) {
 			// ghost(ゴースト名).key(キー名) をパース
 			const string_t &prop = in.args[0];
